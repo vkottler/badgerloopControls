@@ -7,7 +7,6 @@
       <itemPath>config.h</itemPath>
       <itemPath>main.h</itemPath>
       <itemPath>timer1.h</itemPath>
-      <itemPath>initialize.h</itemPath>
       <itemPath>usbUART.h</itemPath>
       <itemPath>ledShield.h</itemPath>
     </logicalFolder>
@@ -20,7 +19,6 @@
                    projectFiles="true">
       <itemPath>main.c</itemPath>
       <itemPath>timer1.c</itemPath>
-      <itemPath>initialize.c</itemPath>
       <itemPath>usbUART.c</itemPath>
       <itemPath>ledShield.c</itemPath>
     </logicalFolder>

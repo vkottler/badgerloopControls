@@ -3,6 +3,12 @@
 
 #define MAX_LENGTH      100
 
+void initializers(void) {
+    initLEDs();
+    initializeTimer1(0x8000, 0xFFFF);
+    initUART();
+}
+
 int main(void) {
     
     char incoming[MAX_LENGTH];
