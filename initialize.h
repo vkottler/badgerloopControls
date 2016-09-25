@@ -9,4 +9,5 @@
 #define BOARD_LED2      LATCbits.LATC1
 
 void initializers(void);
-void blinkBoardLights(int times);
+void blinkBoardLights(int times, int time);
+void setBoardLight(int light, int state);

@@ -1,14 +1,23 @@
 #include <xc.h>
+#include <string.h>
 #include "main.h"
 
+#define MAX_LENGTH      100
+
 int main(void) {
+    
+    char incoming[MAX_LENGTH];
     
     initializers();
     
     while (1) {
-        blinkBoardLights(5);
-        delay(2000, MILLI);
+        if (UARTavailable()) {
+            getMessage(incoming, MAX_LENGTH);
+            blinkBoardLights(5, 100);
+            println(incoming);
+        }
+        println("Heartbeat.");
+        delay(1000, MILLI);
     }
-    
     return 0;
 }

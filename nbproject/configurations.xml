@@ -8,6 +8,8 @@
       <itemPath>main.h</itemPath>
       <itemPath>timer1.h</itemPath>
       <itemPath>initialize.h</itemPath>
+      <itemPath>usbUART.h</itemPath>
+      <itemPath>ledShield.h</itemPath>
     </logicalFolder>
     <logicalFolder name="LinkerScript"
                    displayName="Linker Files"
@@ -19,6 +21,8 @@
       <itemPath>main.c</itemPath>
       <itemPath>timer1.c</itemPath>
       <itemPath>initialize.c</itemPath>
+      <itemPath>usbUART.c</itemPath>
+      <itemPath>ledShield.c</itemPath>
     </logicalFolder>
     <logicalFolder name="ExternalFiles"
                    displayName="Important Files"
