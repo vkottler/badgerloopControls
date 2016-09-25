@@ -1,5 +1,4 @@
 #include <xc.h>
-#include <string.h>
 #include "initialize.h"
 // 115200 baud, 8 bit 1 stop no parity
 
