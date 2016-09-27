@@ -21,3 +21,4 @@ void toggleShieldLight(int light, int state);
 void toggleAllShieldLights(int state);
 void blinkBoardLights(int times, int time);
 void setBoardLight(int light, int state);
+int readButton(void);

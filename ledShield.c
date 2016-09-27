@@ -61,3 +61,5 @@ void setBoardLight(int light, int state) {
         default: BOARD_LED1 = state, BOARD_LED2 = state;
     }
 }
+
+int readButton(void) { return !BUTTONSIG; }
