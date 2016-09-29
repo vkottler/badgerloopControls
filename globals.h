@@ -1,1 +1,0 @@
-extern volatile int events;

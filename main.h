@@ -1,8 +1,10 @@
 #include <xc.h>
+#include <sys/attribs.h>
 #include "config.h"
-#include "timer1.h"
-#include "slowTimer.h"
-#include "usbUART.h"
-#include "ledShield.h"
-#include "utils.h"
-#include "globals.h"
+
+#define BOARD_LED1      LATAbits.LATA3
+#define BOARD_LED2      LATCbits.LATC1
+#define BOARD_LED1DIR   TRISAbits.TRISA3
+#define BOARD_LED2DIR   TRISCbits.TRISC1
+#define OUTPUT          0
+#define INPUT           1

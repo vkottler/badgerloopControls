@@ -1,2 +1,3 @@
-# badgerloopControls
-For my controls team. We will have separate branches for each project.
+# Interrupt Example
+
+Example code for how to blink the two onboard LEDs using a 1s period with Timer1!

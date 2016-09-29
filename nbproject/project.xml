@@ -3,8 +3,8 @@
     <type>com.microchip.mplab.nbide.embedded.makeproject</type>
     <configuration>
         <data xmlns="http://www.netbeans.org/ns/make-project/1">
-            <name>BadgerloopControls</name>
-            <creation-uuid>bd44d2c7-0ff7-4ea6-a990-5689d71890d3</creation-uuid>
+            <name>barebonesTesting</name>
+            <creation-uuid>2ab9122f-6579-4dfb-9a18-993d4c3b4835</creation-uuid>
             <make-project-type>0</make-project-type>
             <c-extensions>c</c-extensions>
             <cpp-extensions/>
