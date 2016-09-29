@@ -18,7 +18,7 @@ void initializeSlowTimer(int ms) {
     T4CONSET = 0x0078;  // T32, 1:256
     setSlowTimerPeriod(ms);
     IPC5bits.T5IP = 1; // priority 1
-    IPC5bits.IC5IS = 1; // sub-priority 1
+    IPC5bits.T5IS = 1; // sub-priority 1
     IFS0bits.T5IF = 0; // Clear Timer5 interrupt status flag
     IEC0bits.T5IE = 1; // Enable Timer5 interrupts
     startSlowTimer();
