@@ -18,7 +18,7 @@ int readADC(int ch) {
     AD1CHSbits.CH0NA = 0;   // keep this default (negative = VREFL)
     AD1CHSbits.CH0SA = ch;
     AD1CON1bits.SAMP = 1;   // start sampling
-    delay(100,100);            // we can tamper with this to save time if needed
+    delay(100, 100);            // we can tamper with this to save time if needed
     AD1CON1bits.SAMP = 0;   // stop sampling, start conversion
     while (!AD1CON1bits.DONE);
     return ADC1BUF0;
