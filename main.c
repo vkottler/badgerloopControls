@@ -14,7 +14,6 @@ struct Sensor {
     // make sure type corresponds to the correct constant
     int type;
     int pin1;
-    int pin2;
 };
 
 void initializers(void) {
@@ -43,22 +42,22 @@ int main(void) {
     struct Sensor sensors[NUM_SENSORS];
     // if there's a better way of doing this, please change
     // var name  =   {type for print, type for int, pin1, pin2}
-    sensors[0]   =   (struct Sensor){"THERMISTOR 1", THERMISTOR, 0, 0};
-    sensors[1]   =   (struct Sensor){"THERMISTOR 2", THERMISTOR, 0, 0};
-    sensors[2]   =   (struct Sensor){"THERMISTOR 3", THERMISTOR, 0, 0};
-    sensors[3]   =   (struct Sensor){"THERMISTOR 1", THERMISTOR, 0, 0};
-    sensors[4]   =   (struct Sensor){"THERMISTOR 1", THERMISTOR, 0, 0};
-    sensors[5]   =   (struct Sensor){"THERMISTOR 1", THERMISTOR, 0, 0};
-    sensors[6]   =   (struct Sensor){"THERMISTOR 1", THERMISTOR, 0, 0};
-    sensors[7]   =   (struct Sensor){"THERMISTOR 1", THERMISTOR, 0, 0};
-    sensors[8]   =   (struct Sensor){"THERMISTOR 1", THERMISTOR, 0, 0};
-    sensors[9]   =   (struct Sensor){"THERMISTOR 1", THERMISTOR, 0, 0};
-    sensors[10]  =   (struct Sensor){"THERMISTOR 1", THERMISTOR, 0, 0};
-    sensors[11]  =   (struct Sensor){"THERMISTOR 1", THERMISTOR, 0, 0};
-    sensors[12]  =   (struct Sensor){"THERMISTOR 1", THERMISTOR, 0, 0};
-    sensors[13]  =   (struct Sensor){"THERMISTOR 1", THERMISTOR, 0, 0};
-    sensors[14]  =   (struct Sensor){"THERMISTOR 1", THERMISTOR, 0, 0};
-    sensors[15]  =   (struct Sensor){"THERMISTOR 1", THERMISTOR, 0, 0};
+    sensors[0]   =   (struct Sensor){"MOTOR THERMISTOR 1", THERMISTOR, 0};
+    sensors[1]   =   (struct Sensor){"MOTOR THERMISTOR 2", THERMISTOR, 0};
+    sensors[2]   =   (struct Sensor){"THERMISTOR 1", THERMISTOR, 0};
+    sensors[3]   =   (struct Sensor){"THERMISTOR 2", THERMISTOR, 0};
+    sensors[4]   =   (struct Sensor){"THERMISTOR 3", THERMISTOR, 0};
+    sensors[5]   =   (struct Sensor){"THERMISTOR 4", THERMISTOR, 0};
+    sensors[6]   =   (struct Sensor){"THERMISTOR 5", THERMISTOR, 0};
+    sensors[7]   =   (struct Sensor){"THERMISTOR 6", THERMISTOR, 0};
+    sensors[8]   =   (struct Sensor){"THERMISTOR 7", THERMISTOR, 0};
+    sensors[9]   =   (struct Sensor){"THERMISTOR 8", THERMISTOR, 0};
+    sensors[10]  =   (struct Sensor){"THERMISTOR 9", THERMISTOR, 0};
+    sensors[11]  =   (struct Sensor){"LEM 1", LEM, 0};
+    sensors[12]  =   (struct Sensor){"LEM 2", LEM, 0};
+    sensors[13]  =   (struct Sensor){"VTAPS 1", VTAPS, 0};
+    sensors[14]  =   (struct Sensor){"VTAPS 2", VTAPS, 0};
+    sensors[15]  =   (struct Sensor){"VTAPS 3", VTAPS, 0};
     
     int i;
     while (1) {   
