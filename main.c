@@ -4,7 +4,9 @@
 #define MAX_LENGTH          100
 #define NUM_SENSORS         15
 #define THERMISTOR          1
-#define VOLTAGE             4
+#define LEM                 2
+#define VTAPS               3
+#define PRESSURE            4
 #define RAW_VALUE           0
 
 /* having a sensors struct should make formatting to a csv easier since we
@@ -14,6 +16,7 @@ struct Sensor {
     // make sure type corresponds to the correct constant
     int type;
     int pin1;
+    int pin2;
 };
 
 void initializers(void) {
@@ -23,12 +26,18 @@ void initializers(void) {
     ADCinit();
 }
 /* In order to make this more modular */
-int readSensor(struct Sensor sensor) {
+double readSensor(struct Sensor sensor) {
     switch(sensor.type) {
         case THERMISTOR :
             return readThermistor(sensor.pin1, sensor.pin2);
             break;
+        case LEM :
+            break;
+        case VTAPS :
+            break;
          // add extra cases for each sensor
+        case PRESSURE :
+            return HPgetPressure();
         case RAW_VALUE :
             return readADC(sensor.pin1);
            
@@ -41,29 +50,29 @@ int main(void) {
     initializers();
     struct Sensor sensors[NUM_SENSORS];
     // if there's a better way of doing this, please change
-    // var name  =   {type for print, type for int, pin1, pin2}
-    sensors[0]   =   (struct Sensor){"MOTOR THERMISTOR 1", THERMISTOR, 0};
-    sensors[1]   =   (struct Sensor){"MOTOR THERMISTOR 2", THERMISTOR, 0};
-    sensors[2]   =   (struct Sensor){"THERMISTOR 1", THERMISTOR, 0};
-    sensors[3]   =   (struct Sensor){"THERMISTOR 2", THERMISTOR, 0};
-    sensors[4]   =   (struct Sensor){"THERMISTOR 3", THERMISTOR, 0};
-    sensors[5]   =   (struct Sensor){"THERMISTOR 4", THERMISTOR, 0};
-    sensors[6]   =   (struct Sensor){"THERMISTOR 5", THERMISTOR, 0};
-    sensors[7]   =   (struct Sensor){"THERMISTOR 6", THERMISTOR, 0};
-    sensors[8]   =   (struct Sensor){"THERMISTOR 7", THERMISTOR, 0};
-    sensors[9]   =   (struct Sensor){"THERMISTOR 8", THERMISTOR, 0};
-    sensors[10]  =   (struct Sensor){"THERMISTOR 9", THERMISTOR, 0};
-    sensors[11]  =   (struct Sensor){"LEM 1", LEM, 0};
-    sensors[12]  =   (struct Sensor){"LEM 2", LEM, 0};
-    sensors[13]  =   (struct Sensor){"VTAPS 1", VTAPS, 0};
-    sensors[14]  =   (struct Sensor){"VTAPS 2", VTAPS, 0};
-    sensors[15]  =   (struct Sensor){"VTAPS 3", VTAPS, 0};
-    
+    // var name  =   {type for print, type for double, pin1, pin2}
+    sensors[0]   =   (struct Sensor){"MOTOR THERMISTOR 1", THERMISTOR, 0, 0};
+    sensors[1]   =   (struct Sensor){"MOTOR THERMISTOR 2", THERMISTOR, 0, 0};
+    sensors[2]   =   (struct Sensor){"PRESSURE SENSOR", PRESSURE, 0, 0};
+    sensors[3]   =   (struct Sensor){"THERMISTOR 2", THERMISTOR, 0, 0};
+    sensors[4]   =   (struct Sensor){"THERMISTOR 3", THERMISTOR, 0, 0};
+    sensors[5]   =   (struct Sensor){"THERMISTOR 4", THERMISTOR, 0, 0};
+    sensors[6]   =   (struct Sensor){"THERMISTOR 5", THERMISTOR, 0, 0};
+    sensors[7]   =   (struct Sensor){"THERMISTOR 6", THERMISTOR, 0, 0};
+    sensors[8]   =   (struct Sensor){"THERMISTOR 7", THERMISTOR, 0, 0};
+    sensors[9]   =   (struct Sensor){"THERMISTOR 8", THERMISTOR, 0, 0};
+    sensors[10]  =   (struct Sensor){"THERMISTOR 9", THERMISTOR, 0, 0};
+    sensors[11]  =   (struct Sensor){"LEM 1", LEM, 0, 0};
+    sensors[12]  =   (struct Sensor){"LEM 2", LEM, 0, 0};
+    sensors[13]  =   (struct Sensor){"VTAPS 1", VTAPS, 0, 0};
+    sensors[14]  =   (struct Sensor){"VTAPS 2", VTAPS, 0, 0};
+    sensors[15]  =   (struct Sensor){"VTAPS 3", VTAPS, 0, 0};
+      
     int i;
     while (1) {   
         for (i = 0; i < NUM_SENSORS; i++) { // #clarity
-            printf("Reading %s: %d\n", sensors[i].name, 
-                                       readSensor(sensors[0]));
+            println(sprintf("Reading %s: %d\n", sensors[i].name, 
+                                       readSensor(sensors[0])));
         }
         
         delay(1000, MILLI);
