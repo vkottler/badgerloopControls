@@ -30,21 +30,21 @@ int main(void) {
     //waitForButton();
     
     while (1) {
+        
         //if (UARTavailable()) {
         //    getMessage(message, MAX_LENGTH);
         //    blinkBoardLights(5, 100);
         //    println(message);
         //}
-        if (events >= 1) {
-            curr = curr ^ 1;
-            YELLOW1 = curr;
-            YELLOW2 = curr;
-            events--;
+        
+        if (events) {
+            if (events && TIMER_5_BIT) {
+                BOARD_LED1 = curr;
+                curr ^= 0x1;
+                BOARD_LED2 = curr;
+                events &= TIMER_5_MASK;
+            }
         }
-        RED1 = 1;
-        delay(1000, MILLI);
-        RED1 = 0;
-        delay(1000, MILLI);
     }
     return 0;
 }

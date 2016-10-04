@@ -1,8 +1,6 @@
 #include <xc.h>
+#include "slowTimer.h"
 #include "globals.h"
-
-void startSlowTimer() { T4CONSET = 0x8000; }
-void stopSlowTimer() {T4CONCLR = 0x8000; }
 
 void setSlowTimerPeriod(int ms) {
     TMR4 = 0;
@@ -14,17 +12,18 @@ void setSlowTimerPeriod(int ms) {
 // 32 bit timer: maximum period = ~4.77 hours!
 // note parameter cannot exceed 17179869 without PRX overflow
 void initializeSlowTimer(int ms) {
-    T4CON = 0x0; T5CON = 0x0;
-    T4CONSET = 0x0078;  // T32, 1:256
+    T5CON = 0;
+    T4CONbits.TCKPS = 7;    // 1:256
+    T4CONbits.T32 = 1;      // 32 bit timer
+    IPC5bits.T5IP = 1;      // priority 1
+    IPC5bits.T5IS = 1;      // sub-priority 1
+    IFS0bits.T5IF = 0;      // Clear Timer5 interrupt status flag
+    IEC0bits.T5IE = 1;      // Enable Timer5 interrupts
     setSlowTimerPeriod(ms);
-    IPC5bits.T5IP = 1; // priority 1
-    IPC5bits.IC5IS = 1; // sub-priority 1
-    IFS0bits.T5IF = 0; // Clear Timer5 interrupt status flag
-    IEC0bits.T5IE = 1; // Enable Timer5 interrupts
-    startSlowTimer();
+    T4CONbits.ON = 1;
 }
 
-void slowTimerHandler(void) {
-    events++;
+void __ISR (_TIMER_5_VECTOR, IPL1SOFT) slowTimerHandler(void) {
+    events |= TIMER_5_BIT;
     IFS0bits.T5IF = 0;
 }
