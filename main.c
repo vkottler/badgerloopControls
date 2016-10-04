@@ -8,7 +8,8 @@
 #define RAW_VALUE           0
 
 /* having a sensors struct should make formatting to a csv easier since we
- can just write a for loop to output all the data*/
+ can just write a for loop to output all the data. If needed, let pin1 be 
+ a I2C address.*/
 struct Sensor {
     char* name;
     // make sure type corresponds to the correct constant
@@ -66,8 +67,7 @@ int main(void) {
             printf("Reading %s: %d\n", sensors[i].name, 
                                        readSensor(sensors[0]));
         }
-        
-        delay(1000, MILLI);
+        delay(1000, MILLI); // get a reading every second
     }
     return 0;
 }
