@@ -88,7 +88,7 @@ int main(void) {
     while (1) {   
         for (i = 0; i < NUM_SENSORS; i++) { // #clarity
             println(sprintf("Reading %s: %d\n", sensors[i].name, 
-                                       readSensor(sensors[0])));
+                                       readSensor(sensors[i])));
         }
         delay(1000, MILLI); // get a reading every second
     }
