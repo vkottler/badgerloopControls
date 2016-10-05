@@ -10,7 +10,7 @@ void initializers(void) {
     DDPCONbits.JTAGEN = 0;
     initLEDs();
     initializeTimer1(0x8000, 0xffff);
-    initializeSlowTimer(1000);
+    //initializeSlowTimer(1000);
     //initUART();
     
     // Print Board Info
@@ -44,6 +44,7 @@ int main(void) {
                 BOARD_LED2 = curr;
                 events &= TIMER_5_MASK;
             }
+            
         }
     }
     return 0;

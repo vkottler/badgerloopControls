@@ -12,6 +12,7 @@
       <itemPath>utils.h</itemPath>
       <itemPath>slowTimer.h</itemPath>
       <itemPath>globals.h</itemPath>
+      <itemPath>SPI.h</itemPath>
     </logicalFolder>
     <logicalFolder name="LinkerScript"
                    displayName="Linker Files"
@@ -27,6 +28,7 @@
       <itemPath>utils.c</itemPath>
       <itemPath>globals.c</itemPath>
       <itemPath>slowTimer.c</itemPath>
+      <itemPath>SPI.c</itemPath>
     </logicalFolder>
     <logicalFolder name="ExternalFiles"
                    displayName="Important Files"
