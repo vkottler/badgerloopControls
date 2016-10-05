@@ -1,4 +1,5 @@
 #include "VL6180X.h"
+#include "stdio.h"
 
 char *errorMessage = "";
 uint8_t errors[2];
@@ -10,6 +11,7 @@ void VL_setReg16(uint8_t address, uint16_t registerAddr, uint16_t value) { I2Cwr
 uint8_t VL_getReg(uint8_t address, uint16_t registerAddr) { return I2CReadByteFromRegister(address, registerAddr); }
 
 void initVL(uint8_t address) {
+    I2CInit();
     VL_setReg(address, 0x0207, 0x01);
     VL_setReg(address, 0x0208, 0x01);
     VL_setReg(address, 0x0096, 0x00);
@@ -76,16 +78,16 @@ void VL_defautSettings(uint8_t address) {
   VL_setReg(address, VL6180X_SYSALS_ANALOGUE_GAIN,0x40);
   VL_setReg(address, VL6180X_FIRMWARE_RESULT_SCALER,0x01);
   
-  //VL_setReg(address, VL6180X_SYSTEM_FRESH_OUT_OF_RESET, 0);
+  VL_setReg(address, VL6180X_SYSTEM_FRESH_OUT_OF_RESET, 0);
   
-  //VL_setReg16(address, VL6180X_SYSRANGE_THRESH_HIGH,0xFF);                          // 20 cm
+ // VL_setReg16(address, VL6180X_SYSRANGE_THRESH_HIGH,0xFF);                          // 20 cm
   //VL_setReg16(address, VL6180X_SYSRANGE_THRESH_LOW,0x00);                           // 5 cm
   
-  //VL_setReg16(address, 0x025, 0xFF); //SYSRANGE__RANGE_IGNORE_VALID_HEIGHT
-  //VL_setReg16(address, 0x02C, 0xFF); //SYSRANGE__MAX_AMBIENT_LEVEL_MULT - 0x02C
-  //I2C16bitWriteByte(self->address, 0x02D, 0x00); //SYSRANGE__RANGE_CHECK_ENABLES - 0x02D
+ // VL_setReg16(address, 0x025, 0xFF); //SYSRANGE__RANGE_IGNORE_VALID_HEIGHT
+ // VL_setReg16(address, 0x02C, 0xFF); //SYSRANGE__MAX_AMBIENT_LEVEL_MULT - 0x02C
+ // I2C16bitWriteByte(self->address, 0x02D, 0x00); //SYSRANGE__RANGE_CHECK_ENABLES - 0x02D
   //I2C16bitWriteByte(self->address, 0x021, 0x00); //SYSRANGE__CROSSTALK_VALID_HEIGHT - 0x21
-  //VL_setReg16(address, 0x024, 0x04); //SYSRANGE__PART_TO_PART_RANGE_OFFSET - 0x24
+ // VL_setReg16(address, 0x024, 0x04); //SYSRANGE__PART_TO_PART_RANGE_OFFSET - 0x24
   
   
 }
@@ -93,9 +95,10 @@ void VL_defautSettings(uint8_t address) {
 uint8_t VL_getDistance(uint8_t address) {
     uint8_t retval = 0x00;
     VL_setReg(address, VL6180X_SYSRANGE_START, 0x01);
-    delay(7);                                                   // with this implementation this is as short as you can wait and have it still work!
+    delay(30, MILLI);                                                   // with this implementation this is as short as you can wait and have it still work!
     retval = VL_getReg(address, VL6180X_RESULT_RANGE_VAL);
     //VL_setReg(0x15, 0x07); // need to clear interrupt status bit for range only
+    I2CprintError();
     return retval;
 }
 

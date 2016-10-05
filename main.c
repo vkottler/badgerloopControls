@@ -2,7 +2,7 @@
 #include "main.h"
 
 #define MAX_LENGTH          100
-#define NUM_SENSORS         15
+#define NUM_SENSORS         17
 #define THERMISTOR_REGULAR  1
 #define THERM_REGULAR_SCALE 1111
 #define THERMISTOR_MOTOR    2
@@ -12,13 +12,14 @@
 #define VTAPS               4
 #define VTAPS_SCALE         1111
 #define PRESSURE            5
+#define PROX                6
 #define RAW_VALUE           0
 
 /* having a sensors struct should make formatting to a csv easier since we
  can just write a for loop to output all the data. If needed, let pin1 be 
  a I2C address.*/
 struct Sensor {
-    char* name;
+    char name[25];
     // make sure type corresponds to the correct constant
     int type;
     int pin;
@@ -26,10 +27,10 @@ struct Sensor {
 };
 
 void initializers(void) {
-   
     initializeTimer1(0x8000, 0xFFFF);
     initUART();
     ADCinit();
+    initVL(VL_ADDRESS);
 }
 /* In order to make this more modular */
 double readSensor(struct Sensor sensor) {
@@ -46,9 +47,11 @@ double readSensor(struct Sensor sensor) {
         case VTAPS :
             return readADC(sensor.pin)*VTAPS_SCALE;
             break;
-         // add extra cases for each sensor
         case PRESSURE :
             return HPgetPressure();
+            break;
+        case PROX :
+            return VL_getDistance(VL_ADDRESS);
             break;
         case RAW_VALUE :
             return readADC(sensor.pin);
@@ -60,6 +63,39 @@ double readSensor(struct Sensor sensor) {
     }
 }
 
+void sprintDouble(char* buffer, double dub) {
+    uint32_t number = dub;
+    uint8_t sign = NULL;        // 1 char max
+    uint8_t exponent = NULL;    // 3 chars max
+    uint32_t fraction = NULL;   // 7 chars max
+    // char format: (sign)1.(fraction)E(exponent)  14 char total
+    
+    sign = number >> 31;            // get sign bit. 31]
+    exponent = number >> 23;        // move exponent bits to [0,7]
+    exponent = exponent & 0x00FF;   // mask all but [0,7]
+    fraction = number & 0x7FFFFF;   // mask all but [0,22]
+    
+    // special cases time
+    // zero case
+    if (exponent == 0 && fraction == 0) {
+        buffer = "0.000000000000";
+    }
+    // denormalized case: has an assumed leading 0
+    if (exponent == 0 && fraction != 0) {
+        if (sign == 1) { // negative
+            buffer[0] = '-';
+        } else {
+            buffer[0] = '+';
+        }
+        
+        
+}
+    
+    
+    
+    
+}
+
 
 int main(void) {
     
@@ -69,7 +105,7 @@ int main(void) {
     // var name  =   {type for print, type for double, pin1, pin2}
     sensors[0]   =   (struct Sensor){"MOTOR THERMISTOR 1", THERMISTOR_MOTOR, 0};
     sensors[1]   =   (struct Sensor){"MOTOR THERMISTOR 2", THERMISTOR_MOTOR, 1};
-    sensors[2]   =   (struct Sensor){"THERMISTOR 9", THERMISTOR_REGULAR, 2};
+    sensors[2]   =   (struct Sensor){"THERMISTOR 1", THERMISTOR_REGULAR, 2};
     sensors[3]   =   (struct Sensor){"THERMISTOR 2", THERMISTOR_REGULAR, 3};
     sensors[4]   =   (struct Sensor){"THERMISTOR 3", THERMISTOR_REGULAR, 4};
     sensors[5]   =   (struct Sensor){"THERMISTOR 4", THERMISTOR_REGULAR, 5};
@@ -82,17 +118,25 @@ int main(void) {
     sensors[12]  =   (struct Sensor){"VTAPS 1", VTAPS, 12};
     sensors[13]  =   (struct Sensor){"VTAPS 2", VTAPS, 13};
     sensors[14]  =   (struct Sensor){"VTAPS 3", VTAPS, 14};
-    sensors[15]  = (struct Sensor){"PRESSURE SENSOR", PRESSURE, 0};
+    sensors[15]  =   (struct Sensor){"PRESSURE SENSOR", PRESSURE, 0};
+    sensors[16]  =   (struct Sensor){"PROXIMITY SENSOR", PROX, 0};
       
     int i;
-    while (1) {   
+    char buffer[150];
+    for (i = 3; i > 0; i--) {
+        println("starting soon");
+        delay(1000, MILLI);
+    }
+    while (1) {
+        println("Starting Read");
         for (i = 0; i < NUM_SENSORS; i++) { // #clarity
-            println(sprintf("Reading %s: %d\n", sensors[i].name, 
-                                       readSensor(sensors[i])));
+            sprintf(buffer, "Reading %s: %f", sensors[i].name, readSensor(sensors[i]));
+            println(buffer);
+            delay(500, MILLI);
         }
         delay(1000, MILLI); // get a reading every second
     }
-    return 0;
+    return 0
 }
 
   /*
