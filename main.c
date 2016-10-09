@@ -32,20 +32,21 @@ void initializers(void) {
     ADCinit();
     initVL(VL_ADDRESS);
 }
+
 /* In order to make this more modular */
-double readSensor(struct Sensor sensor) {
-    switch(sensor.type) {
+double readSensor(struct Sensor* sensor) {
+    switch(sensor->type) {
         case THERMISTOR_REGULAR :
-            return readADC(sensor.pin)*THERM_REGULAR_SCALE;
+            return readADC(sensor->pin)*THERM_REGULAR_SCALE;
             break;
         case THERMISTOR_MOTOR:
-            return readADC(sensor.pin)*THERM_MOTOR_SCALE;
+            return readADC(sensor->pin)*THERM_MOTOR_SCALE;
             break;
         case LEM :
-            return readADC(sensor.pin)*LEM_SCALE;
+            return readADC(sensor->pin)*LEM_SCALE;
             break;
         case VTAPS :
-            return readADC(sensor.pin)*VTAPS_SCALE;
+            return readADC(sensor->pin)*VTAPS_SCALE;
             break;
         case PRESSURE :
             return HPgetPressure();
@@ -54,15 +55,16 @@ double readSensor(struct Sensor sensor) {
             return VL_getDistance(VL_ADDRESS);
             break;
         case RAW_VALUE :
-            return readADC(sensor.pin);
+            return readADC(sensor->pin);
             break;
         default:
-            return readADC(sensor.pin);
+            return readADC(sensor->pin);
             break;
            
     }
 }
 
+// this isn't finished
 void sprintDouble(char* buffer, double dub) {
     uint32_t number = dub;
     uint8_t sign = NULL;        // 1 char max
@@ -89,11 +91,7 @@ void sprintDouble(char* buffer, double dub) {
         }
         
         
-}
-    
-    
-    
-    
+    }        
 }
 
 
@@ -130,13 +128,13 @@ int main(void) {
     while (1) {
         println("Starting Read");
         for (i = 0; i < NUM_SENSORS; i++) { // #clarity
-            sprintf(buffer, "Reading %s: %f", sensors[i].name, readSensor(sensors[i]));
+            sprintf(buffer, "Reading %s: %f", sensors[i].name, readSensor(&sensors[i]));
             println(buffer);
             delay(500, MILLI);
         }
         delay(1000, MILLI); // get a reading every second
     }
-    return 0
+    return 0;
 }
 
   /*
