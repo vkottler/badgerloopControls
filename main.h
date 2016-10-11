@@ -14,6 +14,7 @@
 #include "I2C.h"
 #include "slowTimer.h"
 #include "SPI.h"
+#include "ADC.h"
 
 // drivers
 #include "VL6180X.h"
