@@ -1,3 +1,6 @@
+#ifndef _LEDSHIELD__H__
+#define _LEDSHIELD__H__
+
 #include <xc.h>
 
 // (RA3 = LD4, RC1 = LD5)
@@ -22,3 +25,5 @@ void toggleAllShieldLights(int state);
 void blinkBoardLights(int times, int time);
 void setBoardLight(int light, int state);
 int readButton(void);
+
+#endif

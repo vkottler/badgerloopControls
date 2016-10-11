@@ -37,9 +37,40 @@ void print(const char *string) {
     }
 }
 
-void println(const char *string) {
-    print(string);
-    print("\r\n");
+void println(const char *string) { print(string); print("\r\n"); }
+void printByteln(uint8_t byte) { printByte(byte); print("\r\n"); }
+
+void printByte(uint8_t byte) {
+    char first = '\0';
+    char second = '\0';
+    int hex1 = (byte & 0xf0) >> 4;
+    int hex2 = byte & 0x0f;
+    if (hex1 > 9) {
+        switch (hex1) {
+            case 10: first = 'A'; break;
+            case 11: first = 'B'; break;
+            case 12: first = 'C'; break;
+            case 13: first = 'D'; break;
+            case 14: first = 'E'; break;
+            case 15: first = 'F'; break;
+            default: first = 'X';
+        }
+    }
+    else first = hex1 + 48;
+    if (hex2 > 9) {
+        switch(hex2) {
+            case 10: second = 'A'; break;
+            case 11: second = 'B'; break;
+            case 12: second = 'C'; break;
+            case 13: second = 'D'; break;
+            case 14: second = 'E'; break;
+            case 15: second = 'F'; break;
+            default: second = 'X';
+        }
+    }
+    else second = hex2 + 48;
+    char toSend[] = {'0', 'x', first, second, '\0'};
+    print(toSend);
 }
 
 void checkSerialErrors() {

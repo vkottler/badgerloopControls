@@ -1,4 +1,8 @@
+#ifndef _USBUART__H__
+#define _USBUART__H__
+
 #include <xc.h>
+#include <stdint.h>
 #include "ledShield.h"
 // 115200 baud, 8 bit 1 stop no parity
 
@@ -11,4 +15,8 @@ int UARTavailable(void);
 void getMessage(char *message, int maxLength);
 void print(const char *string);
 void println(const char *string);
+void printByte(uint8_t byte);
+void printByteln(uint8_t byte);
 void checkSerialErrors(void);
+
+#endif

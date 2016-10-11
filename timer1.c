@@ -1,4 +1,4 @@
-#include <xc.h>
+#include "timer1.h"
 
 void initializeTimer1(int con, int pr) {
     T1CON = con; PR1 = pr; TMR1 = 0;

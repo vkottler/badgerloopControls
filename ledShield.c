@@ -14,13 +14,9 @@ void initLEDs(void) {
     TRISGbits.TRISG0 = INPUT;       // button signal
     TRISCbits.TRISC1 = OUTPUT;      // Board LED2
             
-    RED1 = 0;
-    BOARD_LED2 = 0;
-    RED2 = 0;
-    YELLOW1 = 0;
-    YELLOW2 = 0;
-    GREEN1 = 0;
-    GREEN2 = 0;
+    RED1 = 0, BOARD_LED2 = 0, RED2 = 0;
+    YELLOW1 = 0, YELLOW2 = 0;
+    GREEN1 = 0, GREEN2 = 0;
     BUTTONPWR = 1;
 }
 
@@ -45,13 +41,12 @@ void toggleAllShieldLights(int state) {
 void blinkBoardLights(int times, int time) {
     int i = 0;
     for (i = 0; i < times; i++) {
-        BOARD_LED1 = 1;
-        BOARD_LED2 = 0;
+        BOARD_LED1 = 1, BOARD_LED2 = 0;
         delay(time, MILLI);
-        BOARD_LED1 = 0;
-        BOARD_LED2 = 1;
+        BOARD_LED1 = 0, BOARD_LED2 = 1;
         delay(time, MILLI);
     }
+    BOARD_LED1 = 0, BOARD_LED2 = 0;
 }
 
 void setBoardLight(int light, int state) {

@@ -1,3 +1,6 @@
+#ifndef _UTILS__H__
+#define _UTILS__H__
+
 #include <xc.h>
 #include <stdio.h>
 #include "usbUART.h"
@@ -15,3 +18,5 @@ int getBoardNumber(void);
 void printMAC(char* message);
 void printBoardNumber(char* message);
 void waitForButton(void);
+
+#endif
