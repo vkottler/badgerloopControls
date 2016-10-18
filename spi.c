@@ -17,26 +17,20 @@ c) Write the SPIx interrupt priority and subpriority bits in the respective IPC5
 10. Write the data to be transmitted to the SPIxBUF register. Transmission (and reception) will
 start as soon as data is written to the SPIxBUF register
  *
- */
+ */ 
 
 #include "spi.h"
 void initializeSPI()
 {
     int x = 0;
     int clear;
-    SPI_BRG = SPI_BRATE;
     TRISGbits.TRISG9 = 0;
-    /**
-    while( x < 80 )
-    {
-        SPI_BUFFER = 0b11111111;
-        x++;
-    }
-     */
-    
-    disableSPI();
+    TRISGbits.TRISG7 = 1;
+    TRISGbits.TRISG8 = 0;
+    TRISGbits.TRISG6 = 0;
+
     SPI_MASTER = 1;
-    SPI_SAMPLING = 1;
+    SPI_SAMPLING = 0;
     SPI_MODE32 = 0;
     SPI_MODE16 = 0;
     SPI_CKP = 0;
@@ -46,9 +40,25 @@ void initializeSPI()
     SPI_ENHBUF = 0;
     SPI_OVERFLOW = 0; //clear the overflow bit
     clear = SPI_BUFFER; //clears the buffer
-    
+
     SPI_ON = 1;
+    SPI_BRG = SPI_BRATE;
     
+    disableSPI();
+    while( x < 10 )
+    {
+        //println("Clocking...");
+        clockSPI();
+        x++;
+    }
+    enableSPI();
+    x = 0;
+    while( x<2)
+    {
+        clockSPI();
+        x++;
+    }
+    disableSPI();
 }
 
 /*
@@ -58,14 +68,10 @@ void initializeSPI()
  * @param *transmit is the data transmitted
  * @return returns the read data from the buffer
  */
-unsigned char transmitData(unsigned char *transmit)
+unsigned char transmitData(unsigned char transmit)
 {
     unsigned char readData;
-    SPI_BUFFER = *transmit;
-    if( SPI_OVERFLOW )
-    {
-        //shit gone down
-    }
+    SPI_BUFFER = transmit;
     while( !SPI_TRANSMITEMPTY );
     while( !SPI_RECEIVEFULL );
     
@@ -103,15 +109,16 @@ int sendCMD( unsigned char cmdCode ,unsigned address)
     int response;
     int counter;
     int wait;
+    println("enabling card select...");
     enableSPI();
     
+    println("transmitting command code");
     transmitData(cmdCode | SD_MASK);
+    transmitData( address >> 24 );
+    transmitData( address >> 16 );
+    transmitData( address >> 8 );
+    transmitData( address );
     
-    
-    for( counter = 24; counter > 0; counter = counter - 8)
-    {
-        transmitData( address >> counter );
-    }
     transmitData( 0x95 );//sd card cmd 0 crc
     
     for(wait = 0; wait < 8; wait++)

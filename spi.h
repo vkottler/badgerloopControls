@@ -1,10 +1,10 @@
 #include <xc.h>
 
 //relatively self explanatory spi bits
-#define SPI_BRATE 277 //found using the baud rate equation for spi
-#define SPI_BUFFER SPI1BUF
+#define SPI_BRATE 79 //found using the baud rate equation for spi
+#define SPI_BUFFER SPI2ABUF
 #define SPI_ON SPI2ACONbits.ON
-#define SPI_BRG SPI1BRG
+#define SPI_BRG SPI2ABRG
 
 //the following are control bits from the spi control registers
 #define SPI_MASTER SPI2ACONbits.MSTEN
@@ -42,7 +42,7 @@ void disableSPI();
 void enableSPI();
 void initializeSPI();
 int SPIavailable();
-char transmitData(unsigned char *transmit);
+unsigned char transmitData(unsigned char transmit);
 int sendCMD(unsigned char cmdCode, unsigned address);
 
 
