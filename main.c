@@ -15,6 +15,8 @@
 
 //resistor values may need to be changed when we measure each one 
 double resistorValues[]={3913,3913,1458,1458,1458,1458,1458,1458,1458,1458};
+double ohmValueRegular[151]={29490.00, 28160.00, 26890.00, 25690.00, 24540.00, 23460.00, 22430.00, 21440.00, 20510.00, 19620.00, 18780.00, 17980.00, 17210.00, 16480.00, 15790.00, 15130.00, 14500.00, 13900.00, 13330.00, 12780.00, 12260.00, 11770.00, 11290.00, 10840.00, 10410.00, 10000.00, 9602.00, 9226.00, 8866.00, 8522.00, 8194.00, 7879.00, 7579.00, 7291.00, 7016.00, 6752.00, 6500.00, 6258.00, 6027.00, 5805.00, 5592.00, 5389.00, 5194.00, 5007.00, 4827.00, 4655.00, 4490.00, 4331.00, 4179.00, 4033.00, 3893.00, 3758.00, 3629.00, 3505.00, 3385.00, 3271.00, 3160.00, 3054.00, 2952.00, 2854.00, 2760.00, 2669.00, 2582.00, 2498.00, 2417.00, 2339.00, 2264.00, 2191.00, 2122.00, 2055.00, 1990.00, 1928.00, 1868.00, 1810.00, 1754.00, 1700.00, 1648.00, 1598.00, 1550.00, 1503.00, 1458.00, 1414.00, 1372.00, 1332.00, 1293.00, 1255.00, 1218.00, 1183.00, 1149.00, 1116.00, 1084.00, 1053.00, 1023.00, 994.20, 966.30, 939.30, 913.20, 887.90, 863.40, 839.70, 816.80, 794.60, 773.10, 752.30, 732.10, 712.60, 693.60, 675.30, 657.50, 640.30, 623.60, 607.40, 591.60, 576.40, 561.60, 547.30, 533.40, 519.90, 506.80, 494.10, 481.80, 469.80, 458.20, 446.90, 435.90, 425.30, 414.90, 404.90, 395.10, 385.60, 376.40, 367.40, 358.70, 350.30, 342.00, 334.00, 326.30, 318.70, 311.30, 304.20, 297.20, 290.40, 283.80, 277.40, 271.20, 265.10, 259.20, 253.40, 247.80, 242.30, 237.00};
+double ohmValueMotor[151];
 
 /* having a sensors struct should make formatting to a csv easier since we
  can just write a for loop to output all the data. If needed, let pin1 be 
@@ -33,20 +35,28 @@ void initializers(void) {
     ADCinit();
     initVL(VL_ADDRESS);
 }
-double voltDiv(double value,int pin){
-    //voltage divider
-    double value=resistorValues[pin]*1/(value/3.3-1);
-   // need loop up table to get from ohms to temperature
-    return value;
-}
+//int ohmToTempReg(double ohm){
+//    
+//    
+//}
+//int ohmToTempMotor(double ohm){
+// 
+//    
+//}
+//double voltDiv(double value,int pin){
+//    //voltage divider
+//    double value=resistorValues[pin]*1/(value/3.3-1);
+//   // need loop up table to get from ohms to temperature
+//    return value;
+//}
 /* In order to make this more modular */
 double readSensor(struct Sensor* sensor) {
     switch(sensor->type) {
         case THERMISTOR_REGULAR :
-            return voltDiv(readADC(sensor->pin),sensor->pin);
+            return readADC(sensor->pin);
             break;
         case THERMISTOR_MOTOR:
-            return voltDiv(readADC(sensor->pin), sensor->pin);
+            return readADC(sensor->pin);
             break;
         case VTAPS :
             return readADC(sensor->pin)*VTAPS_SCALE;
