@@ -1,4 +1,5 @@
 #include <xc.h>
+#include <math.h>
 #include "config.h"
 #include "timer1.h"
 #include "usbUART.h"
