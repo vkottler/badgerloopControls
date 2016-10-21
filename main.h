@@ -15,8 +15,10 @@
 #include "slowTimer.h"
 #include "SPI.h"
 #include "ADC.h"
+#include "CAN.h"
 
 // drivers
 #include "VL6180X.h"
+#include "kellyController.h"
 
 #endif

@@ -7,6 +7,8 @@
       <logicalFolder name="f2" displayName="driver" projectFiles="true">
         <itemPath>VL6180X.h</itemPath>
         <itemPath>ledShield.h</itemPath>
+        <itemPath>SD.h</itemPath>
+        <itemPath>kellyController.h</itemPath>
       </logicalFolder>
       <logicalFolder name="f1" displayName="peripheral" projectFiles="true">
         <itemPath>slowTimer.h</itemPath>
@@ -15,6 +17,7 @@
         <itemPath>timer1.h</itemPath>
         <itemPath>I2C.h</itemPath>
         <itemPath>ADC.h</itemPath>
+        <itemPath>CAN.h</itemPath>
       </logicalFolder>
       <itemPath>config.h</itemPath>
       <itemPath>main.h</itemPath>
@@ -31,6 +34,8 @@
       <logicalFolder name="f2" displayName="driver" projectFiles="true">
         <itemPath>VL6180X.c</itemPath>
         <itemPath>ledShield.c</itemPath>
+        <itemPath>SD.c</itemPath>
+        <itemPath>kellyController.c</itemPath>
       </logicalFolder>
       <logicalFolder name="f1" displayName="peripheral" projectFiles="true">
         <itemPath>slowTimer.c</itemPath>
@@ -39,6 +44,7 @@
         <itemPath>SPI.c</itemPath>
         <itemPath>usbUART.c</itemPath>
         <itemPath>ADC.c</itemPath>
+        <itemPath>CAN.c</itemPath>
       </logicalFolder>
       <itemPath>main.c</itemPath>
       <itemPath>utils.c</itemPath>

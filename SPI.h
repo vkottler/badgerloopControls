@@ -2,6 +2,7 @@
 #define _SPI__H__
 
 #include <xc.h>
+#include <stdint.h>
 
 /* Pin 53 (SS, digital on & off can be any pin)     SS2A (RG9)
  * Pin 51 (MOSI, master out slave in)               SDO2A (RG8)
