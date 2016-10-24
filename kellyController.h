@@ -4,6 +4,9 @@
 #include <stdint.h>
 #include "CAN.h"
 
+#include <stdio.h>
+#include "usbUART.h"
+
 /*
  * Sending a command:
  * data[0] is the command
@@ -26,7 +29,12 @@
 #define CCP_INVALID_COMMAND         0xE3
 
 typedef enum { 
-    CCP_FLASH_READ,
+    CCP_FLASH_READ1,
+    CCP_FLASH_READ2,
+    CCP_FLASH_READ3,
+    CCP_FLASH_READ4,
+    CCP_FLASH_READ5,
+    CCP_FLASH_READ6,
     CCP_A2D_BATCH_READ1,
     CCP_A2D_BATCH_READ2,
     CCP_MONITOR1,
@@ -42,5 +50,14 @@ typedef struct {
     uint8_t *data;
     uint8_t resp_length;
 } KELLY_CMD;
+
+void Kelly_send(COMMAND_NAME cmd);
+void Kelly_get_model(char *buffer);
+void Kelly_get_software_ver(char *buffer);
+void Kelly_get_throttle_low_high(char *buffer);
+void Kelly_get_brake_low_high(char *buffer);
+void Kelly_print_info(char *buffer);
+void Kelly_print_batch1(char *buffer);
+void Kelly_print_batch2(char *buffer);
 
 #endif

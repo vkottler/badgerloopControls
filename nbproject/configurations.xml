@@ -9,6 +9,7 @@
         <itemPath>ledShield.h</itemPath>
         <itemPath>SD.h</itemPath>
         <itemPath>kellyController.h</itemPath>
+        <itemPath>honeywellPressure.h</itemPath>
       </logicalFolder>
       <logicalFolder name="f1" displayName="peripheral" projectFiles="true">
         <itemPath>slowTimer.h</itemPath>
@@ -36,6 +37,7 @@
         <itemPath>ledShield.c</itemPath>
         <itemPath>SD.c</itemPath>
         <itemPath>kellyController.c</itemPath>
+        <itemPath>honeywellPressure.c</itemPath>
       </logicalFolder>
       <logicalFolder name="f1" displayName="peripheral" projectFiles="true">
         <itemPath>slowTimer.c</itemPath>
@@ -69,7 +71,7 @@
         <targetPluginBoard></targetPluginBoard>
         <platformTool>PICkit3PlatformTool</platformTool>
         <languageToolchain>XC32</languageToolchain>
-        <languageToolchainVersion>1.42</languageToolchainVersion>
+        <languageToolchainVersion></languageToolchainVersion>
         <platform>3</platform>
       </toolsSet>
       <compileType>
@@ -221,11 +223,11 @@
         <property key="AutoSelectMemRanges" value="auto"/>
         <property key="CAN1" value="false"/>
         <property key="CAN2" value="false"/>
-        <property key="CHANGE NOTICE" value="true"/>
+        <property key="CHANGE NOTICE" value="false"/>
         <property key="COMPARATOR" value="true"/>
         <property key="DMA" value="true"/>
         <property key="ETHERNET CONTROLLER" value="true"/>
-        <property key="Freeze All Other Peripherals" value="true"/>
+        <property key="Freeze All Other Peripherals" value="false"/>
         <property key="I2C1" value="false"/>
         <property key="I2C2" value="true"/>
         <property key="I2C3" value="true"/>
@@ -244,16 +246,16 @@
         <property key="OUTPUT COMPARE 5" value="true"/>
         <property key="PARALLEL MASTER/SLAVE PORT" value="true"/>
         <property key="REAL TIME CLOCK" value="false"/>
-        <property key="SPI 1" value="true"/>
+        <property key="SPI 1" value="false"/>
         <property key="SPI 2" value="true"/>
         <property key="SPI 3" value="true"/>
         <property key="SPI 4" value="true"/>
         <property key="SecureSegment.SegmentProgramming" value="FullChipProgramming"/>
         <property key="TIMER1" value="false"/>
-        <property key="TIMER2" value="true"/>
-        <property key="TIMER3" value="true"/>
-        <property key="TIMER4" value="true"/>
-        <property key="TIMER5" value="true"/>
+        <property key="TIMER2" value="false"/>
+        <property key="TIMER3" value="false"/>
+        <property key="TIMER4" value="false"/>
+        <property key="TIMER5" value="false"/>
         <property key="ToolFirmwareFilePath"
                   value="Press to browse for a specific firmware version"/>
         <property key="ToolFirmwareOption.UseLatestFirmware" value="true"/>

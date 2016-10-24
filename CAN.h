@@ -4,7 +4,6 @@
 #include <xc.h>
 #include <stdint.h>
 #include <sys/kmem.h>
-#include "ledShield.h"
 
 /*
  * Uses alternate set of pins (FCANIO = OFF)
@@ -30,5 +29,6 @@ void CAN_init(void);
 int CAN_check_error(void);
 void CAN_send_message(uint32_t *message);
 void CAN_receive_message(uint32_t *receive);
+int CAN_message_available(void);
 
 #endif

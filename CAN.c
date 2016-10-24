@@ -2,7 +2,7 @@
 
 int i; // for loops
 int SID = ID_FOR_KELLY;
-uint32_t *currentBufferLocation = NULL;
+unsigned int *currentBufferLocation = NULL;
 
 // CAN fifos stem from one single base address
 static volatile unsigned int fifos[(fifo_0_size + fifo_1_size) * BUFFER_SIZE];
@@ -14,13 +14,11 @@ void CAN_temporary_fifo_init(void) {
     C1FIFOCON1bits.FSIZE = fifo_1_size - 1;
     C1FIFOCON1bits.TXEN = 1; // 1st fifo set to send
     
-    C1RXM0bits.SID = 0x7FF;         // use every bit in the comparison
+    C1RXM0bits.SID = 0x0; //0x7FF;         // use every bit in the comparison
     C1FLTCON0bits.FSEL0 = 0;        // filter 0 used for FIFO 0
     C1FLTCON0bits.MSEL0 = 0;        // filter 0 uses mask 0
     C1RXF0bits.SID = ID_FOR_KELLY;  // filter 0 matches against SID
     C1FLTCON0bits.FLTEN0 = 1;       // enable filter 0
-    
-    //C1FIFOINT0bits.RXNEMPTYIE = 1; // shot in the dark
 }
 
 /*
@@ -30,9 +28,9 @@ void CAN_temporary_fifo_init(void) {
  */
 void CAN_set_timings(void) {
     C1CFGbits.SEG1PH = 2; // SEG2PH set automatically
-    C1CFGbits.PRSEG = 2;
+    C1CFGbits.PRSEG = 0;
     C1CFGbits.SJW = 1;
-    C1CFGbits.BRP = 2; // (~93.75 ns) Tq = 2 * (these_bits + 1) / 64 000 000
+    C1CFGbits.BRP = 3; // (2 = ~93.75 ns) Tq = 2 * (these_bits + 1) / 64 000 000
     C1TMRbits.CANTSPRE = 64000; // increment every millisecond
 }
 
@@ -46,12 +44,12 @@ int CAN_set_mode(int mode) {
 void CAN_init(void) {
     C1CONbits.ON = 1;
     CAN_set_mode(CONFIG_MODE);
-    //CAN_set_timings();
-    //C1CONbits.CANCAP = 1; // capture timestamps
+    CAN_set_timings();
+    C1CONbits.CANCAP = 1; // capture timestamps
     C1FIFOBA = KVA_TO_PA(fifos); // just clears 3 MSBs
     CAN_temporary_fifo_init();
-    //CAN_set_mode(NORMAL_MODE);
-    CAN_set_mode(LOOPBACK_MODE);
+    CAN_set_mode(NORMAL_MODE);
+    //CAN_set_mode(LOOPBACK_MODE);
 }
 
 int CAN_check_error(void) {
@@ -62,18 +60,18 @@ int CAN_check_error(void) {
 void CAN_send_message(uint32_t *message) {
     currentBufferLocation = PA_TO_KVA1(C1FIFOUA1);
     for (i = 0; i < BUFFER_SIZE; i++) currentBufferLocation[i] = message[i];
-    C1FIFOCON1bits.UINC = 1;    // increment pointer for fifo1
+    C1FIFOCON1SET = 0x2000;     // increment pointer for fifo
     C1FIFOCON1bits.TXREQ = 1;   // tell CAN to send message
 }
 
 void CAN_receive_message(uint32_t *receive) {
-    
-    YELLOW1 = 1;
-    while (!C1FIFOINT0bits.RXNEMPTYIF); // not sure about this line of code
-    YELLOW1 = 0;
-    
-    currentBufferLocation = PA_TO_KVA1(C1FIFOUA0); // get the address of RX FIFO pointer
+    while (!C1FIFOINT0bits.RXNEMPTYIF);                 // not sure about this line of code
+    currentBufferLocation = PA_TO_KVA1(C1FIFOUA0);      // get the address of RX FIFO pointer
     for (i = 0; i < BUFFER_SIZE; i++) receive[i] = currentBufferLocation[i];
-    C1FIFOCON0bits.UINC = 1; // increment receive pointer
+    C1FIFOCON0SET = 0x2000;                             // increment receive pointer
+}
+
+int CAN_message_available(void) {
+    return C1FIFOINT0bits.RXNEMPTYIF;
 }
 

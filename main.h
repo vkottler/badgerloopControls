@@ -2,7 +2,8 @@
 #define _MAIN__H__
 
 #include <xc.h>
-#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
 
 #include "config.h"
 #include "utils.h"
@@ -21,5 +22,6 @@
 // drivers
 #include "VL6180X.h"
 #include "kellyController.h"
+#include "honeywellPressure.h"
 
 #endif
