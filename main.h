@@ -2,6 +2,7 @@
 #define _MAIN__H__
 
 #include <xc.h>
+#include <stdlib.h>
 
 #include "config.h"
 #include "utils.h"

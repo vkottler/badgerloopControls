@@ -42,11 +42,5 @@ typedef struct {
     uint8_t *data;
     uint8_t resp_length;
 } KELLY_CMD;
-        
-//KELLY_CMD commands[] = {
-//    read1, read2, read3, read4, read5, read6,
-//    batch1, batch2, ccp1, ccp2,
-//    accSW, brkSW, revSW
-//};
 
 #endif
