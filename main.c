@@ -52,6 +52,11 @@ void vacDAQrun(void) {
             }
         }
         // DAQ code
+        //this is for regular 
+        //ohmToTemp(voltDiv(analogRead(sensor->pin),sensor->pin),60+273.15,2760, 3575) ;
+        //this is for motor
+        //ohmToTemp(voltDiv(analogRead(sensor->pin),sensor->pin),60+273.15, 7931, 4090) ;
+        
         HPprintPressureData(message);
         delay(1000, MILLI);
     }

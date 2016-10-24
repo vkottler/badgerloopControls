@@ -7,6 +7,10 @@
 //
 // automatic end sampling and start conversion
 // manual initiate sampling
+
+//resistor values may need to be changed when we measure each one 
+double resistorValues[]={3913,3913,1458,1458,1458,1458,1458,1458,1458,1458};
+
 void initADC(void) {
     
     AD1PCFG &= 0x0000; // lower half of port B configured as input (A0 - A15)
@@ -31,3 +35,14 @@ int analogRead(int pin) {
 }
 
 float toVolts(int reading) { return (float) VOLTS*reading; }
+
+double ohmToTemp(double ohm, double To, double Ro, double B){
+    double inverKelvin=1/To+(1/B)*log(ohm/Ro);
+    return 1/inverKelvin-273.15;
+}
+double voltDiv(double voltIn,int pin){
+    //voltage divider
+    double value=resistorValues[pin]*1/(voltIn/3.3-1);
+   // need loop up table to get from ohms to temperature
+    return value;
+}
