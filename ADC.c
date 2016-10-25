@@ -44,40 +44,40 @@ double ohmToTemp(double ohm, double To, double Ro, double B) {
 
 double voltDiv(double voltIn, int resistor) {
     //voltage divider
-    double value = resistor * 1 / (3.3/ voltIn - 1);
+    double value = resistor * 1 / (3.3 / voltIn - 1);
     // need loop up table to get from ohms to temperature
     return value;
 }
 
-void thermPrintData(char * buffer,int motor1pin, int motor2pin, int regPin) {
+void thermPrintData(char * buffer, int motor1pin, int motor2pin, int regPin) {
     //this is for motor  
     //at 60 Celsius the resitance is 2760 ohms
-   double ToMotor = 60 + 273.15;
-   double RoMotor = 7931;
-    double voltsInMotor1=(double)analogRead(0);
-    voltsInMotor1=voltsInMotor1/1024.0*3.3;
-    double ohmMotor1= voltDiv(voltsInMotor1, MOTOR_1_THERM_RESISTOR);
+    double ToMotor = 60 + 273.15;
+    double RoMotor = 7931;
+    double voltsInMotor1 = (double) analogRead(motor1pin);
+    voltsInMotor1 = voltsInMotor1 / 1024.0 * 3.3;
+    double ohmMotor1 = voltDiv(voltsInMotor1, MOTOR_1_THERM_RESISTOR);
     double motor1Temp = ohmToTemp(ohmMotor1, ToMotor, RoMotor, BETA_MOTOR_THERM);
-    
-    //this is for regular 
-    //at 60 Celsius the resistance is 7931
-   double ToReg = 60 + 273.15;
-    double RoReg = 2760;
-   double voltsInMotor2=(double)analogRead(1);
-    voltsInMotor2=voltsInMotor2/1024.0*3.3;
-    double ohmMotor2=voltDiv(voltsInMotor2, MOTOR_2_THERM_RESISTOR);
-    double motor2Temp = ohmToTemp(ohmMotor2, 60 + 273.15, 7931, BETA_MOTOR_THERM);
-    
-    //this is for regular 
-    //at 60 Celsius the resistance is 7931
-    double voltsIn=(double)analogRead(2);
-    voltsIn=voltsIn/1024.0*3.3;
-     double ohmReg=voltDiv(voltsIn, REG_THERM_RESISTOR);
-    double regTemp=ohmToTemp(ohmReg, ToReg, RoReg, BETA_REG_THERM);
-    
 
-    sprintf(buffer, "Motor 1 Temp: %f, Motor 2 Temp: %f, Regular Temp: %f",(float)motor1Temp, (float)motor2Temp, (float)regTemp);
+    //this is for regular 
+    //at 60 Celsius the resistance is 7931
+    double ToReg = 60 + 273.15;
+    double RoReg = 2760;
+    double voltsInMotor2 = (double) analogRead(motor2pin);
+    voltsInMotor2 = voltsInMotor2 / 1024.0 * 3.3;
+    double ohmMotor2 = voltDiv(voltsInMotor2, MOTOR_2_THERM_RESISTOR);
+    double motor2Temp = ohmToTemp(ohmMotor2, 60 + 273.15, 7931, BETA_MOTOR_THERM);
+
+    //this is for regular 
+    //at 60 Celsius the resistance is 7931
+    double voltsIn = (double) analogRead(regPin);
+    voltsIn = voltsIn / 1024.0 * 3.3;
+    double ohmReg = voltDiv(voltsIn, REG_THERM_RESISTOR);
+    double regTemp = ohmToTemp(ohmReg, ToReg, RoReg, BETA_REG_THERM);
+
+
+    sprintf(buffer, "Motor 1 Temp: %f, Motor 2 Temp: %f, Regular Temp: %f", (float) motor1Temp, (float) motor2Temp, (float) regTemp);
     println(buffer);
-    
-    
+
+
 }
