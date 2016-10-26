@@ -14,7 +14,9 @@
 #define KPASCALAR           0.009766        //((160.00)/OUTMAX)
 #define TEMPSCALAR          0.097704        //((200.00)/(2047.0))
 
-void HPgetData(void);
-void HPprintPressureData(char* buffer);
+void HPread(void);
+double HPgetStatus(void);
+double HPgetPressure(void);
+double HPgetTemperature(void);
 
 #endif

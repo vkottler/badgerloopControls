@@ -56,17 +56,20 @@ void __ISR(I2Cvec, IPL1SOFT) I2CmasterInt(void) {
         
         // finished ack
         case READ:
-            toRead[readIndex++] = I2C1RCV;
-            if (readIndex == numRead) { state = NACK; I2C1CONbits.ACKDT = 1; }  // done reading
-            else { state = ACK; I2C1CONbits.ACKDT = 0; }                        // not done so acknowledge
-            I2C1CONbits.ACKEN = 1;
+            if (I2C1STATbits.ACKSTAT) state = ERROR;                            // didn't receive ACK
+            else {
+                toRead[readIndex++] = I2C1RCV;
+                if (readIndex == numRead) { state = NACK; I2C1CONbits.ACKDT = 1; }  // done reading
+                else { state = ACK; I2C1CONbits.ACKDT = 0; }                        // not done so acknowledge
+                I2C1CONbits.ACKEN = 1;
+            }
             break;
              
         case RESTART: state = ACK; I2C1TRN = (address << 1) | 1;  break;        // restart complete  
         case ACK: state = READ; I2C1CONbits.RCEN = 1; break;                    // ack finished sending, re-enable receive
         case NACK: state = STOP; I2C1CONbits.PEN = 1; break;                    // just stop, no more incoming data
         case STOP: state = IDLE; break;                                         // stop sequence (SEN HW clear) finished, return
-        default: state = ERROR; BOARD_LED1 = 1;                                 // we should never get here       
+        default: state = ERROR;                                                 // we should never get here       
     }
     IFS0bits.I2C1MIF = 0;
 }

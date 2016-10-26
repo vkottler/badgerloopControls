@@ -1,15 +1,14 @@
 #include "honeywellPressure.h"
 
 uint8_t pressureData[4];
-int status = 0;
+int status = -1;
 double kPa = 0.0;
 double temp = 0.0;
-double celcius = 0.0;
+uint16_t temperatureReading, pressureReading;
 
-void HPgetData(void) {
-    uint16_t temperatureReading, pressureReading;
-    I2CwriteAndRead(PRESSURE_ADDRESS, NULL, 0, pressureData, 4);
-    status = (pressureData[0] >> 6) & 3;
+void HPread(void) {
+    if(I2CwriteAndRead(PRESSURE_ADDRESS, NULL, 0, pressureData, 4)) status = -1;
+    else status = (pressureData[0] >> 6) & 3;
     pressureReading = (((pressureData[0] & 0x3f) << 8) | pressureData[1]);
     temperatureReading = ((pressureData[2] << 8) | pressureData[3]) >> 5;
     
@@ -22,8 +21,13 @@ void HPgetData(void) {
     kPa = kPa / OUTMAX;
 }
 
-void HPprintPressureData(char* buffer) {
-    HPgetData();
-    sprintf(buffer, "Status: %d Temperature: %f, Pressure: %f", status, celcius, kPa);
-    println(buffer);
+double HPgetStatus(void) { return status; }
+
+double HPgetPressure(void) {
+    if (status == -1) return -1;
+    return kPa;
+}
+double HPgetTemperature(void) {
+    if (status == -1) return -1;
+    return temp;
 }

@@ -50,6 +50,7 @@ double voltDiv(double voltIn, int resistor) {
 }
 
 void thermPrintData(char * buffer, int motor1pin, int motor2pin, int regPin) {
+    
     //this is for motor  
     //at 60 Celsius the resitance is 2760 ohms
     double ToMotor = 60 + 273.15;
@@ -75,9 +76,7 @@ void thermPrintData(char * buffer, int motor1pin, int motor2pin, int regPin) {
     double ohmReg = voltDiv(voltsIn, REG_THERM_RESISTOR);
     double regTemp = ohmToTemp(ohmReg, ToReg, RoReg, BETA_REG_THERM);
 
-
-    sprintf(buffer, "Motor 1 Temp: %f, Motor 2 Temp: %f, Regular Temp: %f", (float) motor1Temp, (float) motor2Temp, (float) regTemp);
-    println(buffer);
-
-
+    //sprintf(buffer, "Motor 1 Temp: %f, Motor 2 Temp: %f, Regular Temp: %f", (float) motor1Temp, (float) motor2Temp, (float) regTemp);
+    sprintf(buffer, "%f.02, %f.02, %f.02", (float) motor1Temp, (float) motor2Temp, (float) regTemp);
+    print(buffer);
 }
