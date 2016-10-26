@@ -54,12 +54,12 @@ void vacDAQrun(void) {
         // DAQ code
         //thermPrintData(int motor1pin, int motor2pin, int regPin);
         HPread();
-        sprintf(message, "%.2f, %.2f, ", HPgetTemperature(), HPgetPressure());
+        sprintf(message, "%.2f, %.2f, ", HPgetTemperature(), HPgetPressure()*7.5);
         print(message);
         
         thermPrintData(message, 0,1,2);
         println("");
-        delay(1000, MILLI);
+        delay(1000, MILLI); 
     }
 }
 

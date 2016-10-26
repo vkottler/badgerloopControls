@@ -8,7 +8,7 @@ static volatile uint8_t address = 0;                              // 7 bit addre
 static volatile unsigned int numWrite = 0, numRead = 0;                 // used by ISR to decide how many times to ____
 
 void I2Cinit(void) {
-    I2C1BRG = 78;               // 400kHz mode
+    I2C1BRG = ONE_HUNDRED;               // 400kHz mode
     IPC6bits.I2C1IP = 1;        // master int priority 1
     IEC0bits.I2C1MIE = 1;       // master int enable
     IFS0bits.I2C1AMIF = 0;      // disable flag

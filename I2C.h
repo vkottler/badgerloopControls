@@ -17,6 +17,9 @@
  */
 #define I2Cvec      25
 
+#define FOUR_HUNDRED 78
+#define ONE_HUNDRED 318
+
 // "buffer pointer" buffer contents and buffer pointer
 // is shared by ISR and main code execution (i.e. double volatile)
 typedef volatile uint8_t * volatile buffer_t;
