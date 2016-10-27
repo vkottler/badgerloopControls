@@ -38,6 +38,7 @@ void helpMessage(void) {
 }
 
 void vacDAQrun(void) {
+    double motor1, motor2, ambient;
     println("----------------------------------------");
     println("=============== DAQ BEGIN ==============");
     println("----------------------------------------");
@@ -51,14 +52,13 @@ void vacDAQrun(void) {
                 return;
             }
         }
-        // DAQ code
-        //thermPrintData(int motor1pin, int motor2pin, int regPin);
+        
         HPread();
         sprintf(message, "%.2f, %.2f, ", HPgetTemperature(), HPgetPressure()*7.5);
         print(message);
-        
-        thermPrintData(message, 0,1,2);
-        println("");
+     
+        sprintf(message, "%.2f, %.2f, %.2f", getMotorTemp(0), getMotorTemp(1), getRegularTemp(2));
+        println(message);
         delay(1000, MILLI); 
     }
 }
@@ -83,6 +83,5 @@ int main(void) {
         GREEN2 = 0;
         delay(500, MILLI);
     }
-    
     return 0;
 }
