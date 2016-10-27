@@ -56,10 +56,20 @@ typedef struct {
 void Kelly_send(COMMAND_NAME cmd, int ID);
 void Kelly_get_model(char *buffer, int ID);
 void Kelly_get_software_ver(char *buffer, int ID);
-void Kelly_get_throttle_low_high(char *buffer, int ID);
-void Kelly_get_brake_low_high(char *buffer, int ID);
+void Kelly_get_throttle_low_high(int ID);
+void Kelly_get_brake_low_high(int ID);
 void Kelly_print_info(char *buffer, int ID);
+
+void Kelly_get_batch1(int ID);
 void Kelly_print_batch1(char *buffer, int ID);
+void Kelly_get_batch2(int ID);
 void Kelly_print_batch2(char *buffer, int ID);
+
+float Kelly_get_throttle_voltage(void);
+float Kelly_get_brake_voltage(void);
+float Kelly_get_operational_voltage(void);
+float Kelly_get_battery_voltage(void);
+float Kelly_get_Ib(void);
+float Kelly_get_Ic(void);
 
 #endif

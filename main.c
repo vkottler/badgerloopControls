@@ -38,8 +38,7 @@ void helpMessage(void) {
     println("========================================");
 }
 
-void vacDAQrun(void) {
-    double motor1, motor2, ambient;
+void vacDAQrun(int CANen) {
     println("----------------------------------------");
     println("=============== DAQ BEGIN ==============");
     println("----------------------------------------");
@@ -59,7 +58,27 @@ void vacDAQrun(void) {
         print(message);
      
         sprintf(message, "%.2f, %.2f, %.2f", getMotorTemp(0), getMotorTemp(1), getRegularTemp(2));
-        println(message);
+        print(message);
+        
+        if (CANen) {
+            Kelly_get_batch1(TORQUE_ID);
+            sprintf(message, ", %.1f, ", Kelly_get_brake_voltage());
+            print(message);
+            
+            Kelly_get_batch1(SPEED_ID);
+            sprintf(message, "%.1f, ", Kelly_get_throttle_voltage());
+            print(message);
+            
+            Kelly_get_batch2(TORQUE_ID);
+            sprintf(message, "%d, %d, ", Kelly_get_Ib(), Kelly_get_Ic());
+            print(message);
+            
+            Kelly_get_batch2(SPEED_ID);
+            sprintf(message, "%d, %d", Kelly_get_Ib(), Kelly_get_Ic());
+            println(message);
+        }
+        
+        else println("");
         delay(1000, MILLI); 
     }
 }
@@ -78,7 +97,8 @@ int main(void) {
             else if (strcmp(message, "batch1-torque") == 0) Kelly_print_batch1(message, TORQUE_ID);
             else if (strcmp(message, "batch2-speed") == 0) Kelly_print_batch2(message, SPEED_ID);
             else if (strcmp(message, "batch2-torque") == 0) Kelly_print_batch2(message, TORQUE_ID);
-            else if (strcmp(message, "run") == 0) vacDAQrun();
+            else if (strcmp(message, "run") == 0) vacDAQrun(0);
+            else if (strcmp(message, "run-can") == 0) vacDAQrun(1);
             else if (strcmp(message, "help") == 0) helpMessage();
             else println("Command not recognized.");
         }

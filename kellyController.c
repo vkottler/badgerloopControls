@@ -29,10 +29,13 @@ KELLY_CMD brkSW = {.name = COM_SW_BRK, .length = 2, .data = brkSWData, .resp_len
 KELLY_CMD revSW = {.name = COM_SW_REV, .length = 2, .data = revSWData, .resp_length = 1};
 
 int i;
-uint32_t toSend[4];
-uint32_t receive[4];
+uint32_t toSend[4], receive[4];
 KELLY_CMD *curr;
-char tempBuffer[255];
+
+uint8_t throttle_low, throttle_high, 
+        brake_low, brake_high, brake, 
+        tps, opVoltage, Vs, bPlus, 
+        Ib, Ic, Vb, Vc;
 
 void Kelly_send(COMMAND_NAME cmd, int ID) {
     toSend[0] = ID;
@@ -52,7 +55,6 @@ void Kelly_send(COMMAND_NAME cmd, int ID) {
         case COM_SW_REV: curr = &revSW; break;
         default: return; 
     }
-    
     toSend[1] = curr->length;
     toSend[2] = 0; toSend[3] = 0;
     for (i = 0; i < curr->length; i++) {
@@ -63,7 +65,7 @@ void Kelly_send(COMMAND_NAME cmd, int ID) {
 }
 
 void Kelly_get_model(char *buffer, int ID) {
-    Kelly_send(CCP_FLASH_READ1, int ID);
+    Kelly_send(CCP_FLASH_READ1, ID);
     CAN_receive_message(receive);
     for (i = 0; i < 8; i++) {
         if (i < 4) buffer[i] = (receive[2] & (0xff << 8*i)) >> (8*i);
@@ -73,30 +75,28 @@ void Kelly_get_model(char *buffer, int ID) {
 }
 
 void Kelly_get_software_ver(char *buffer, int ID) {
-    Kelly_send(CCP_FLASH_READ2, int ID);
+    Kelly_send(CCP_FLASH_READ2, ID);
     CAN_receive_message(receive);
     buffer[0] = (receive[2] & 0xff) + 48; buffer[1] = '.';
     buffer[2] = (receive[2] & 0xff00 >> 8) + 48; buffer[3] = '\0';
 }
 
-void Kelly_get_throttle_low_high(char *buffer, int ID) {
-    Kelly_send(CCP_FLASH_READ3, int ID);
+void Kelly_get_throttle_low_high(int ID) {
+    Kelly_send(CCP_FLASH_READ3, ID);
     CAN_receive_message(receive);
-    uint8_t low = receive[2] & 0xff;
-    Kelly_send(CCP_FLASH_READ5, int ID);
+    throttle_low = receive[2] & 0xff;
+    Kelly_send(CCP_FLASH_READ5, ID);
     CAN_receive_message(receive);
-    uint8_t high = receive[2] & 0xff;
-    sprintf(buffer, "[THROTTLE] Low: %d, High: %d", low, high);
+    throttle_high = receive[2] & 0xff;
 }
 
-void Kelly_get_brake_low_high(char *buffer, int ID) {
-    Kelly_send(CCP_FLASH_READ4, int ID);
+void Kelly_get_brake_low_high(int ID) {
+    Kelly_send(CCP_FLASH_READ4, ID);
     CAN_receive_message(receive);
-    uint8_t low = receive[2] & 0xff;
-    Kelly_send(CCP_FLASH_READ6, int ID);
+    brake_low = receive[2] & 0xff;
+    Kelly_send(CCP_FLASH_READ6, ID);
     CAN_receive_message(receive);
-    uint8_t high = receive[2] & 0xff;
-    sprintf(buffer, "[BRAKE]    Low: %d, High: %d", low, high);
+    brake_high = receive[2] & 0xff;
 }
 
 void Kelly_print_info(char *buffer, int ID) {
@@ -104,47 +104,78 @@ void Kelly_print_info(char *buffer, int ID) {
     println("=========== KELLY CONTROLLER ===========");
     println("----------------------------------------");
     print("Model Number:     ");
-    Kelly_get_model(buffer, int ID);
+    Kelly_get_model(buffer, ID);
     print(buffer);
     
     if (ID == TORQUE_ID) println(" (TORQUE CONTROLLER)");
     else if (ID == SPEED_ID) println(" (SPEED CONTROLLER)");
     print("Software Version:      ");
-    Kelly_get_software_ver(buffer, int ID);
+    Kelly_get_software_ver(buffer, ID);
     println(buffer);
-    Kelly_get_throttle_low_high(buffer, int ID);
+    
+    Kelly_get_throttle_low_high(ID);
+    sprintf(buffer, "[THROTTLE] Low: %d, High: %d", throttle_low, throttle_high);
     println(buffer);
-    Kelly_get_brake_low_high(buffer, int ID);
+    
+    Kelly_get_brake_low_high(ID);
+    sprintf(buffer, "[BRAKE]    Low: %d, High: %d", brake_low, brake_high);
     println(buffer);
+    
     println("========================================");
 }
 
-void Kelly_print_batch1(char *buffer) {
-    uint8_t brake, tps, opVoltage, Vs, bPlus;
-    Kelly_send(CCP_A2D_BATCH_READ1);
+void Kelly_get_batch1(int ID) {
+    Kelly_send(CCP_A2D_BATCH_READ1, ID);
     CAN_receive_message(receive);
     brake = receive[2] & 0xff;
     tps = (receive[2] & 0xff00) >> 8;
     opVoltage = (receive[2] & 0xff0000) >> 16;
     Vs = (receive[2] & 0xff000000) >> 24;
     bPlus = receive[3] & 0xff;
-    println("----------------------------------------");
-    println("============== BATCH ONE ===============");
-    println("----------------------------------------");
-    sprintf(buffer, "Brake: %d\r\nTPS (Throttle): %d\r\nOperation Voltage: %d\r\nVs: %d\r\nB+: %d", 
-            brake, tps, opVoltage, Vs, bPlus);
-    println(buffer);
-    println("========================================");
 }
 
-void Kelly_print_batch2(char *buffer) {
-    uint8_t Ib, Ic, Vb, Vc;
-    Kelly_send(CCP_A2D_BATCH_READ2);
+float Kelly_get_throttle_voltage() {
+    return ((float) tps) * 5.0 / 256.0 ;
+}
+
+float Kelly_get_brake_voltage() {
+    return ((float) brake) * 5.0 / 256.0;
+}
+
+float Kelly_get_operational_voltage() {
+    return ((float) opVoltage) / 1.39;
+}
+
+float Kelly_get_battery_voltage() {
+    return ((float) opVoltage) / 1.39;
+}
+
+float Kelly_get_Ib() { return Ib; }
+float Kelly_get_Ic() { return Ic; }
+
+void Kelly_get_batch2(int ID) {
+    Kelly_send(CCP_A2D_BATCH_READ2, ID);
     CAN_receive_message(receive);
     Ib = receive[2] & 0xff;
     Ic = (receive[2] & 0xff00) >> 8;
     Vb = (receive[2] & 0xff0000) >> 16;
     Vc = (receive[2] & 0xff000000) >> 24;
+}
+
+void Kelly_print_batch1(char *buffer, int ID) {
+    Kelly_get_batch1(ID);
+    println("----------------------------------------");
+    println("============== BATCH ONE ===============");
+    println("----------------------------------------");
+    sprintf(buffer, "Brake: %.1f\r\nTPS (Throttle): %.1f\r\nOperation Voltage: %.1f\r\nVs: %d\r\nB+: %.1f", 
+            Kelly_get_brake_voltage(), Kelly_get_throttle_voltage(), 
+            Kelly_get_operational_voltage(), Vs, Kelly_get_battery_voltage());
+    println(buffer);
+    println("========================================");
+}
+
+void Kelly_print_batch2(char *buffer, int ID) {
+    Kelly_get_batch2(ID);
     println("----------------------------------------");
     println("============== BATCH TWO ===============");
     println("----------------------------------------");
