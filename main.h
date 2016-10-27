@@ -23,5 +23,6 @@
 #include "VL6180X.h"
 #include "kellyController.h"
 #include "honeywellPressure.h"
+#include "thermistor.h"
 
 #endif

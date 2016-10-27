@@ -10,6 +10,7 @@
         <itemPath>SD.h</itemPath>
         <itemPath>kellyController.h</itemPath>
         <itemPath>honeywellPressure.h</itemPath>
+        <itemPath>thermistor.h</itemPath>
       </logicalFolder>
       <logicalFolder name="f1" displayName="peripheral" projectFiles="true">
         <itemPath>slowTimer.h</itemPath>
@@ -38,6 +39,7 @@
         <itemPath>SD.c</itemPath>
         <itemPath>kellyController.c</itemPath>
         <itemPath>honeywellPressure.c</itemPath>
+        <itemPath>thermistor.c</itemPath>
       </logicalFolder>
       <logicalFolder name="f1" displayName="peripheral" projectFiles="true">
         <itemPath>slowTimer.c</itemPath>
