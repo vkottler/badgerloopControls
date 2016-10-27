@@ -34,8 +34,8 @@ uint32_t receive[4];
 KELLY_CMD *curr;
 char tempBuffer[255];
 
-void Kelly_send(COMMAND_NAME cmd) {
-    toSend[0] = INITIAL_ID;
+void Kelly_send(COMMAND_NAME cmd, int ID) {
+    toSend[0] = ID;
     switch (cmd) {
         case CCP_FLASH_READ1: curr = &read1; break;
         case CCP_FLASH_READ2: curr = &read2; break;
@@ -62,8 +62,8 @@ void Kelly_send(COMMAND_NAME cmd) {
     CAN_send_message(toSend);
 }
 
-void Kelly_get_model(char *buffer) {
-    Kelly_send(CCP_FLASH_READ1);
+void Kelly_get_model(char *buffer, int ID) {
+    Kelly_send(CCP_FLASH_READ1, int ID);
     CAN_receive_message(receive);
     for (i = 0; i < 8; i++) {
         if (i < 4) buffer[i] = (receive[2] & (0xff << 8*i)) >> (8*i);
@@ -72,46 +72,49 @@ void Kelly_get_model(char *buffer) {
     buffer[8] = '\0';
 }
 
-void Kelly_get_software_ver(char *buffer) {
-    Kelly_send(CCP_FLASH_READ2);
+void Kelly_get_software_ver(char *buffer, int ID) {
+    Kelly_send(CCP_FLASH_READ2, int ID);
     CAN_receive_message(receive);
     buffer[0] = (receive[2] & 0xff) + 48; buffer[1] = '.';
     buffer[2] = (receive[2] & 0xff00 >> 8) + 48; buffer[3] = '\0';
 }
 
-void Kelly_get_throttle_low_high(char *buffer) {
-    Kelly_send(CCP_FLASH_READ3);
+void Kelly_get_throttle_low_high(char *buffer, int ID) {
+    Kelly_send(CCP_FLASH_READ3, int ID);
     CAN_receive_message(receive);
     uint8_t low = receive[2] & 0xff;
-    Kelly_send(CCP_FLASH_READ5);
+    Kelly_send(CCP_FLASH_READ5, int ID);
     CAN_receive_message(receive);
     uint8_t high = receive[2] & 0xff;
     sprintf(buffer, "[THROTTLE] Low: %d, High: %d", low, high);
 }
 
-void Kelly_get_brake_low_high(char *buffer) {
-    Kelly_send(CCP_FLASH_READ4);
+void Kelly_get_brake_low_high(char *buffer, int ID) {
+    Kelly_send(CCP_FLASH_READ4, int ID);
     CAN_receive_message(receive);
     uint8_t low = receive[2] & 0xff;
-    Kelly_send(CCP_FLASH_READ6);
+    Kelly_send(CCP_FLASH_READ6, int ID);
     CAN_receive_message(receive);
     uint8_t high = receive[2] & 0xff;
     sprintf(buffer, "[BRAKE]    Low: %d, High: %d", low, high);
 }
 
-void Kelly_print_info(char *buffer) {
+void Kelly_print_info(char *buffer, int ID) {
     println("----------------------------------------");
     println("=========== KELLY CONTROLLER ===========");
     println("----------------------------------------");
     print("Model Number:     ");
-    Kelly_get_model(buffer);
-    println(buffer);
+    Kelly_get_model(buffer, int ID);
+    print(buffer);
+    
+    if (ID == TORQUE_ID) println(" (TORQUE CONTROLLER)");
+    else if (ID == SPEED_ID) println(" (SPEED CONTROLLER)");
     print("Software Version:      ");
-    Kelly_get_software_ver(buffer);
+    Kelly_get_software_ver(buffer, int ID);
     println(buffer);
-    Kelly_get_throttle_low_high(buffer);
+    Kelly_get_throttle_low_high(buffer, int ID);
     println(buffer);
-    Kelly_get_brake_low_high(buffer);
+    Kelly_get_brake_low_high(buffer, int ID);
     println(buffer);
     println("========================================");
 }

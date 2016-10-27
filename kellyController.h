@@ -5,6 +5,7 @@
 #include "CAN.h"
 
 #include <stdio.h>
+#include <string.h>
 #include "usbUART.h"
 
 /*
@@ -15,7 +16,8 @@
  * one or two data frames as response
  */
 
-#define INITIAL_ID              0x6B // standard 11 bit IDs
+#define TORQUE_ID              0x6B // standard 11 bit IDs
+#define SPEED_ID                100
 #define INITIAL_RESPONSE_ID     0x73
 
 // Constants
@@ -51,13 +53,13 @@ typedef struct {
     uint8_t resp_length;
 } KELLY_CMD;
 
-void Kelly_send(COMMAND_NAME cmd);
-void Kelly_get_model(char *buffer);
-void Kelly_get_software_ver(char *buffer);
-void Kelly_get_throttle_low_high(char *buffer);
-void Kelly_get_brake_low_high(char *buffer);
-void Kelly_print_info(char *buffer);
-void Kelly_print_batch1(char *buffer);
-void Kelly_print_batch2(char *buffer);
+void Kelly_send(COMMAND_NAME cmd, int ID);
+void Kelly_get_model(char *buffer, int ID);
+void Kelly_get_software_ver(char *buffer, int ID);
+void Kelly_get_throttle_low_high(char *buffer, int ID);
+void Kelly_get_brake_low_high(char *buffer, int ID);
+void Kelly_print_info(char *buffer, int ID);
+void Kelly_print_batch1(char *buffer, int ID);
+void Kelly_print_batch2(char *buffer, int ID);
 
 #endif

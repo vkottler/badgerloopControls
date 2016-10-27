@@ -30,7 +30,8 @@ void helpMessage(void) {
     println("====== BADGERLOOP VACUUM CHAMBER =======");
     println("----------------------------------------");
     println("While not running, enter 'info', 'batch1',");
-    println("or 'batch2' to request information.");
+    println("or 'batch2' to with either '-speed' or ");
+    println("'-torque' appended to request information.");
     println("(See Kelly Documentation on what these messages return)");
     println("To enter run mode, enter 'run'. To stop run");
     println("mode enter 'stop'. To see this again type 'help'.");
@@ -71,9 +72,12 @@ int main(void) {
     while (1) {
         if (UARTavailable()) {
             getMessage(message, 255);
-            if (strcmp(message, "info") == 0) Kelly_print_info(message);
-            else if (strcmp(message, "batch1") == 0) Kelly_print_batch1(message);
-            else if (strcmp(message, "batch2") == 0) Kelly_print_batch2(message);
+            if (strcmp(message, "info-speed") == 0) Kelly_print_info(message, SPEED_ID);
+            else if (strcmp(message, "info-torque") == 0) Kelly_print_info(message, TORQUE_ID);
+            else if (strcmp(message, "batch1-speed") == 0) Kelly_print_batch1(message, SPEED_ID);
+            else if (strcmp(message, "batch1-torque") == 0) Kelly_print_batch1(message, TORQUE_ID);
+            else if (strcmp(message, "batch2-speed") == 0) Kelly_print_batch2(message, SPEED_ID);
+            else if (strcmp(message, "batch2-torque") == 0) Kelly_print_batch2(message, TORQUE_ID);
             else if (strcmp(message, "run") == 0) vacDAQrun();
             else if (strcmp(message, "help") == 0) helpMessage();
             else println("Command not recognized.");
