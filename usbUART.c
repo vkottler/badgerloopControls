@@ -1,5 +1,8 @@
 #include "usbUART.h"
 
+char receiveBuffer[255];
+volatile uint8_t UARTstatus = 0;
+
 void initUART() {
     U1MODEbits.BRGH = 1;
     U1BRG = BRATE;
@@ -8,26 +11,28 @@ void initUART() {
     U1STAbits.UTXEN = 1;
     U1STAbits.URXEN = 1;
     
+    // Generate Interrupt when receive buffer not empty
+    U1STAbits.URXISEL = 0;
+    IEC0bits.U1RXIE = 1; // enable interrupt 
+    IFS0bits.U1RXIF = 0; // clear flag
+    IPC6bits.U1IP = 1; // priority 1
+    IPC6bits.U1IS = 1; // sub-priority 1
+    
     // NEEDS TO BE LAST
     U1MODEbits.ON = 1;
 }
 
-int UARTavailable() { return U1STAbits.URXDA; }
+int UARTavailable() { return UARTstatus & DATA_READY; }
 
 void getMessage(char *message, int maxLength) {
-    char data = 0;
-    short complete = 0, num_bytes = 0;
-    while (!complete) {
-        if (U1STAbits.URXDA) {
-            data = U1RXREG;
-            if ((data == '\n')) complete = 1;
-            else if (data != '\r') {
-                message[num_bytes++] = data;
-                if (num_bytes >= maxLength) num_bytes = 0;
-            }
-        }
+    int index = 0;
+    while (receiveBuffer[index] != '\0' && index < maxLength) {
+        message[index] = receiveBuffer[index];
+        index++;
     }
-    message[num_bytes] = '\0';
+    message[index] = '\0';
+    UARTstatus |= DATA_READ;
+    UARTstatus &= ~DATA_READY;
 }
 
 void print(const char *string) {
@@ -73,8 +78,30 @@ void printByte(uint8_t byte) {
     print(toSend);
 }
 
-void checkSerialErrors() {
-    if (U1STAbits.PERR) setBoardLight(0, 1);
-    if (U1STAbits.FERR) setBoardLight(1, 1);
-    if (U1STAbits.OERR) setBoardLight(2, 1);
+void __ISR(UARTvec, IPL1SOFT) receiveHandler(void) {
+    
+    static int receiveIndex = 0;
+    
+    if (UARTstatus & DATA_READ) {
+        receiveIndex = 0;
+        UARTstatus &= ~DATA_READ;
+    }
+    
+    if (U1STAbits.URXDA) {
+        
+        char data = U1RXREG;
+        
+        // just throw out new UART if we didn't read old message
+        if (!(UARTstatus & DATA_READY)) {
+            if (data == '\n') {
+                receiveBuffer[receiveIndex] = '\0';
+                UARTstatus |= DATA_READY;
+            }
+            else if (data != '\r') {
+                receiveBuffer[receiveIndex] = data;
+                receiveIndex++;
+            }
+        }
+    }
+    IFS0bits.U1RXIF = 0;
 }

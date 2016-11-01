@@ -89,8 +89,10 @@ int main(void) {
     helpMessage();
     
     while (1) {
+        
         if (UARTavailable()) {
             getMessage(message, 255);
+            
             if (strcmp(message, "info-speed") == 0) Kelly_print_info(message, SPEED_ID);
             else if (strcmp(message, "info-torque") == 0) Kelly_print_info(message, TORQUE_ID);
             else if (strcmp(message, "batch1-speed") == 0) Kelly_print_batch1(message, SPEED_ID);
@@ -100,7 +102,11 @@ int main(void) {
             else if (strcmp(message, "run") == 0) vacDAQrun(0);
             else if (strcmp(message, "run-can") == 0) vacDAQrun(1);
             else if (strcmp(message, "help") == 0) helpMessage();
-            else println("Command not recognized.");
+            else {
+                print("Command not recognized: '");
+                print(message);
+                println("'");
+            }
         }
         GREEN2 = 1;
         delay(500, MILLI);
