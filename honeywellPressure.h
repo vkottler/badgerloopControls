@@ -13,6 +13,7 @@
 #define PSISCALAR           0.001416        //((23.206)/OUTMAX)
 #define KPASCALAR           0.009766        //((160.00)/OUTMAX)
 #define TEMPSCALAR          0.097704        //((200.00)/(2047.0))
+#define TORRSCALAR          0.073251
 
 void HPread(void);
 double HPgetStatus(void);

@@ -54,7 +54,7 @@ void vacDAQrun(int CANen) {
         }
         
         HPread();
-        sprintf(message, "%.2f, %.2f, ", HPgetTemperature(), HPgetPressure()*7.5);
+        sprintf(message, "%.2f, %.2f, ", HPgetTemperature(), HPgetPressure());
         print(message);
      
         sprintf(message, "%.2f, %.2f, %.2f", getMotorTemp(0), getMotorTemp(1), getRegularTemp(2));

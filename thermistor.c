@@ -22,7 +22,13 @@ double getMotorTemp(int pin) {
 }
 
 double getRegularTemp(int pin) {
-    double currentCalc = (double) analogRead(pin);
+    double runningTotal = 0;
+    runningTotal += (double) analogRead(pin);
+    runningTotal += (double) analogRead(pin);
+    runningTotal += (double) analogRead(pin);
+    runningTotal += (double) analogRead(pin);
+    runningTotal += (double) analogRead(pin);
+    double currentCalc = runningTotal / 5.0;
     currentCalc = currentCalc / 1024.0 * 3.3;
     currentCalc = voltsToOhms(currentCalc, REG_THERM_RESISTOR);
     return ohmsToTemp(currentCalc, ToReg, RoReg, BETA_REG_THERM);

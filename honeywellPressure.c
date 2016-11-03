@@ -2,7 +2,7 @@
 
 uint8_t pressureData[4];
 int status = -1;
-double kPa = 0.0;
+double torr = 0.0;
 double temp = 0.0;
 uint16_t temperatureReading, pressureReading;
 
@@ -17,15 +17,14 @@ void HPread(void) {
     temp = (temp / 2047.00) - 50;
     
     // Computer Pressure
-    kPa = pressureReading*160.00;
-    kPa = kPa / OUTMAX;
+    torr = pressureReading*TORRSCALAR;
 }
 
 double HPgetStatus(void) { return status; }
 
 double HPgetPressure(void) {
     if (status == -1) return -1;
-    return kPa;
+    return torr;
 }
 double HPgetTemperature(void) {
     if (status == -1) return -1;
