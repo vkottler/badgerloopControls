@@ -18,6 +18,7 @@
 #include "SPI.h"
 #include "ADC.h"
 #include "CAN.h"
+#include "inputCapture.h"
 
 // drivers
 #include "VL6180X.h"

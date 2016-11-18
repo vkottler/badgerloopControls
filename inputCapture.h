@@ -1,6 +1,7 @@
 #include <xc.h>
 #include "ledShield.h"
 #include <sys/attribs.h>
+#include <stdio.h>
 
 // INT1 is pin 48 on the Max32!
 

@@ -7,6 +7,7 @@ volatile int available = 0;
 volatile int time1 = 0;
 volatile int time2 = 0;
 volatile int frequency = 0;
+char message[255];
 
 void startTimer2(void) {
     T2CONbits.TCKPS = 7;        // 1:256 = 250000 Hz
@@ -63,6 +64,22 @@ int getStripFrequency(void) {
     time1 = getInput();
     while(!inputAvailable());
     time2 = getInput();
-    frequency = 250000 / time2; // we just wanted that second time
+    frequency = 250000 / (time2 - time1); // we just wanted that second time
     return frequency;
+}
+
+/**
+ * Determines the RPM from the get Strip Frequency. Helper for printRPM
+ * @return the RPM
+ */
+double getRPM(void) {
+    return (int)getStripFrequency / 60;  
+}
+
+/**
+ * prints the RPM
+ */
+void printRPM(void) {
+    sprintf(message, "RPM: %.2f", getRPM());
+    println(message);
 }

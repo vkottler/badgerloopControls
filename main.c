@@ -6,39 +6,28 @@ void initializers(void) {
     // hardware
     DDPCONbits.JTAGEN = 0;
     __builtin_disable_interrupts();
-    
-    initializeTimer1(0x8000, 0xffff);
     initLEDs();
     initUART();
-    I2Cinit();
-    initADC();
-    
+    inputCapInit();
     INTCONbits.MVEC = 1;
     __builtin_enable_interrupts();
     blinkBoardLights(5, 100);
-    
-    // individual peripherals
-    //VL_init(VL_ADDRESS);
-    CAN_init();
 }
 
 char message[255];
 uint32_t receive[4];
 
 void helpMessage(void) {
-    println("----------------------------------------");
-    println("====== BADGERLOOP VACUUM CHAMBER =======");
-    println("----------------------------------------");
-    println("While not running, enter 'info', 'batch1',");
-    println("or 'batch2' to with either '-speed' or ");
-    println("'-torque' appended to request information.");
-    println("(See Kelly Documentation on what these messages return)");
+    println("-------------------------------------------------------");
+    println("============== BADGERLOOP VACUUM CHAMBER ==============");
+    println("-------------------------------------------------------");
+    println("While not running, enter 'speed' to request information");
     println("To enter run mode, enter 'run'. To stop run");
     println("mode enter 'stop'. To see this again type 'help'.");
-    println("========================================");
+    println("=======================================================");
 }
 
-void vacDAQrun(int CANen) {
+void vacDAQrun(void) {
     println("----------------------------------------");
     println("=============== DAQ BEGIN ==============");
     println("----------------------------------------");
@@ -52,33 +41,8 @@ void vacDAQrun(int CANen) {
                 return;
             }
         }
-        
-        HPread();
-        sprintf(message, "%.2f, %.2f, ", HPgetTemperature(), HPgetPressure());
-        print(message);
-     
-        sprintf(message, "%.2f, %.2f, %.2f", getMotorTemp(0), getMotorTemp(1), getRegularTemp(2));
-        print(message);
-        
-        if (CANen) {
-            Kelly_get_batch1(TORQUE_ID);
-            sprintf(message, ", %.1f, ", Kelly_get_brake_voltage());
-            print(message);
-            
-            Kelly_get_batch1(SPEED_ID);
-            sprintf(message, "%.1f, ", Kelly_get_throttle_voltage());
-            print(message);
-            
-            Kelly_get_batch2(TORQUE_ID);
-            sprintf(message, "%d, %d, ", Kelly_get_Ib(), Kelly_get_Ic());
-            print(message);
-            
-            Kelly_get_batch2(SPEED_ID);
-            sprintf(message, "%d, %d", Kelly_get_Ib(), Kelly_get_Ic());
-            println(message);
-        }
-        
-        else println("");
+        printRPM();
+        println("");
         delay(1000, MILLI); 
     }
 }
@@ -87,21 +51,13 @@ int main(void) {
     
     initializers();
     helpMessage();
-    
+    startTimer2();
     while (1) {
-        
         if (UARTavailable()) {
             getMessage(message, 255);
-            
-            if (strcmp(message, "info-speed") == 0) Kelly_print_info(message, SPEED_ID);
-            else if (strcmp(message, "info-torque") == 0) Kelly_print_info(message, TORQUE_ID);
-            else if (strcmp(message, "batch1-speed") == 0) Kelly_print_batch1(message, SPEED_ID);
-            else if (strcmp(message, "batch1-torque") == 0) Kelly_print_batch1(message, TORQUE_ID);
-            else if (strcmp(message, "batch2-speed") == 0) Kelly_print_batch2(message, SPEED_ID);
-            else if (strcmp(message, "batch2-torque") == 0) Kelly_print_batch2(message, TORQUE_ID);
-            else if (strcmp(message, "run") == 0) vacDAQrun(0);
-            else if (strcmp(message, "run-can") == 0) vacDAQrun(1);
-            else if (strcmp(message, "help") == 0) helpMessage();
+            if (strcmp(message, "speed") == 0) printRPM();
+            else if (strcmp(message, "run")) vacDAQrun();
+            else if (strcmp(message, "help")) helpMessage();
             else {
                 print("Command not recognized: '");
                 print(message);
