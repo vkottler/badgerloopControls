@@ -1,4 +1,4 @@
-# [Badgerloop]() Embedded Software
+# [Badgerloop](http://badgerloop.com/) Embedded Software
 
 Members/Contributors:
   * [Vaughn Kottler](http://vaughnsplayground.me/) (Team Lead)
