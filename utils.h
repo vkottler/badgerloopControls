@@ -3,8 +3,9 @@
 
 #include <xc.h>
 #include <stdio.h>
-#include "usbUART.h"
-#include "ledShield.h"
+
+#include "drivers/include/usbUART.h"
+#include "peripherals/include/ledShield.h"
 
 #define MAC1    0xA7B5 // Vaughn's Personal Board
 #define MAC2    0xFFC
