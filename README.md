@@ -30,18 +30,18 @@ Members/Contributors:
 
 ### [applications](applications)
 
-#### C
+#### [C](applications/C)
 
-#### include
+#### [include](applications/include)
 
 ### [drivers](drivers)
 
-#### C
+#### [C](drivers/C)
 
-#### include
+#### [include](drivers/include)
 
 ### [peripherals](peripherals)
 
-#### C
+#### [C](peripherals/C)
 
-#### include
+#### [include](peripherals/include)
