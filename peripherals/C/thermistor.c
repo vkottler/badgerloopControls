@@ -16,7 +16,11 @@ double voltsToOhms(double volts, int resistor) {
 
 double getMotorTemp(int pin) {
     double currentCalc = (double) analogRead(pin); 
-    currentCalc = currentCalc / 1024.0 * 3.3;
+    currentCalc += analogRead(pin);
+    currentCalc += analogRead(pin); 
+    currentCalc += analogRead(pin); 
+    currentCalc += analogRead(pin); 
+    currentCalc = (currentCalc / 5.0) / 1024.0 * 3.3;
     currentCalc = voltsToOhms(currentCalc, MOTOR_THERM_RESISTOR);
     return ohmsToTemp(currentCalc, ToMotor, RoMotor, BETA_MOTOR_THERM);
 }
