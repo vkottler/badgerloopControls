@@ -34,8 +34,8 @@ Members/Contributors:
 
 ### [applications](applications)
 
-  This folder contains all of the different test routines as well as the   
-  current version of all module software.
+  This folder contains all of the different test routines as well as the current version   
+  of all module software.
 
 #### [C](applications/C)
 
@@ -80,4 +80,18 @@ Members/Contributors:
 
 #### [C](peripherals/C)
 
+  * [SD.c](peripherals/C/SD.c)
+  * [VL6180X.c](peripherals/C/VL6180X.c)
+  * [honeywellPressure.c](peripherals/C/honeywellPressure.c)
+  * [kellyController.c](peripherals/C/kellyController.c)
+  * [ledShield.c](peripherals/C/ledShield.c)
+  * [thermistor.c](peripherals/C/thermistor.c)
+
 #### [include](peripherals/include)
+
+  * [SD.h](peripherals/include/SD.h)
+  * [VL6180X.h](peripherals/include/VL6180X.h)
+  * [honeywellPressure.h](peripherals/include/honeywellPressure.h)
+  * [kellyController.h](peripherals/include/kellyController.h)
+  * [ledShield.h](peripherals/include/ledShield.h)
+  * [thermistor.h](peripherals/include/thermistor.h)
