@@ -22,6 +22,24 @@ Members/Contributors:
 * Digilent's [chipKIT Max32 Development Board](http://store.digilentinc.com/chipkit-max32-microcontroller-board-with-mega-r3-headers/)
   * [Reference Documentation](https://reference.digilentinc.com/chipkit_max32/refmanual)
   
+## How to Contribute:
+
+  1. Obtain collaborator access to this repository on GitHub (contact Vaughn Kottler at [vkottler@wisc.edu](vkottler@wisc.edu))
+  2. Clone the repo into a local repository on your workstation
+    * [install git](https://git-scm.com/)
+	* create a new folder in a convenient location (i.e. `Documents`)
+	* open Git Bash inside this folder (either run Git Bash and navigate there or right-click inside folder and choose `Open with Git Bash`)
+	* run `git init`
+	* run `git remote add origin https://github.com/vkottler/badgerloopControls.git`
+	* run `git pull origin master`
+  3. Create a folder called `project` in the top level of the repository (i.e. same level as `config.h`, `drivers`, etc.)
+  4. Install the latest version of [MPLABX](http://www.microchip.com/mplab/mplab-x-ide)
+  5. Install the [xc32 compiler](http://www.microchip.com/mplab/compilers)
+  6. Create a new standalone project in MPLAB in the `project` folder
+    * when prompted with device family and type, find the `pic32mx795f512l` in the dropdown
+	* choose `UTF-8` as the character encoding
+	* create project?
+  
 ## Folder and File Hierarchy
 
 ---
