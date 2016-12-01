@@ -21,8 +21,10 @@ Members/Contributors:
   * [Reference Documentation](http://ww1.microchip.com/downloads/en/DeviceDoc/60001156J.pdf)
 * Digilent's [chipKIT Max32 Development Board](http://store.digilentinc.com/chipkit-max32-microcontroller-board-with-mega-r3-headers/)
   * [Reference Documentation](https://reference.digilentinc.com/chipkit_max32/refmanual)
-
+  
 ## Folder and File Hierarchy
+
+---
 
 ### Misc
 
@@ -32,6 +34,8 @@ Members/Contributors:
   * [utils.c](utils.c)
   * [utils.h](utils.h)
 
+---
+  
 ### [applications](applications)
 
   This folder contains all of the different test routines as well as the current version   
@@ -45,6 +49,8 @@ Members/Contributors:
 
   * [main.h](applications/include/main.h)
 
+---  
+  
 ### [drivers](drivers)
 
   This folder contains functions to instantiate and interact with internal hardware peripherals   
@@ -72,6 +78,8 @@ Members/Contributors:
   * [timer1.h](drivers/include/timer1.c)
   * [usbUART.h](drivers/include/usbUART.c)
 
+---
+  
 ### [peripherals](peripherals)
 
   This folder contains functions to interact with different peripheral devices such as   
