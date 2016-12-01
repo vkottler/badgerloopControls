@@ -1,6 +1,4 @@
-#include <xc.h>
 #include "../include/slowTimer.h"
-#include "../../globals.h"
 
 void setSlowTimerPeriod(int ms) {
     TMR4 = 0;
