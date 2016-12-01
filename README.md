@@ -35,10 +35,17 @@ Members/Contributors:
   3. Create a folder called `project` in the top level of the repository (i.e. same level as `config.h`, `drivers`, etc.)
   4. Install the latest version of [MPLABX](http://www.microchip.com/mplab/mplab-x-ide)
   5. Install the [xc32 compiler](http://www.microchip.com/mplab/compilers)
-  6. Create a new standalone project in MPLAB in the `project` folder
-    * when prompted with device family and type, find the `pic32mx795f512l` in the dropdown
-	* choose `UTF-8` as the character encoding
-	* create project?
+  6. Create a new standalone project in MPLAB
+    * when prompted with device family and type, find the `pic32mx795f512l` under Family `32-bit MCUs (PIC32)`
+	  * choose the `PICkit3` as the Hardware Tool (unless you have something different)
+    * choose `xc32` version 1.42 as the compiler
+    * name the project and place it in the `project` folder inside the repo
+    * set as main project, do not check use project location as project folder
+    * choose `UTF-8` as the character encoding
+    * click Finish
+  7. Add the source files to the project
+    * This can be done in a number of ways, the best strategy is to add `.c` source files   
+      separately from `.h` header files
   
 ## Folder and File Hierarchy
 
