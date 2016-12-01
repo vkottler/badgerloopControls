@@ -51,8 +51,6 @@ Members/Contributors:
   * [globals.h](globals.h)
   * [utils.c](utils.c)
   * [utils.h](utils.h)
-
----
   
 ### [applications](applications)
 
@@ -121,6 +119,3 @@ Members/Contributors:
   * [kellyController.h](peripherals/include/kellyController.h)
   * [ledShield.h](peripherals/include/ledShield.h)
   * [thermistor.h](peripherals/include/thermistor.h)
-  
----
-
