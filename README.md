@@ -8,11 +8,13 @@ Members/Contributors:
 
 ## [State Machine Overview](http://vaughnsplayground.me/OverallPodOperation.html)
 
-  Description
+  Iteration one of the overall pod software state machine. This diagram describes   
+  the intended behavior of the pod during normal operation
 
 ## [System Block Diagram Overview](http://vaughnsplayground.me/OverallBlockDiagram.pdf)
 
-  Description
+  This diagram represents the electrical hardware in the pod and shows the   
+  interconnectivity. It is geographically similar to the pod as viewed from above.
 
 ## Implementing Technology:
 * Microchip [pic32mx795f512l](http://www.microchip.com/wwwproducts/en/PIC32MX795F512L)
@@ -22,25 +24,59 @@ Members/Contributors:
 
 ## Folder and File Hierarchy
 
-* [config.h](config.h)
-* [globals.c](globals.c)
-* [globals.h](globals.h)
-* [utils.c](utils.c)
-* [utils.h](utils.h)
+### Misc
+
+  * [config.h](config.h)
+  * [globals.c](globals.c)
+  * [globals.h](globals.h)
+  * [utils.c](utils.c)
+  * [utils.h](utils.h)
 
 ### [applications](applications)
 
+  This folder contains all of the different test routines as well as the   
+  current version of all module software.
+
 #### [C](applications/C)
+
+  * [main.c](applications/C/main.c)
 
 #### [include](applications/include)
 
+  * [main.h](applications/include/main.h)
+
 ### [drivers](drivers)
+
+  This folder contains functions to instantiate and interact with internal hardware peripherals   
+  such as CAN, I2C, UART, ADCs and GPIO pins.
 
 #### [C](drivers/C)
 
+  * [ADC.c](drivers/C/ADC.c)
+  * [CAN.c](drivers/C/CAN.c)
+  * [I2C.c](drivers/C/I2C.c)
+  * [SPI.c](drivers/C/SPI.c)
+  * [inputCapture.c](drivers/C/inputCapture.c)
+  * [slowTimer.c](drivers/C/slowTimer.c)
+  * [timer1.c](drivers/C/timer1.c)
+  * [usbUART.c](drivers/C/usbUART.c)
+
 #### [include](drivers/include)
 
+  * [ADC.h](drivers/include/ADC.c)
+  * [CAN.h](drivers/include/CAN.c)
+  * [I2C.h](drivers/include/I2C.c)
+  * [SPI.h](drivers/include/SPI.c)
+  * [inputCapture.h](drivers/include/inputCapture.c)
+  * [slowTimer.h](drivers/include/slowTimer.c)
+  * [timer1.h](drivers/include/timer1.c)
+  * [usbUART.h](drivers/include/usbUART.c)
+
 ### [peripherals](peripherals)
+
+  This folder contains functions to interact with different peripheral devices such as   
+  sensors and other microprocessor based circuits. These rely heavily on the quality of   
+  the driver implementation for the particular communication protocol being used.
 
 #### [C](peripherals/C)
 
