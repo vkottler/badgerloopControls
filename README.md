@@ -47,7 +47,7 @@ Members/Contributors:
     * This can be done in a number of ways, the best strategy is to add `.c` source files
       separately from `.h` header files
       * add C files by right clicking Source Files and choosing `add existing items from folders`, [add drivers, peripherals, and applications](screenshots/creatingAproject/addingSourceFiles.PNG)
-      * add header files by right clicking Header Files and choosing `add existing items from folders`, make sure that .h files are chosen in the drop down menu. [Add drivers, peripherals, and applications](screenshots/creatingAproject/addingHeaderFiles.PNG)
+      * add header files by right clicking Header Files and choosing `add existing items from folders`, *make sure that .h files are chosen in the drop down menu*. [Add drivers, peripherals, and applications](screenshots/creatingAproject/addingHeaderFiles.PNG)
       * Header and Source files should contain the three folders which each have an `include` and a `C` folder. For Header Files the `C` folder [can be deleted](screenshots/creatingAproject/deleteCfolderForInclude.PNG) and for Source Files the `include` folder [can be deleted](screenshots/creatingAproject/deleteIncludeFolderForSource.PNG). [This is what your project should now look like](screenshots/creatingAproject/whenFinishedAddingFromFolders.PNG)
       * Last, [add the remaining files that are not in any of these three folders](screenshots/creatingAproject/whenFinished.PNG)
   8. Build the project to verify that everything is in order. *Commits should not be made with projects that do not build!*
@@ -73,10 +73,12 @@ Members/Contributors:
 #### [C](applications/C)
 
   * [main.c](applications/C/main.c)
+  * [vacuumTesting.c](applications/C/vacuumTesting.c)
 
 #### [include](applications/include)
 
   * [main.h](applications/include/main.h)
+  * [vacuumTesting.h](applications/include/vacuumTesting.h)
 
 ---  
   
