@@ -1,9 +1,14 @@
 #include "../include/usbUART.h"
 
-char receiveBuffer[255];
-volatile uint8_t UARTstatus = 0;
+PC_Buffer tx_buffer, rx_buffer;
+volatile uint8_t availableCount = 0;
 
 void initUART() {
+    
+    // Initialize produce/consume buffers
+    pc_buffer_init(&tx_buffer, BUFSIZ);
+    pc_buffer_init(&rx_buffer, BUFSIZ);
+    
     U1MODEbits.BRGH = 1;
     U1BRG = BRATE;
     
@@ -12,34 +17,38 @@ void initUART() {
     U1STAbits.URXEN = 1;
     
     // Generate Interrupt when receive buffer not empty
-    U1STAbits.URXISEL = 0;
-    IEC0bits.U1RXIE = 1; // enable interrupt 
-    IFS0bits.U1RXIF = 0; // clear flag
-    IPC6bits.U1IP = 1; // priority 1
-    IPC6bits.U1IS = 1; // sub-priority 1
+    U1STAbits.URXISEL = 0;          // int generated when recieve buffer not empty
+    U1STAbits.UTXISEL = 0;          // int generated when transmit buffer has at least one empty space
+    IEC0bits.U1RXIE = 1;            // enable interrupt 
+    USB_RX_FLAG = 0;                // clear flag
+    USB_TX_FLAG = 0;
+    IPC6bits.U1IP = 1;              // priority 1
+    IPC6bits.U1IS = 1;              // sub-priority 1
     
     // NEEDS TO BE LAST
     U1MODEbits.ON = 1;
 }
 
-int UARTavailable() { return UARTstatus & DATA_READY; }
+bool messageAvailable(void) { return availableCount > 0; }
 
 void getMessage(char *message, int maxLength) {
+    char curr;
     int index = 0;
-    while (receiveBuffer[index] != '\0' && index < maxLength) {
-        message[index] = receiveBuffer[index];
-        index++;
+    
+    while (index < maxLength && !pc_buffer_empty(&rx_buffer)) {
+        pc_buffer_remove(&rx_buffer, &curr);
+        if (curr != '\r') message[index++] = (curr == '\n') ? '\0' : curr;
+        if (curr == '\n') {
+            availableCount--;
+            return;
+        }
     }
-    message[index] = '\0';
-    UARTstatus |= DATA_READ;
-    UARTstatus &= ~DATA_READY;
 }
 
 void print(const char *string) {
-    while (*string != '\0') {
-        while (U1STAbits.UTXBF);
-        U1TXREG = *(string++);
-    }
+    while (*string != '\0' && !pc_buffer_full(&tx_buffer)) 
+        pc_buffer_add(&tx_buffer, *(string++));
+    USB_TX_EN = 1;
 }
 
 void println(const char *string) { print(string); print("\r\n"); }
@@ -78,30 +87,24 @@ void printByte(uint8_t byte) {
     print(toSend);
 }
 
-void __ISR(UARTvec, IPL1SOFT) receiveHandler(void) {
+void __ISR(U1vec, IPL1SOFT) receiveHandler(void) {
     
-    static int receiveIndex = 0;
+    static char curr;
     
-    if (UARTstatus & DATA_READ) {
-        receiveIndex = 0;
-        UARTstatus &= ~DATA_READ;
+    // Handle received char
+    if (USB_RX_FLAG) {
+        curr = U1RXREG;
+        if (curr == '\n') availableCount++;
+        if (!pc_buffer_full(&rx_buffer))
+            pc_buffer_add(&rx_buffer, curr);
+        USB_RX_FLAG = 0;
     }
     
-    if (U1STAbits.URXDA) {
-        
-        char data = U1RXREG;
-        
-        // just throw out new UART if we didn't read old message
-        if (!(UARTstatus & DATA_READY)) {
-            if (data == '\n') {
-                receiveBuffer[receiveIndex] = '\0';
-                UARTstatus |= DATA_READY;
-            }
-            else if (data != '\r') {
-                receiveBuffer[receiveIndex] = data;
-                receiveIndex++;
-            }
-        }
+    // Handle sending a char
+    if (USB_TX_FLAG) {
+        while (!U1STAbits.UTXBF && !pc_buffer_empty(&tx_buffer))           // read from the pc buffer until the hardware buffer is full, or until there are no more characters
+            pc_buffer_remove(&tx_buffer, (char *) &U1TXREG);
+        if (pc_buffer_empty(&tx_buffer)) USB_TX_EN = 0;                    // if there aren't any characters to send disable the interrupt
+        USB_TX_FLAG = 0;
     }
-    IFS0bits.U1RXIF = 0;
 }

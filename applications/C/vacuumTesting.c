@@ -8,17 +8,16 @@ void vacuumInitializers(void) {
     // hardware
     __builtin_disable_interrupts();
     
-    initializeTimer1(0x8000, 0xffff);
-    initLEDs();
     initUART();
     I2Cinit(1, 100, true);
     initADC();
     
     INTCONbits.MVEC = 1;
     __builtin_enable_interrupts();
-    blinkBoardLights(5, 100);
     
     CAN_init();
+    
+    GREEN1 = 1;
 }
 
 void helpMessage(void) {
@@ -39,7 +38,7 @@ void vacDAQrun(int CANen) {
     println("=============== DAQ BEGIN ==============");
     println("----------------------------------------");
     while (1) {
-        if (UARTavailable()) {
+        if (messageAvailable()) {
             getMessage(message, 255);
             if (strcmp(message, "stop") == 0) {
                 println("----------------------------------------");
@@ -86,7 +85,7 @@ void vacuumTest(void) {
     
     while (1) {
         
-        if (UARTavailable()) {
+        if (messageAvailable()) {
             getMessage(message, 255);
             
             if (strcmp(message, "info-speed") == 0) Kelly_print_info(message, SPEED_ID);

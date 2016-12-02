@@ -21,8 +21,7 @@ void printBoardNumber(char* message) {
 }
 
 void waitForButton(void) {
-    println("Press button to continue.");
-    YELLOW2 = 1;
-    while(!readButton());                       // push to start
-    YELLOW2 = 0;
+    BOARD_LED1 = 1; BOARD_LED2 = 1;
+    while(!readButton());
+    BOARD_LED1 = 0; BOARD_LED2 = 0;
 }

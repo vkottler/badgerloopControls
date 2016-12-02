@@ -2,7 +2,14 @@
 
 int main(void) {
     DDPCONbits.JTAGEN = 0;
+    
+    initLEDs();
+    initializeTimer1(0x8000, 0xffff);
+    blinkBoardLights(4, 150);
+    waitForButton();
+            
     //vacuumTest();
-    i2cTesting();
+    //i2cTesting();
+    uartTesting();
     return 0;
 }
