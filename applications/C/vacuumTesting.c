@@ -3,7 +3,7 @@
 char message[255];
 uint32_t receive[4];
 
-void initializers(void) {
+void vacuumInitializers(void) {
     
     // hardware
     __builtin_disable_interrupts();
@@ -11,7 +11,7 @@ void initializers(void) {
     initializeTimer1(0x8000, 0xffff);
     initLEDs();
     initUART();
-    I2Cinit();
+    I2Cinit(1, 100, true);
     initADC();
     
     INTCONbits.MVEC = 1;
@@ -81,7 +81,7 @@ void vacDAQrun(int CANen) {
 
 void vacuumTest(void) {
     
-    initializers();
+    vacuumInitializers();
     helpMessage();
     
     while (1) {
