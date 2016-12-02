@@ -30,7 +30,5 @@ bool messageAvailable(void);
 void getMessage(char *message, int maxLength);
 void print(const char *string);
 void println(const char *string);
-void printByte(uint8_t byte);
-void printByteln(uint8_t byte);
 
 #endif

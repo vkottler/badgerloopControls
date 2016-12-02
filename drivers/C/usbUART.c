@@ -35,6 +35,8 @@ void getMessage(char *message, int maxLength) {
     char curr;
     int index = 0;
     
+    if (!messageAvailable()) return;
+    
     while (index < maxLength && !pc_buffer_empty(&rx_buffer)) {
         pc_buffer_remove(&rx_buffer, &curr);
         if (curr != '\r') message[index++] = (curr == '\n') ? '\0' : curr;
@@ -45,51 +47,23 @@ void getMessage(char *message, int maxLength) {
     }
 }
 
-void print(const char *string) {
-    while (*string != '\0' && !pc_buffer_full(&tx_buffer)) 
-        pc_buffer_add(&tx_buffer, *(string++));
+// Deprecated
+void print(const char *string) { printf(string); }
+void println(const char *string) { printf(string); printf("\r\n"); }
+
+void _mon_putc(char c) {
+    while (pc_buffer_full(&tx_buffer));
+    __builtin_disable_interrupts();
+    pc_buffer_add(&tx_buffer, c);
+    __builtin_enable_interrupts();
     USB_TX_EN = 1;
-}
-
-void println(const char *string) { print(string); print("\r\n"); }
-void printByteln(uint8_t byte) { printByte(byte); print("\r\n"); }
-
-void printByte(uint8_t byte) {
-    char first = '\0';
-    char second = '\0';
-    int hex1 = (byte & 0xf0) >> 4;
-    int hex2 = byte & 0x0f;
-    if (hex1 > 9) {
-        switch (hex1) {
-            case 10: first = 'A'; break;
-            case 11: first = 'B'; break;
-            case 12: first = 'C'; break;
-            case 13: first = 'D'; break;
-            case 14: first = 'E'; break;
-            case 15: first = 'F'; break;
-            default: first = 'X';
-        }
-    }
-    else first = hex1 + 48;
-    if (hex2 > 9) {
-        switch(hex2) {
-            case 10: second = 'A'; break;
-            case 11: second = 'B'; break;
-            case 12: second = 'C'; break;
-            case 13: second = 'D'; break;
-            case 14: second = 'E'; break;
-            case 15: second = 'F'; break;
-            default: second = 'X';
-        }
-    }
-    else second = hex2 + 48;
-    char toSend[] = {'0', 'x', first, second, '\0'};
-    print(toSend);
 }
 
 void __ISR(U1vec, IPL1SOFT) receiveHandler(void) {
     
     static char curr;
+    
+    __builtin_disable_interrupts();
     
     // Handle received char
     if (USB_RX_FLAG) {
@@ -107,4 +81,6 @@ void __ISR(U1vec, IPL1SOFT) receiveHandler(void) {
         if (pc_buffer_empty(&tx_buffer)) USB_TX_EN = 0;                    // if there aren't any characters to send disable the interrupt
         USB_TX_FLAG = 0;
     }
+    
+    __builtin_enable_interrupts();
 }

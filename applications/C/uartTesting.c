@@ -21,10 +21,10 @@ void uartTesting(void) {
     
     while (1) {
         
-        println("Heartbeat.");
+        printf("Heartbeat.\r\n");
         if (messageAvailable()) {
             getMessage(message, 50);
-            println(message);
+            printf(message); printf("\r\n");
         }
         
         YELLOW1 = 1;
