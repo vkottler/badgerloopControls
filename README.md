@@ -43,9 +43,15 @@ Members/Contributors:
     * set as main project, do not check use project location as project folder
     * choose `UTF-8` as the character encoding
     * click Finish
-  7. Add the source files to the project
-    * This can be done in a number of ways, the best strategy is to add `.c` source files   
+  7. Add the source and header files to the project
+    * This can be done in a number of ways, the best strategy is to add `.c` source files
       separately from `.h` header files
+      * add C files by right clicking Source Files and choosing `add existing items from folders`, [add drivers, peripherals, and applications](screenshots/creatingAproject/addingSourceFiles)
+      * add header files by right clicking Header Files and choosing `add existing items from folders`, make sure that .h files are chosen in the drop down menu. [Add drivers, peripherals, and applications](screenshots/creatingAproject/addingHeaderFiles)
+      * Header and Source files should contain the three folders which each have an `include` and a `C` folder. For Header Files the `C` folder [can be deleted](screenshots/creatingAproject/deleteCfolderForInclude) and for Source Files the `include` folder [can be deleted](screenshots/creatingAproject/deleteIncludeFolderForSource). [This is what your project should now look like](screenshots/creatingAproject/whenFinishedAddingFromFolder)
+      * Last, [add the remaining files that are not in any of these three folders](screenshots/creatingAproject/whenFinished)
+  8. Build the project to verify that everything is in order. *Commits should not be made with projects that do not build!*
+  9. Begin programming!
   
 ## Folder and File Hierarchy
 
