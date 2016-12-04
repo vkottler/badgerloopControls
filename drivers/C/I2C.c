@@ -56,8 +56,6 @@ bool I2Cinit(uint8_t moduleNum, int kHzBaud, bool intEn) {
         default: return false;
     }
     
-    
-    
     return true;
 }
 
@@ -72,7 +70,7 @@ bool I2CwriteAndRead(unsigned int addr, const buffer_t write, unsigned int wlen,
     while(state != IDLE && state != ERROR) 
         if (I2C1STATbits.BCL) {
             I2C1STATbits.BCL = 0; 
-            return false;
+            return true;
         }
     
     return state == ERROR;

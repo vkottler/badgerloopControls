@@ -13,7 +13,8 @@
 
 // external peripherals
 #include "../../peripherals/include/ledShield.h"
-#include "../../peripherals/include/honeywellPressure.h"
+//#include "../../peripherals/include/honeywellPressure.h"
+#include "../../peripherals/include/OLED.h"
 
 void i2cTesting(void);
 
