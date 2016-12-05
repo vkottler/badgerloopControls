@@ -8,7 +8,7 @@ bool ssd1306_command(uint8_t data) {
     return I2CwriteAndRead(OLED_ADDR, write, 2, NULL, 0);
 }
 
-bool testDisplay(void) {
+void ssd1306_init(void) {
     ssd1306_command(SSD1306_DISPLAYOFF);                    // 0xAE
     ssd1306_command(SSD1306_SETDISPLAYCLOCKDIV);            // 0xD5
     ssd1306_command(0x80);                                  // the suggested ratio 0x80
@@ -42,8 +42,6 @@ bool testDisplay(void) {
     ssd1306_command(SSD1306_DEACTIVATE_SCROLL);
 
     ssd1306_command(SSD1306_DISPLAYON);//--turn on oled panel
-    
-    //ssd1306_command(SSD1306_INVERTDISPLAY);
-    
-    return true;
 }
+
+

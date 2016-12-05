@@ -20,11 +20,11 @@ void i2cTesting(void) {
     
     I2Cinitializers();
     
-    testDisplay();
+    ssd1306_init();
     
     while (1) {
         
-        printf("%s\r\n", testDisplay ? "worked" : "did not work");
+        
         
         YELLOW1 = 1;
         delay(500, MILLI);

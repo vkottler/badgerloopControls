@@ -53,6 +53,6 @@
 #define SSD1306_VERTICAL_AND_RIGHT_HORIZONTAL_SCROLL    0x29
 #define SSD1306_VERTICAL_AND_LEFT_HORIZONTAL_SCROLL     0x2A
 
-bool testDisplay(void);
+void ssd1306_init(void);
 
 #endif
