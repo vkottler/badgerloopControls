@@ -60,5 +60,6 @@ void ssd1306_fillScreen(bool color);
 void ssd1306_drawBitmap(void);
 void ssd1306_drawLine(uint8_t x, uint8_t y, uint8_t length);
 void ssd1306_drawChar(uint8_t line, uint8_t pos, char c);
+void ssd1306_print(const char * string, uint8_t line, uint8_t pos);
 
 #endif

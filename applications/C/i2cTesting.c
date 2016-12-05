@@ -44,16 +44,14 @@ void squareTest(void) {
 }
 
 void charactersTest(void) {
-    ssd1306_drawChar(0, 0, 'a');
-    ssd1306_drawChar(0, 1, 'b');
-    ssd1306_drawChar(0, 2, 'c');
-    ssd1306_drawChar(0, 3, 'd');
-    ssd1306_drawChar(0, 4, 'e');
-    ssd1306_drawChar(1, 0, '1');
-    ssd1306_drawChar(1, 1, '2');
-    ssd1306_drawChar(1, 2, '3');
-    ssd1306_drawChar(1, 3, '4');
-    ssd1306_drawChar(1, 4, '5');
+    ssd1306_print("What's up!!", 0, 0);
+    ssd1306_print("BADGERLOOP CONTROLS", 1, 0);
+    ssd1306_print("GO BADGERS", 2, 0);
+    ssd1306_print("asdf", 3, 0);
+    ssd1306_print("1234", 4, 0);
+    ssd1306_print("    asdf", 5, 0);
+    ssd1306_print("    1234", 6, 0);
+    ssd1306_print("        asdf", 7, 0);
 }
 
 void error(void) {

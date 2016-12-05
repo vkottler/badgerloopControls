@@ -202,10 +202,17 @@ void ssd1306_drawBitmap(void) {
 
 void ssd1306_drawChar(uint8_t line, uint8_t pos, char c) {
     int i;
+    
+    if (line > 7 || pos > 20) return;
+    
     setColumns(pos * 6, pos * 6 + 6);
     setPages(line, line);
     write[0] = 0x40;
     for (i = 0; i < 5; i++) write[i + 1] = fiveBySevenCharBitmaps[(c - 32)*5 + i];
     write[6] = 0x00;
     I2CwriteAndRead(OLED_ADDR, write, 7, NULL, 0);
+}
+
+void ssd1306_print(const char * string, uint8_t line, uint8_t pos) {
+    while (*string != '\0') ssd1306_drawChar(line, pos++, *(string++));
 }
