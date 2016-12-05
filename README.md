@@ -76,12 +76,14 @@ Members/Contributors:
   * [vacuumTesting.c](applications/C/vacuumTesting.c)
   * [i2cTesting.c](applications/C/i2cTesting.c)
 
-  ##### [production](applications/C/production)
+##### [production](applications/C/production)
 
-    * [BCM.c](applications/C/production/BCM.c)
-    * [MCM.c](applications/C/production/MCM.c)
-    * [VNM.c](applications/C/production/VNM.c)
-    * [VSM.c](applications/C/production/VSM.c)
+Code that will actually be flashed to the MCU for the run
+
+  * [BCM.c](applications/C/production/BCM.c)
+  * [MCM.c](applications/C/production/MCM.c)
+  * [VNM.c](applications/C/production/VNM.c)
+  * [VSM.c](applications/C/production/VSM.c)
 
 #### [include](applications/include)
 
@@ -89,12 +91,14 @@ Members/Contributors:
   * [vacuumTesting.h](applications/include/vacuumTesting.h)
   * [i2cTesting.h](applications/include/i2cTesting.h)
 
-  ##### [production](applications/include/production)
+##### [production](applications/include/production)
 
-    * [BCM.h](applications/include/production/BCM.h)
-    * [MCM.h](applications/include/production/MCM.h)
-    * [VNM.h](applications/include/production/VNM.h)
-    * [VSM.h](applications/include/production/VSM.h)
+Code that will actually be flashed to the MCU for the run
+
+  * [BCM.h](applications/include/production/BCM.h)
+  * [MCM.h](applications/include/production/MCM.h)
+  * [VNM.h](applications/include/production/VNM.h)
+  * [VSM.h](applications/include/production/VSM.h)
 
 ---  
   
