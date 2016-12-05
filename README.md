@@ -74,11 +74,27 @@ Members/Contributors:
 
   * [main.c](applications/C/main.c)
   * [vacuumTesting.c](applications/C/vacuumTesting.c)
+  * [i2cTesting.c](applications/C/i2cTesting.c)
+
+  ##### [production](applications/C/production)
+
+    * [BCM.c](applications/C/production/BCM.c)
+    * [MCM.c](applications/C/production/MCM.c)
+    * [VNM.c](applications/C/production/VNM.c)
+    * [VSM.c](applications/C/production/VSM.c)
 
 #### [include](applications/include)
 
   * [main.h](applications/include/main.h)
   * [vacuumTesting.h](applications/include/vacuumTesting.h)
+  * [i2cTesting.h](applications/include/i2cTesting.h)
+
+  ##### [production](applications/include/production)
+
+    * [BCM.h](applications/include/production/BCM.h)
+    * [MCM.h](applications/include/production/MCM.h)
+    * [VNM.h](applications/include/production/VNM.h)
+    * [VSM.h](applications/include/production/VSM.h)
 
 ---  
   
