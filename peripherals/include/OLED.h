@@ -2,6 +2,7 @@
 #define _OLED__H__
 
 #include "../../drivers/include/I2C.h"
+#include "font.h"
 
 #define OLED_ADDR                                       0x3C
 #define SSD1306_LCDHEIGHT                               64
@@ -53,6 +54,11 @@
 #define SSD1306_VERTICAL_AND_RIGHT_HORIZONTAL_SCROLL    0x29
 #define SSD1306_VERTICAL_AND_LEFT_HORIZONTAL_SCROLL     0x2A
 
-void ssd1306_init(void);
+bool ssd1306_init(void);
+void ssd1306_drawSquare(uint8_t width, uint8_t height, uint8_t startX, uint8_t startY, bool color);
+void ssd1306_fillScreen(bool color);
+void ssd1306_drawBitmap(void);
+void ssd1306_drawLine(uint8_t x, uint8_t y, uint8_t length);
+void ssd1306_drawChar(uint8_t line, uint8_t pos, char c);
 
 #endif
