@@ -51,6 +51,11 @@ Members/Contributors:
       * Header and Source files should contain the three folders which each have an `include` and a `C` folder. For Header Files the `C` folder [can be deleted](screenshots/creatingAproject/deleteCfolderForInclude.PNG) and for Source Files the `include` folder [can be deleted](screenshots/creatingAproject/deleteIncludeFolderForSource.PNG). [This is what your project should now look like](screenshots/creatingAproject/whenFinishedAddingFromFolders.PNG)
       * Last, [add the remaining files that are not in any of these three folders](screenshots/creatingAproject/whenFinished.PNG)
   8. Build the project to verify that everything is in order. *Commits should not be made with projects that do not build!*
+    * Currently, in order to build you must change your heap size from the default 0 to ~1024. To do this:
+      * Right click your project -> properties.
+      * Under categories click XC32 -> xc32-ld
+      * change the "Heap size (bytes)" field to 1024
+      * apply settings
   9. Begin programming!
   
 ## Folder and File Hierarchy
