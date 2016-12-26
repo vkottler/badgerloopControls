@@ -82,6 +82,8 @@ Members/Contributors:
   * [main.c](applications/C/main.c)
   * [vacuumTesting.c](applications/C/vacuumTesting.c)
   * [i2cTesting.c](applications/C/i2cTesting.c)
+  * [uartTesting.c](applications/C/uartTesting.c)
+  * [pcbTesting.c](applications/C/pcbTesting.c)
 
 ##### [production](applications/C/production)
 
