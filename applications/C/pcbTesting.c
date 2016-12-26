@@ -54,17 +54,14 @@ void testBCM(void) {
 
 void testPCBs(void) {
     initializers();
-    
     printf("SOFTWARE LOADED: PCB Testing\r\n\r\n");
-    printf("Please type 'MCM', 'BCM', or 'VNM' to begin: ");
-    
     while (1) {
-        if (messageAvailable()) {
-            getMessage(message, 50);
-            if (!strcmp(message, "MCM")) testMCM();
-            else if (!strcmp(message, "BCM")) testBCM();
-            else if (!strcmp(message, "VNM")) testVNM();
-            else printf("Did not recognize %s.\r\n", message);
-        }
+        printf("Please type 'MCM', 'BCM', or 'VNM' to begin: ");
+        while (!messageAvailable());
+        getMessage(message, 50);
+        if (!strcmp(message, "MCM")) testMCM();
+        else if (!strcmp(message, "BCM")) testBCM();
+        else if (!strcmp(message, "VNM")) testVNM();
+        else printf("Did not recognize \"%s\".\r\n\r\n", message);
     }
 }
