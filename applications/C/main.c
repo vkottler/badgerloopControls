@@ -9,7 +9,9 @@ int main(void) {
     waitForButton();
             
     //vacuumTest();
-    i2cTesting();
+    //i2cTesting();
+    testPCBs();
     //uartTesting();
+    
     return 0;
 }

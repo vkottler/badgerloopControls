@@ -9,5 +9,6 @@
 #include "vacuumTesting.h"
 #include "i2cTesting.h"
 #include "uartTesting.h"
+#include "pcbTesting.h"
 
 #endif
