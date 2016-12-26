@@ -5,6 +5,8 @@ char message[50];
 void initializers(void) {
     __builtin_disable_interrupts();
     initUART();
+    RED_LED_DIR = OUTPUT;
+    GREEN_LED_DIR = OUTPUT;
     INTCONbits.MVEC = 1;
     __builtin_enable_interrupts();
 }
@@ -18,11 +20,10 @@ void testVNM(void) {
     printf("\r\nTesting VNM . . .\r\n");
     
     while (1) {
-        GREEN1 = 1;
+        GREEN_LED = 1; RED_LED = 0;
         delay(500, MILLI);
-        GREEN1 = 0;
+        GREEN_LED = 0; RED_LED = 1;
         delay(500, MILLI);
-        
     }
 }
 
@@ -31,11 +32,10 @@ void testMCM(void) {
     printf("\r\nTesting MCM . . .\r\n");
     
     while (1) {
-        GREEN1 = 1;
+        GREEN_LED = 1; RED_LED = 0;
         delay(500, MILLI);
-        GREEN1 = 0;
+        GREEN_LED = 0; RED_LED = 1;
         delay(500, MILLI);
-        
     }
 }
 
@@ -44,11 +44,10 @@ void testBCM(void) {
     printf("\r\nTesting BCM . . .\r\n");
     
     while (1) {
-        GREEN1 = 1;
+        GREEN_LED = 1; RED_LED = 0;
         delay(500, MILLI);
-        GREEN1 = 0;
+        GREEN_LED = 0; RED_LED = 1;
         delay(500, MILLI);
-        
     }
 }
 
