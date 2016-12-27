@@ -10,9 +10,23 @@ int getBoardNumber(void) {
     }
 }
 
+int MACLookUp(int boardNumber) {
+    switch (boardNumber) {
+        case 1: return MAC1;
+        case 2: return MAC2;
+        case 3: return MAC3;
+        case 4: return MAC4;
+        default: return -1;
+    }
+}
+
 void printMAC(char* message) {
     sprintf(message, "MAC: %x", EMAC1SA0);
     println(message);
+}
+
+int getMAC(void) {
+    return EMAC1SA0;
 }
 
 void printBoardNumber(char* message) {
@@ -25,3 +39,4 @@ void waitForButton(void) {
     while(!readButton());
     BOARD_LED1 = 0; BOARD_LED2 = 0;
 }
+

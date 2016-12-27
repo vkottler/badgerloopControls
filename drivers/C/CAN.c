@@ -68,7 +68,7 @@ void CAN_receive_message(uint32_t *receive) {
     while (!C1FIFOINT0bits.RXNEMPTYIF);                 // not sure about this line of code
     currentBufferLocation = PA_TO_KVA1(C1FIFOUA0);      // get the address of RX FIFO pointer
     for (i = 0; i < BUFFER_SIZE; i++) receive[i] = currentBufferLocation[i];
-    C1FIFOCON0SET = 0x2000;                             // increment receive pointer
+    C1FIFOCON0SET = 0x2000;                             // tell module that bit has been read
 }
 
 int CAN_message_available(void) {
