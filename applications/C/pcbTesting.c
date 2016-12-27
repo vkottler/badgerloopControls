@@ -10,8 +10,20 @@ void initializers(void) {
 }
 
 /**
- * txBoard transmits the data 0x0FF0 every push button press with a SID
- * rxBoard flashes green LED for .25s when it receives the data 0x0FF0
+ * txBoard transmits the data 0x0FF0 every push button press with a SID of
+ * TxBoardNumber
+ * rxBoard flashes green LED when it receives data
+ * 
+1.Program both board 2 and 4. Board 2 is Tx board. Board 4 is Rx board.
+2.Hit the push button on board 4. Expectation: green light on board 4.
+3.Hit the push button on board 2. Expectation: red light on board 2. 
+ * (waiting to send message)
+4.Hit the push button on board 2. Expectation: red light turns off on 2. 
+ * Green light is on for 100ms. Board 4 green light turns on indicating message
+ *  received. Then board 4 red light turns on. Red light on board 2 turn backs on.
+5.Hit push button on board 4. Expectation:  red and green lights turn off. Board
+ *  4 is ready to receive message again.
+6.Repeat steps 3-6
  * 
  * @param txBoardNumber: board # of transceiver
  * @param rxBoardNumber: board # of receiver
@@ -20,7 +32,7 @@ void initializers(void) {
 void testCAN(int TxBoardNumber, int RxBoardNumber) {
     printf("\nTesting CAN . . .\nTest Information:\nTxBoard:%d\nRxBoard:%d\n",
             TxBoardNumber, RxBoardNumber);
-    CAN_init();
+    CAN_init(TxBoardNumber);        // init CAN with SID of Tx Board
     uCANTxMessageBuffer *buffer;
     int thisBoard = getBoardNumber();
     int i;
@@ -32,10 +44,10 @@ void testCAN(int TxBoardNumber, int RxBoardNumber) {
             buffer->messageWord[i] = 0;
         }
         // set any bits that aren't reserved or 0
-        buffer->CMSGSID.SID = 0x100;    // Message SID
-        buffer->CMSGEID.DLC = 0x2;      // Data Length is 2
-        buffer->CMSGDATA0.Byte0 = 0xF0; // Byte 0 Data
-        buffer->CMSGDATA0.Byte1 = 0x0F; // Byte 1 Data
+        buffer->CMSGSID.SID = TxBoardNumber;    // Message SID
+        buffer->CMSGEID.DLC = 0x2;              // Data Length is 2
+        buffer->CMSGDATA0.Byte0 = 0xF0;         // Byte 0 Data
+        buffer->CMSGDATA0.Byte1 = 0x0F;         // Byte 1 Data
         while (1) {
             printf("waiting for button . . .\n");
             // toggle red light
@@ -54,12 +66,15 @@ void testCAN(int TxBoardNumber, int RxBoardNumber) {
     else if (RxBoardNumber == thisBoard) {
         printf("receiving mode . . .\n");
         while (1) {
-            toggleShieldLight(4, 0);
+            toggleShieldLight(4, 0);                        // Green = 0
             if (CAN_message_available()) {
                 printf("CAN message available\n");
                 CAN_receive_message(buffer->messageWord);
-                toggleShieldLight(4, 1);
+                toggleShieldLight(4, 1);                    // Green = 1
                 delay(300, MILLI);
+                toggleShieldLight(0, 1);                    // Red = 1
+                waitForButton();
+                toggleShieldLight(0, 0);                    // Red = 0
                 printf("CAN message processed\n");
             }
         }

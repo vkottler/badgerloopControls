@@ -7,7 +7,7 @@ unsigned int *currentBufferLocation = NULL;
 // CAN fifos stem from one single base address
 static volatile unsigned int fifos[(fifo_0_size + fifo_1_size) * BUFFER_SIZE];
 
-void CAN_temporary_fifo_init(void) {
+void CAN_temporary_fifo_init(int SID) {
     C1FIFOCON0bits.FSIZE = fifo_0_size - 1;
     C1FIFOCON0bits.TXEN = 0; // 0th fifo set to receive
     
@@ -17,7 +17,7 @@ void CAN_temporary_fifo_init(void) {
     C1RXM0bits.SID = 0x0; //0x7FF;         // use every bit in the comparison
     C1FLTCON0bits.FSEL0 = 0;        // filter 0 used for FIFO 0
     C1FLTCON0bits.MSEL0 = 0;        // filter 0 uses mask 0
-    C1RXF0bits.SID = ID_FOR_KELLY;  // filter 0 matches against SID
+    C1RXF0bits.SID = SID;  // filter 0 matches against SID
     C1FLTCON0bits.FLTEN0 = 1;       // enable filter 0
 }
 
@@ -41,13 +41,13 @@ int CAN_set_mode(int mode) {
     return 0;
 }
 
-void CAN_init(void) {
+void CAN_init(int SID) {
     C1CONbits.ON = 1;
     CAN_set_mode(CONFIG_MODE);
     CAN_set_timings();
     C1CONbits.CANCAP = 1; // capture timestamps
     C1FIFOBA = KVA_TO_PA(fifos); // just clears 3 MSBs
-    CAN_temporary_fifo_init();
+    CAN_temporary_fifo_init(SID);
     CAN_set_mode(NORMAL_MODE);
     //CAN_set_mode(LOOPBACK_MODE);
 }
