@@ -10,5 +10,6 @@
 #include "../../peripherals/include/ledShield.h"
 
 void testPCBs(void);
+void testCAN(int, int);
 
 #endif

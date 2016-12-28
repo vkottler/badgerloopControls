@@ -35,6 +35,7 @@ void testCAN(int TxBoardNumber, int RxBoardNumber) {
     CAN_init(TxBoardNumber);        // init CAN with SID of Tx Board
     uCANTxMessageBuffer *buffer;
     int thisBoard = getBoardNumber();
+    printf("This board's number: %d", thisBoard);
     int i;
     // if transmitter board
     if (TxBoardNumber == thisBoard) {
