@@ -24,6 +24,6 @@
 #pragma config UPLLEN = ON          // USB clock uses PLL
 #pragma config UPLLIDIV = DIV_2     // Divide 8 MHz input by 2, mult by 12 for 48 MHz
 
-#pragma config FCANIO = OFF // use alternate set of CAN pins
+#pragma config FCANIO = OFF         // use alternate set of CAN pins
 
 #endif

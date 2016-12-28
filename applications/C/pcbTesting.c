@@ -1,10 +1,13 @@
 #include "../include/pcbTesting.h"
 
 char message[50];
+uint32_t can_buffer[BUFFER_SIZE];
 
 void initializers(void) {
     __builtin_disable_interrupts();
     initUART();
+    RED_LED_DIR = OUTPUT;
+    GREEN_LED_DIR = OUTPUT;
     INTCONbits.MVEC = 1;
     __builtin_enable_interrupts();
 }
@@ -30,59 +33,47 @@ void initializers(void) {
  * 
  **/
 void testCAN(int TxBoardNumber, int RxBoardNumber) {
-    printf("\nTesting CAN . . .\nTest Information:\nTxBoard:%d\nRxBoard:%d\n",
-            TxBoardNumber, RxBoardNumber);
-    CAN_init(TxBoardNumber);        // init CAN with SID of Tx Board
-    uCANTxMessageBuffer *buffer;
-    int thisBoard = getBoardNumber();
-    printf("This board's number: %d", thisBoard);
-    int i;
-    // if transmitter board
-    if (TxBoardNumber == thisBoard) {
-        printf("\rtransmitter mode . . .\n");
-        // clear the buffer (setting reserved bits to 0)
-        for (i = 0; i < BUFFER_SIZE; i++) {
-            buffer->messageWord[i] = 0;
-        }
-        // set any bits that aren't reserved or 0
-        buffer->CMSGSID.SID = TxBoardNumber;    // Message SID
-        buffer->CMSGEID.DLC = 0x2;              // Data Length is 2
-        buffer->CMSGDATA0.Byte0 = 0xF0;         // Byte 0 Data
-        buffer->CMSGDATA0.Byte1 = 0x0F;         // Byte 1 Data
+    int count = 0; int thisBoard = getBoardNumber();
+    CAN_init(thisBoard);
+    
+    printf("\r\nTesting CAN . . .\r\nTest Information:\r\nTx Board:%d\r\nRx Board:%d\r\nThis Board: %d\r\n", 
+            TxBoardNumber, RxBoardNumber, thisBoard);
+    
+    printf("Push button to continue.\r\n");
+    waitForButton();
+    
+    if (thisBoard == TxBoardNumber) {
+        can_buffer[0] = RxBoardNumber;  // SID
+        can_buffer[1] = 4;              // Size of payload
+        can_buffer[3] = 0;              // shouldn't matter
+        
         while (1) {
-            printf("waiting for button . . .\n");
-            // toggle red light
-            toggleShieldLight(0, 1);
-            waitForButton();
-            toggleShieldLight(0, 0);
-            CAN_send_message(buffer->messageWord);
-            // toggle green light
-            toggleShieldLight(4, 1);
-            printf("Sent 0x0FF0 with ID 0x100\n");
-            delay(100, MILLI);
-            toggleShieldLight(4, 0);
+            printf("Sending %4d . . .", count);
+            can_buffer[0] = RxBoardNumber;  // SID
+            can_buffer[2] = count++;
+            CAN_send_message(can_buffer);
+            printf(" Finished sending.\r\n");
+            delay(1000, MILLI);
         }
     }
-    // if receiver board
-    else if (RxBoardNumber == thisBoard) {
-        printf("receiving mode . . .\n");
+    
+    else if (thisBoard == RxBoardNumber) {
+        can_buffer[0] = 0; can_buffer[1] = 0; can_buffer[2] = 0; can_buffer[3] = 0;
+        RED_LED = 1;
+        GREEN_LED = 0;
+        
         while (1) {
-            toggleShieldLight(4, 0);                        // Green = 0
             if (CAN_message_available()) {
-                printf("CAN message available\n");
-                CAN_receive_message(buffer->messageWord);
-                toggleShieldLight(4, 1);                    // Green = 1
-                delay(300, MILLI);
-                toggleShieldLight(0, 1);                    // Red = 1
-                waitForButton();
-                toggleShieldLight(0, 0);                    // Red = 0
-                printf("CAN message processed\n");
+                printf("Message received! ");
+                CAN_receive_message(can_buffer);
+                printf("SID: %d, Size: %d, Data: %d\r\n", can_buffer[0] & 0x7ff, can_buffer[1], can_buffer[2]);
+                RED_LED = 0;
+                GREEN_LED = 1;
             }
         }
-    } else {
-        printf("Error: bad board number\n");
-        while(1);
     }
+    
+    else printf("Board number mismatch. Returning to main loop.\r\n");
 }
 
 void testVNM(void) {
@@ -90,9 +81,9 @@ void testVNM(void) {
     printf("\r\nTesting VNM . . .\r\n");
     
     while (1) {
-        GREEN1 = 1;
+        GREEN_LED = 1;
         delay(500, MILLI);
-        GREEN1 = 0;
+        GREEN_LED = 0;
         delay(500, MILLI);
         
     }
@@ -103,9 +94,9 @@ void testMCM(void) {
     printf("\r\nTesting MCM . . .\r\n");
     
     while (1) {
-        GREEN1 = 1;
+        GREEN_LED = 1;
         delay(500, MILLI);
-        GREEN1 = 0;
+        GREEN_LED = 0;
         delay(500, MILLI);
         
     }
@@ -116,9 +107,9 @@ void testBCM(void) {
     printf("\r\nTesting BCM . . .\r\n");
     
     while (1) {
-        GREEN1 = 1;
+        GREEN_LED = 1;
         delay(500, MILLI);
-        GREEN1 = 0;
+        GREEN_LED = 0;
         delay(500, MILLI);
         
     }
@@ -128,16 +119,14 @@ void testPCBs(void) {
     initializers();
     printf("SOFTWARE LOADED: PCB Testing\r\n\r\n");
     while (1) {
-        printf("Please type 'MCM', 'BCM', 'VNM' or 'CAN' to begin: \n");
+        printf("Please type 'MCM', 'BCM', 'VNM' or 'CAN' to begin: \r\n");
         while (!messageAvailable());
         getMessage(message, 50);
         if (!strcmp(message, "MCM")) testMCM();
         else if (!strcmp(message, "BCM")) testBCM();
         else if (!strcmp(message, "VNM")) testVNM();
         else if (!strcmp(message, "CAN")) {
-            printf("Please enter transmitter board number and "
-                    "receiver board number as follows: 'Tx,Rx' "
-                    "e.g. '2,4'\n");
+            printf("Please enter tx board# and rx board# as follows: 'Tx,Rx' e.g. '2,4'\r\n");
             while (!messageAvailable());
             getMessage(message, 50);
             testCAN(message[0] - '0', message[2] - '0');

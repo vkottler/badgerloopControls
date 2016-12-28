@@ -33,12 +33,15 @@ void CAN_receive_message(uint32_t *receive);
 int CAN_message_available(void);
 
 /* Create a CMSGSID data type. */
+/*
 typedef struct txcmsgsid {
     unsigned SID:11;
     unsigned :21;
 } txcmsgsid;
+*/
 
 /* Create a CMSGEID data type. */
+/*
 typedef struct txcmsgeid {
     unsigned DLC:4;
     unsigned RB0:1;
@@ -50,24 +53,30 @@ typedef struct txcmsgeid {
     unsigned SRR:1;
     unsigned :2;
 } txcmsgeid;
+*/
 
 /* Create a CMSGDATA0 data type. */
+/*
 typedef struct txcmsgdata0 {
     unsigned Byte0:8;
     unsigned Byte1:8;
     unsigned Byte2:8;
     unsigned Byte3:8;
 } txcmsgdata0;
+*/
 
 /* Create a CMSGDATA1 data type. */
+/*
 typedef struct txcmsgdata1 {
     unsigned Byte4:8;
     unsigned Byte5:8;
     unsigned Byte6:8;
     unsigned Byte7:8;
 } txcmsgdata1;
+*/
 
 /* This is the main data structure. */
+/*
 typedef union uCANTxMessageBuffer {
     struct {
         txcmsgsid CMSGSID;
@@ -75,7 +84,8 @@ typedef union uCANTxMessageBuffer {
         txcmsgdata0 CMSGDATA0;
         txcmsgdata0 CMSGDATA1;
     };
-    int messageWord[4];
+    uint32_t messageWord[4];
 } uCANTxMessageBuffer;
+*/
 
 #endif

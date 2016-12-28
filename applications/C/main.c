@@ -7,11 +7,9 @@ int main(void) {
     initializeTimer1(0x8000, 0xffff);
     blinkBoardLights(4, 150);
     waitForButton();
-    testCAN(2, 4);
     //vacuumTest();
     //i2cTesting();
-    //testPCBs();
+    testPCBs();
     //uartTesting();
-    
     return 0;
 }
