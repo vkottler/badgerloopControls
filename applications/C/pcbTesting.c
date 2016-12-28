@@ -3,6 +3,16 @@
 char message[50];
 uint32_t can_buffer[BUFFER_SIZE];
 
+void flashGreen(int onTime, int offTime) {
+    GREEN_LED = 1; delay(onTime, MILLI);
+    GREEN_LED = 0; delay(offTime, MILLI);
+}
+
+void flashRed(int onTime, int offTime) {
+    RED_LED = 1; delay(onTime, MILLI);
+    RED_LED = 0; delay(offTime, MILLI);
+}
+
 void initializers(void) {
     __builtin_disable_interrupts();
     initUART();
@@ -10,6 +20,33 @@ void initializers(void) {
     GREEN_LED_DIR = OUTPUT;
     INTCONbits.MVEC = 1;
     __builtin_enable_interrupts();
+}
+
+void testRetro(void) {
+    IC1_DIR = INPUT; IC2_DIR = INPUT; IC3_DIR = INPUT; IC4_DIR = INPUT; IC5_DIR = INPUT;
+    RED_LED_DIR = OUTPUT;
+    GREEN_LED_DIR = OUTPUT;
+    //printf("\r\nTesting Retroreflective Circuits (look at Green LED) . . .\r\n");
+    while (1) {
+        //if (IC1_PIN || IC2_PIN || IC3_PIN || IC4_PIN || IC5_PIN) {
+        if (IC1_PIN) {
+            GREEN_LED = 1;
+            RED_LED = 1;
+        }
+        else {
+            GREEN_LED = 0;
+            RED_LED = 0;
+        }
+    }
+}
+
+void testRetroFrequency(void) {
+    inputCapInit(1);
+    printf("\r\nTesting Retroreflective Sensor . . .\r\n");
+    while (1) {
+        printf("Frequency: %.2f\r\n", getFrequency());
+        flashGreen(500, 500);
+    }
 }
 
 /**
@@ -67,8 +104,7 @@ void testCAN(int TxBoardNumber, int RxBoardNumber) {
                 printf("Message received! ");
                 CAN_receive_message(can_buffer);
                 printf("SID: %d, Size: %d, Data: %d\r\n", can_buffer[0] & 0x7ff, can_buffer[1], can_buffer[2]);
-                RED_LED = 0;
-                GREEN_LED = 1;
+                flashGreen(100, 0);
             }
         }
     }
@@ -81,11 +117,7 @@ void testVNM(void) {
     printf("\r\nTesting VNM . . .\r\n");
     
     while (1) {
-        GREEN_LED = 1;
-        delay(500, MILLI);
-        GREEN_LED = 0;
-        delay(500, MILLI);
-        
+        flashGreen(500, 500);
     }
 }
 
@@ -94,11 +126,7 @@ void testMCM(void) {
     printf("\r\nTesting MCM . . .\r\n");
     
     while (1) {
-        GREEN_LED = 1;
-        delay(500, MILLI);
-        GREEN_LED = 0;
-        delay(500, MILLI);
-        
+        flashGreen(500, 500);
     }
 }
 
@@ -107,11 +135,7 @@ void testBCM(void) {
     printf("\r\nTesting BCM . . .\r\n");
     
     while (1) {
-        GREEN_LED = 1;
-        delay(500, MILLI);
-        GREEN_LED = 0;
-        delay(500, MILLI);
-        
+        flashGreen(500, 500);
     }
 }
 
@@ -119,12 +143,14 @@ void testPCBs(void) {
     initializers();
     printf("SOFTWARE LOADED: PCB Testing\r\n\r\n");
     while (1) {
-        printf("Please type 'MCM', 'BCM', 'VNM' or 'CAN' to begin: \r\n");
+        printf("Please type 'MCM', 'BCM', 'VNM', 'RETRO', 'RETROF' or 'CAN' to begin: \r\n");
         while (!messageAvailable());
         getMessage(message, 50);
         if (!strcmp(message, "MCM")) testMCM();
         else if (!strcmp(message, "BCM")) testBCM();
         else if (!strcmp(message, "VNM")) testVNM();
+        else if (!strcmp(message, "RETRO")) testRetro();
+        else if (!strcmp(message, "RETROF")) testRetroFrequency();
         else if (!strcmp(message, "CAN")) {
             printf("Please enter tx board# and rx board# as follows: 'Tx,Rx' e.g. '2,4'\r\n");
             while (!messageAvailable());

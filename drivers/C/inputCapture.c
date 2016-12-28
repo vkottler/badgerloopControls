@@ -1,28 +1,44 @@
 #include "../include/inputCapture.h"
 
-volatile int count = 1;
-volatile int numOverflow = 0;
-volatile int speed = 0;
-volatile int available = 0;
-volatile int time1 = 0;
-volatile int time2 = 0;
+volatile float numOverflow = 0;
+volatile float currTime = 0;
+volatile float totalCount = 0;
+volatile float count = 0;
+
+
 volatile int frequency = 0;
 
 void startTimer2(void) {
     T2CONbits.TCKPS = 7;        // 1:256 = 250000 Hz
+    PR2 = 0xC350;               // period for T2 (50000 = 0.2s)
     T2CONbits.ON = 1;
     _T2IF = 0;
     _T2IP = 1;
     _T2IE = 1;
 }
 
-void inputCapInit(void) {
-    
-    __builtin_enable_interrupts();               // without this it will just crash?
-    PR2 = 0xC350;                               // period for T2 (50000 = 0.2s)
+void inputCapInit(int module) {
+    switch (module) {
+        case 1:
+            break;
+            
+        case 2:
+            break;
+            
+        case 3:
+            break;
+            
+        case 4:
+            break;
+            
+        case 5:
+            break;
+            
+        default: return;
+    }
     
     // Input Capture 1 (Pin 48 on Max32)
-    TRISDbits.TRISD8 = 1;
+    IC1_DIR = INPUT;
     
     IC1CONbits.ON = 1; 
     IC1CONbits.ICTMR = 1;
@@ -30,39 +46,28 @@ void inputCapInit(void) {
     _IC1F = 0;
     _IC1P = 1;
     _IC1E = 1;
+    startTimer2();
 }
 
-int getInput(void) {     // or IC1CONbits.ICBNE
-    if (available) {
-        available = 0;
-        speed = count + 50000*numOverflow;
-        numOverflow = 0;
-        TMR2 = 0;
-        return speed; 
+float getFrequency(void) {     // or IC1CONbits.ICBNE
+    float retval = 0.0;
+    if (count) {
+        retval = 250000.0 / (totalCount / count);
+        totalCount = 0.0;
+        count = 0.0;
     }
-    return 0;
+    return retval;
 }
-
-int inputAvailable(void) { return available; }
 
 void __ISR (_INPUT_CAPTURE_1_VECTOR, IPL1SOFT) IC1Interrupt (void) {
-    count = IC1BUF;
-    available = 1;
+    totalCount += IC1BUF + 50000.0*numOverflow;
+    count += 1.0;
+    numOverflow = 0.0;
     _IC1F = 0;
+    TMR2 = 0;
 }
 
 void __ISR (_TIMER_2_VECTOR, IPL1SOFT) TM2Interrupt (void) {
-    numOverflow++;  // eventually we will be overflowing the timer, need to keep track of that!
+    numOverflow += 1.0;  // eventually we will be overflowing the timer, need to keep track of that!
     _T2IF = 0;
-}
-
-// this could be restructured inside the IC1Interrupt to check which step we are
-// in and act accordingly, that way we aren't polling for input
-int getStripFrequency(void) {
-    while(!inputAvailable());
-    time1 = getInput();
-    while(!inputAvailable());
-    time2 = getInput();
-    frequency = 250000 / time2; // we just wanted that second time
-    return frequency;
 }
