@@ -15,7 +15,7 @@ void vacuumInitializers(void) {
     INTCONbits.MVEC = 1;
     __builtin_enable_interrupts();
     
-    CAN_init();
+    CAN_init(ID_FOR_KELLY);
     
     GREEN1 = 1;
 }

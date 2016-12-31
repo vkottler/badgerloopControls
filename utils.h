@@ -19,5 +19,6 @@ int getBoardNumber(void);
 void printMAC(char* message);
 void printBoardNumber(char* message);
 void waitForButton(void);
-
+int MACLookUp(int);
+int getMAC(void);
 #endif

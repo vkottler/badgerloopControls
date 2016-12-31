@@ -11,10 +11,16 @@
 #define INPUT           1
 #endif
 
-// LEDs: Pin 46 (RF1) RED Pin 44 (RA10) GREEN
-#define RED_LED         LATFbits.LATF1         
-#define GREEN_LED       LATAbits.LATA10
-#define RED_LED_DIR     TRISFbits.TRISF1
-#define GREEN_LED_DIR   TRISAbits.TRISA10
+// LEDs: Pin 46 (RF1) GREEN Pin 44 (RA10) RED
+#define GREEN_LED         LATFbits.LATF1         
+#define RED_LED       LATAbits.LATA10
+#define GREEN_LED_DIR     TRISFbits.TRISF1
+#define RED_LED_DIR   TRISAbits.TRISA10
+
+// MCM
+
+// VNM
+
+// BCM
 
 #endif
