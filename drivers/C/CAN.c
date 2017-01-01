@@ -1,13 +1,13 @@
 #include "../include/CAN.h"
 
 int i; // for loops
-int SID; //= ID_FOR_KELLY;
+static int SID; //= ID_FOR_KELLY;
 unsigned int *currentBufferLocation = NULL;
 
 // CAN fifos stem from one single base address
 static volatile unsigned int fifos[(fifo_0_size + fifo_1_size) * BUFFER_SIZE];
 
-void CAN_temporary_fifo_init(int SID) {
+void CAN_temporary_fifo_init(void) {
     C2FIFOCON0bits.FSIZE = fifo_0_size - 1;
     C2FIFOCON0bits.TXEN = 0;        // 0th fifo set to receive
     
@@ -22,8 +22,6 @@ void CAN_temporary_fifo_init(int SID) {
     
     C2RXF0bits.SID = SID;           // filter 0 matches against SID
     C2RXF0bits.EXID = 0;            // do not use extended identifiers
-    
-    
 }
 
 /*
@@ -46,13 +44,23 @@ int CAN_set_mode(int mode) {
     return 0;
 }
 
-void CAN_init(int SID) {
+void CAN_init(ROLE role) {
+    setBoardRole(getBoardNumber(), role);
+    
+    switch (role) {
+        case VNM:   SID = VNM_SID; break;
+        case BCM:   SID = BCM_SID; break;
+        case MCM:   SID = MCM_SID; break;
+        case TEST:  SID = ID_FOR_KELLY; break;
+        default:    SID = 0x400; break;
+    }
+    
     C2CONbits.ON = 1;
     CAN_set_mode(CONFIG_MODE);
     CAN_set_timings();
     C2CONbits.CANCAP = 1; // capture timestamps
     C2FIFOBA = KVA_TO_PA(fifos); // just clears 3 MSBs
-    CAN_temporary_fifo_init(SID);
+    CAN_temporary_fifo_init();
     CAN_set_mode(NORMAL_MODE);
     //CAN_set_mode(LOOPBACK_MODE);
 }

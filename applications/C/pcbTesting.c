@@ -69,17 +69,25 @@ void testRetroFrequency(void) {
  * @param rxBoardNumber: board # of receiver
  * 
  **/
-void testCAN(int TxBoardNumber, int RxBoardNumber) {
-    int count = 0; int thisBoard = getBoardNumber();
-    CAN_init(thisBoard);
+void testCAN(uint8_t board1, ROLE role1, uint8_t board2, ROLE role2) {
+    int thisBoard = getBoardNumber();
     
-    printf("\r\nTesting CAN . . .\r\nTest Information:\r\nTx Board:%d\r\nRx Board:%d\r\nThis Board: %d\r\n", 
-            TxBoardNumber, RxBoardNumber, thisBoard);
+    setBoardRole(board1, role1);
+    setBoardRole(board2, role2);
+    
+    if (thisBoard == board1) CAN_init(role1);
+    else if (thisBoard == board2) CAN_init(role2);
+    else {
+        printf("ERROR: This board (%d) is not board1 (%d) or board2(%d). Exiting.\r\n", thisBoard, board1, board2);
+        return;
+    }
+    
+    printf("\r\nTesting CAN . . .\r\nTest Information:\r\nBoard 1:%d\r\nBoard 2:%d\r\nThis Board: %d\r\n\r\n", board1, board2, thisBoard);
     
     printf("Push button to continue.\r\n");
     waitForButton();
     
-    if (thisBoard == TxBoardNumber) {
+    if (thisBoard == board1) {
         can_buffer[0] = RxBoardNumber;  // SID
         can_buffer[1] = 4;              // Size of payload
         can_buffer[3] = 0;              // shouldn't matter
@@ -94,7 +102,7 @@ void testCAN(int TxBoardNumber, int RxBoardNumber) {
         }
     }
     
-    else if (thisBoard == RxBoardNumber) {
+    else if (thisBoard == board2) {
         can_buffer[0] = 0; can_buffer[1] = 0; can_buffer[2] = 0; can_buffer[3] = 0;
         RED_LED = 1;
         GREEN_LED = 0;
@@ -113,33 +121,23 @@ void testCAN(int TxBoardNumber, int RxBoardNumber) {
 }
 
 void testVNM(void) {
-    
     printf("\r\nTesting VNM . . .\r\n");
-    
-    while (1) {
-        flashGreen(500, 500);
-    }
+    while (1) { flashGreen(500, 500); }
 }
 
 void testMCM(void) {
-    
     printf("\r\nTesting MCM . . .\r\n");
-    
-    while (1) {
-        flashGreen(500, 500);
-    }
+    while (1) { flashGreen(500, 500); }
 }
 
 void testBCM(void) {
-    
     printf("\r\nTesting BCM . . .\r\n");
-    
-    while (1) {
-        flashGreen(500, 500);
-    }
+    while (1) { flashGreen(500, 500); }
 }
 
 void testPCBs(void) {
+    uint8_t board1 = 0, board2 = 0;
+    char role1 = '\0', role2 = '\0';
     initializers();
     printf("SOFTWARE LOADED: PCB Testing\r\n\r\n");
     while (1) {
@@ -152,10 +150,15 @@ void testPCBs(void) {
         else if (!strcmp(message, "RETRO")) testRetro();
         else if (!strcmp(message, "RETROF")) testRetroFrequency();
         else if (!strcmp(message, "CAN")) {
-            printf("Please enter tx board# and rx board# as follows: 'Tx,Rx' e.g. '2,4'\r\n");
-            while (!messageAvailable());
-            getMessage(message, 50);
-            testCAN(message[0] - '0', message[2] - '0');
+            while ((board1 < 1 || board1 > 6) || (board2 < 1 || board2 > 6) || 
+                   (role1 != 'V' && role1 != 'M' && role1 != 'B') || (role2 != 'V' && role2 != 'M' && role2 != 'B')) {
+                printf("Please enter tx board#, rx board# and ROLE as follows: 'Tx(V/B/M),Rx(V/B/M)' e.g. '2V,4B'\r\n");
+                while (!messageAvailable());
+                getMessage(message, 50);
+                board1 = message[0] - '0'; board2 = message[3] - '0';
+                role1 = message[1]; role2 = message[4];
+            }
+            testCAN(board1, role1, board2, role2);
         }
         else printf("Did not recognize \"%s\".\r\n\r\n", message);
     }
