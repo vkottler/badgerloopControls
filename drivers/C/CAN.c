@@ -1,7 +1,7 @@
 #include "../include/CAN.h"
 
 int i; // for loops
-static int SID; //= ID_FOR_KELLY;
+static int SID;
 unsigned int *currentBufferLocation = NULL;
 
 // CAN fifos stem from one single base address
@@ -65,6 +65,8 @@ void CAN_init(ROLE role) {
     //CAN_set_mode(LOOPBACK_MODE);
 }
 
+int CAN_message_available(void) { return C2FIFOINT0bits.RXNEMPTYIF; }
+
 int CAN_check_error(void) {
     if (C2TREC) return -1;
     return 0;
@@ -78,13 +80,10 @@ void CAN_send_message(uint32_t *message) {
 }
 
 void CAN_receive_message(uint32_t *receive) {
-    while (!C2FIFOINT0bits.RXNEMPTYIF);                 // not sure about this line of code
-    currentBufferLocation = PA_TO_KVA1(C2FIFOUA0);      // get the address of RX FIFO pointer
-    for (i = 0; i < BUFFER_SIZE; i++) receive[i] = currentBufferLocation[i];
-    C2FIFOCON0SET = 0x2000;                             // tell module that bit has been read
+    int arbitraryTimeout = 0;
+    while (!C2FIFOINT0bits.RXNEMPTYIF && arbitraryTimeout++ < 50000);                   // not sure about this line of code
+    currentBufferLocation = PA_TO_KVA1(C2FIFOUA0);                                      // get the address of RX FIFO pointer
+    for (i = 0; i < BUFFER_SIZE; i++) 
+        receive[i] = (arbitraryTimeout >= 50000) ? -1 : currentBufferLocation[i];       // for now set all values to -1 if we didn't get anything
+    C2FIFOCON0SET = 0x2000;                                                             // tell module that bit has been read
 }
-
-int CAN_message_available(void) {
-    return C2FIFOINT0bits.RXNEMPTYIF;
-}
-
