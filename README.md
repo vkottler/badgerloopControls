@@ -1,6 +1,6 @@
 # [Badgerloop](http://badgerloop.com/) Embedded Software
 
-README updated: 01/07/2017 by Vaughn Kottler
+README *updated: 01/07/2017* by Vaughn Kottler
 
 Members/Contributors:
   * [Vaughn Kottler](http://vaughnsplayground.me/) (Team Lead)
@@ -48,10 +48,10 @@ Members/Contributors:
   7. Add the source and header files to the project
     * This can be done in a number of ways, the best strategy is to add `.c` source files
       separately from `.h` header files
-      * add C files by right clicking Source Files and choosing `add existing items from folders`, [add drivers, peripherals, and applications](Pic32/screenshots/creatingAproject/addingSourceFiles.PNG)
-      * add header files by right clicking Header Files and choosing `add existing items from folders`, *make sure that .h files are chosen in the drop down menu*. [Add drivers, peripherals, and applications](Pic32/screenshots/creatingAproject/addingHeaderFiles.PNG)
-      * Header and Source files should contain the three folders which each have an `include` and a `C` folder. For Header Files the `C` folder [can be deleted](Pic32/screenshots/creatingAproject/deleteCfolderForInclude.PNG) and for Source Files the `include` folder [can be deleted](Pic32/screenshots/creatingAproject/deleteIncludeFolderForSource.PNG). [This is what your project should now look like](Pic32/screenshots/creatingAproject/whenFinishedAddingFromFolders.PNG)
-      * Last, [add the remaining files that are not in any of these three folders](Pic32/screenshots/creatingAproject/whenFinished.PNG)
+      * add C files by right clicking Source Files and choosing `add existing items from folders`, [add drivers, peripherals, and applications](assets/screenshots/creatingAproject/addingSourceFiles.PNG)
+      * add header files by right clicking Header Files and choosing `add existing items from folders`, *make sure that .h files are chosen in the drop down menu*. [Add drivers, peripherals, and applications](assets/screenshots/creatingAproject/addingHeaderFiles.PNG)
+      * Header and Source files should contain the three folders which each have an `include` and a `C` folder. For Header Files the `C` folder [can be deleted](assets/screenshots/creatingAproject/deleteCfolderForInclude.PNG) and for Source Files the `include` folder [can be deleted](assets/screenshots/creatingAproject/deleteIncludeFolderForSource.PNG). [This is what your project should now look like](assets/screenshots/creatingAproject/whenFinishedAddingFromFolders.PNG)
+      * Last, [add the remaining files that are not in any of these three folders](assets/screenshots/creatingAproject/whenFinished.PNG)
   8. Build the project to verify that everything is in order. *Commits should not be made with projects that do not build!*
     * Currently, in order to build you must change your heap size from the default 0 to ~1024. To do this:
       * Right click your project -> properties.
