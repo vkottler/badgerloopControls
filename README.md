@@ -18,6 +18,10 @@ Members/Contributors:
   This diagram represents the electrical hardware in the pod and shows the   
   interconnectivity. It is geographically similar to the pod as viewed from above.
 
+## [CAN Spec and Message List](https://docs.google.com/spreadsheets/d/1GXqT3xmgMHae2KyNhFwad-Cw_4eZXLL4t2ddvX0Eyjw/edit?usp=sharing)
+
+  An overview how we have decided to use CAN for our run.
+
 ## Implementing Technology:
 * Microchip [pic32mx795f512l](http://www.microchip.com/wwwproducts/en/PIC32MX795F512L)
   * [Reference Documentation](http://ww1.microchip.com/downloads/en/DeviceDoc/60001156J.pdf)
