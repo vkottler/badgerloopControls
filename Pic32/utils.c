@@ -1,5 +1,10 @@
 #include "utils.h"
 
+static ROLE board_roles[] = {UNASSIGNED, UNASSIGNED, UNASSIGNED, UNASSIGNED, UNASSIGNED, UNASSIGNED };
+
+void setBoardRole(uint8_t board, ROLE role) { board_roles[board] = role; }
+ROLE getBoardRole(uint8_t board) { return board_roles[board]; }
+
 int getBoardNumber(void) {
     switch(EMAC1SA0) {
         case MAC1: return 1;

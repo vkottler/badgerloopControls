@@ -4,7 +4,10 @@
 // Libraries
 #include <xc.h>
 #include <stdint.h>
+#include <stdbool.h>
 #include <sys/kmem.h>
+
+#include "../../utils.h"
 
 /*
  * Uses alternate set of pins (FCANIO = OFF)
@@ -21,6 +24,12 @@
 #define LOOPBACK_MODE       2
 #define DISABLE_MODE        1
 #define NORMAL_MODE         0
+
+#define VNM_SID 0x001
+#define BCM_SID 0x002
+#define MCM_SID 0x004
+#define WCM_SID 0x008
+#define BMS_SID 0x010
 
 #define BUFFER_SIZE         4 // 4 * 4 bytes in a single message buffer
 #define fifo_0_size         4 // *TEMPORARY* for initialization for motor test

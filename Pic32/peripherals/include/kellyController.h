@@ -16,7 +16,7 @@
  * one or two data frames as response
  */
 
-#define TORQUE_ID              0x6B // standard 11 bit IDs (107))
+#define TORQUE_ID               0x6B // standard 11 bit IDs (107))
 #define SPEED_ID                100 // 
 #define INITIAL_RESPONSE_ID     0x73 // 115
 

@@ -1,13 +1,13 @@
 #include "../include/CAN.h"
 
 int i; // for loops
-int SID; //= ID_FOR_KELLY;
+static int SID;
 unsigned int *currentBufferLocation = NULL;
 
 // CAN fifos stem from one single base address
 static volatile unsigned int fifos[(fifo_0_size + fifo_1_size) * BUFFER_SIZE];
 
-void CAN_temporary_fifo_init(int SID) {
+void CAN_temporary_fifo_init(void) {
     C2FIFOCON0bits.FSIZE = fifo_0_size - 1;
     C2FIFOCON0bits.TXEN = 0;        // 0th fifo set to receive
     
@@ -22,8 +22,6 @@ void CAN_temporary_fifo_init(int SID) {
     
     C2RXF0bits.SID = SID;           // filter 0 matches against SID
     C2RXF0bits.EXID = 0;            // do not use extended identifiers
-    
-    
 }
 
 /*
@@ -46,16 +44,28 @@ int CAN_set_mode(int mode) {
     return 0;
 }
 
-void CAN_init(int SID) {
+void CAN_init(ROLE role) {
+    setBoardRole(getBoardNumber(), role);
+    
+    switch (role) {
+        case VNM:   SID = VNM_SID; break;
+        case BCM:   SID = BCM_SID; break;
+        case MCM:   SID = MCM_SID; break;
+        case TEST:  SID = ID_FOR_KELLY; break;
+        default:    SID = 0x400; break;
+    }
+    
     C2CONbits.ON = 1;
     CAN_set_mode(CONFIG_MODE);
     CAN_set_timings();
     C2CONbits.CANCAP = 1; // capture timestamps
     C2FIFOBA = KVA_TO_PA(fifos); // just clears 3 MSBs
-    CAN_temporary_fifo_init(SID);
+    CAN_temporary_fifo_init();
     CAN_set_mode(NORMAL_MODE);
     //CAN_set_mode(LOOPBACK_MODE);
 }
+
+int CAN_message_available(void) { return C2FIFOINT0bits.RXNEMPTYIF; }
 
 int CAN_check_error(void) {
     if (C2TREC) return -1;
@@ -70,13 +80,10 @@ void CAN_send_message(uint32_t *message) {
 }
 
 void CAN_receive_message(uint32_t *receive) {
-    while (!C2FIFOINT0bits.RXNEMPTYIF);                 // not sure about this line of code
-    currentBufferLocation = PA_TO_KVA1(C2FIFOUA0);      // get the address of RX FIFO pointer
-    for (i = 0; i < BUFFER_SIZE; i++) receive[i] = currentBufferLocation[i];
-    C2FIFOCON0SET = 0x2000;                             // tell module that bit has been read
+    int arbitraryTimeout = 0;
+    while (!C2FIFOINT0bits.RXNEMPTYIF && arbitraryTimeout++ < 50000);                   // not sure about this line of code
+    currentBufferLocation = PA_TO_KVA1(C2FIFOUA0);                                      // get the address of RX FIFO pointer
+    for (i = 0; i < BUFFER_SIZE; i++) 
+        receive[i] = (arbitraryTimeout >= 50000) ? -1 : currentBufferLocation[i];       // for now set all values to -1 if we didn't get anything
+    C2FIFOCON0SET = 0x2000;                                                             // tell module that bit has been read
 }
-
-int CAN_message_available(void) {
-    return C2FIFOINT0bits.RXNEMPTYIF;
-}
-
