@@ -1,7 +1,6 @@
 #include "../include/CAN.h"
 
 int i; // for loops
-static int SID;
 unsigned int *currentBufferLocation = NULL;
 
 // CAN fifos stem from one single base address
@@ -51,6 +50,7 @@ void CAN_init(ROLE role) {
         case VNM:   SID = VNM_SID; break;
         case BCM:   SID = BCM_SID; break;
         case MCM:   SID = MCM_SID; break;
+        case VSM:   SID = VSM_SID; break;
         case TEST:  SID = ID_FOR_KELLY; break;
         default:    SID = 0x400; break;
     }

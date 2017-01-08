@@ -8,6 +8,7 @@
 #include <sys/kmem.h>
 
 #include "../../utils.h"
+#include "../../globals.h"
 
 /*
  * Uses alternate set of pins (FCANIO = OFF)
@@ -25,17 +26,24 @@
 #define DISABLE_MODE        1
 #define NORMAL_MODE         0
 
+// SIDs from (http://bit.ly/2iQw5cs)
 #define VNM_SID 0x001
-#define BCM_SID 0x002
-#define MCM_SID 0x004
-#define WCM_SID 0x008
-#define BMS_SID 0x010
+#define VSM_SID 0x002
+#define BCM_SID 0x004
+#define MCM_SID 0x008
+#define WCM_SID 0x010
+#define BMS_SID 0x020
+#define FLEX1   0x040
+#define FLEX2   0x080
+#define FLEX3   0x100
+#define FLEX4   0x200
+#define ALL     0x400
 
 #define BUFFER_SIZE         4 // 4 * 4 bytes in a single message buffer
 #define fifo_0_size         4 // *TEMPORARY* for initialization for motor test
 #define fifo_1_size         4 // *TEMPORARY* for initialization for motor test
 
-void CAN_init(int);
+void CAN_init(ROLE role);
 int CAN_check_error(void);
 void CAN_send_message(uint32_t *message);
 void CAN_receive_message(uint32_t *receive);

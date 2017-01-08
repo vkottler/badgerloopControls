@@ -5,6 +5,23 @@ static ROLE board_roles[] = {UNASSIGNED, UNASSIGNED, UNASSIGNED, UNASSIGNED, UNA
 void setBoardRole(uint8_t board, ROLE role) { board_roles[board] = role; }
 ROLE getBoardRole(uint8_t board) { return board_roles[board]; }
 
+ROLE charToRole(char c) {
+    switch (c) {
+        case 'v':
+        case 'V':
+            return VNM;
+        case 's':
+        case 'S':
+            return VSM;
+        case 'm':
+        case 'M':
+            return MCM;
+        case 'b':
+        case 'B':
+            return BCM;
+    }
+}
+
 int getBoardNumber(void) {
     switch(EMAC1SA0) {
         case MAC1: return 1;

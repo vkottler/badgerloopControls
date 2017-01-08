@@ -15,7 +15,6 @@ void flashRed(int onTime, int offTime) {
 
 void initializers(void) {
     __builtin_disable_interrupts();
-    initUART();
     RED_LED_DIR = OUTPUT;
     GREEN_LED_DIR = OUTPUT;
     INTCONbits.MVEC = 1;
@@ -70,7 +69,7 @@ void testRetroFrequency(void) {
  * 
  **/
 void testCAN(uint8_t board1, ROLE role1, uint8_t board2, ROLE role2) {
-    int thisBoard = getBoardNumber();
+    int count = 0, thisBoard = getBoardNumber();
     
     setBoardRole(board1, role1);
     setBoardRole(board2, role2);
@@ -88,13 +87,13 @@ void testCAN(uint8_t board1, ROLE role1, uint8_t board2, ROLE role2) {
     waitForButton();
     
     if (thisBoard == board1) {
-        can_buffer[0] = RxBoardNumber;  // SID
+        can_buffer[0] = SID;            // SID
         can_buffer[1] = 4;              // Size of payload
         can_buffer[3] = 0;              // shouldn't matter
         
         while (1) {
             printf("Sending %4d . . .", count);
-            can_buffer[0] = RxBoardNumber;  // SID
+            can_buffer[0] = SID;        // SID
             can_buffer[2] = count++;
             CAN_send_message(can_buffer);
             printf(" Finished sending.\r\n");
@@ -137,7 +136,8 @@ void testBCM(void) {
 
 void testPCBs(void) {
     uint8_t board1 = 0, board2 = 0;
-    char role1 = '\0', role2 = '\0';
+    char role1 = UNASSIGNED, role2 = UNASSIGNED;
+    
     initializers();
     printf("SOFTWARE LOADED: PCB Testing\r\n\r\n");
     while (1) {
@@ -151,14 +151,14 @@ void testPCBs(void) {
         else if (!strcmp(message, "RETROF")) testRetroFrequency();
         else if (!strcmp(message, "CAN")) {
             while ((board1 < 1 || board1 > 6) || (board2 < 1 || board2 > 6) || 
-                   (role1 != 'V' && role1 != 'M' && role1 != 'B') || (role2 != 'V' && role2 != 'M' && role2 != 'B')) {
-                printf("Please enter tx board#, rx board# and ROLE as follows: 'Tx(V/B/M),Rx(V/B/M)' e.g. '2V,4B'\r\n");
+                   (role1 != 'V' && role1 != 'M' && role1 != 'B') || (role2 != 'V' && role2 != 'M' && role2 != 'B' && role2 != 'S')) {
+                printf("Please enter tx board#, rx board# and ROLE as follows: 'Tx(V/B/M/S),Rx(V/B/M/S)' e.g. '2V,4B'\r\n");
                 while (!messageAvailable());
                 getMessage(message, 50);
                 board1 = message[0] - '0'; board2 = message[3] - '0';
                 role1 = message[1]; role2 = message[4];
             }
-            testCAN(board1, role1, board2, role2);
+            testCAN(board1, charToRole(role1), board2, charToRole(role2));
         }
         else printf("Did not recognize \"%s\".\r\n\r\n", message);
     }

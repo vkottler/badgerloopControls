@@ -5,5 +5,6 @@
 #define TIMER_5_MASK    0xFFFFFFFE
 
 extern volatile int events;
+extern int SID;
 
 #endif
