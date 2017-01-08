@@ -28,6 +28,8 @@ int getBoardNumber(void) {
         case MAC2: return 2;
         case MAC3: return 3;
         case MAC4: return 4;
+        case MAC5: return 5;
+        case MAC6: return 6;
         default: return -1;
     }
 }
