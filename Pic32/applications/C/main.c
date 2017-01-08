@@ -1,8 +1,6 @@
 #include "../include/main.h"
 
-#define SERIAL_DEBUG    1                // determines whether Serial will be usable
-#define TESTING         1
-//#define PRODUCTION      1
+// See config.h for build configuration
 
 int main(void) {
     DDPCONbits.JTAGEN = 0;
@@ -16,38 +14,37 @@ int main(void) {
 #endif
     
 #ifdef TESTING
+#ifdef LED_SHIELD_PRESENT
 #ifdef SERIAL_DEBUG
     printf("Press Button (LED Shield) to continue.\r\n");
 #endif
     waitForButton();
+#endif
     //vacuumTest();
     //i2cTesting();
     testPCBs();
     //testRetro();
     //uartTesting();
-#endif
     
-#ifdef PRODUCTION
-    switch (getBoardNumber()) {
-        case 1:
-            break;
-        case 2:
-            break;
-        case 3:
-            break;
-        case 4:
-            break;
-        case 5:
-            break;
-        case 6:
-            break;
+#elif defined(PRODUCTION)
+    setBoardRole(1, BOARD1_ROLE);
+    setBoardRole(2, BOARD1_ROLE);
+    setBoardRole(3, BOARD1_ROLE);
+    setBoardRole(4, BOARD1_ROLE);
+    setBoardRole(5, BOARD1_ROLE);
+    setBoardRole(6, BOARD1_ROLE);
+    
+    switch (getBoardRole(getBoardNumber())) {
+        case VNM: VNM(); break;
+        case BCM: BCM(); break;
+        case MCM: MCM(); break;
+        case VSM: VSM(); break;
+        case BOOT: break; // TODO
         default:
             while (1) {
-                // need to figure out what to put here
-            }
+                // problem, blink PCB LEDs?
             }
     }
 #endif
-    
     return 0;
 }

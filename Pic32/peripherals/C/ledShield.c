@@ -1,25 +1,44 @@
 #include "../include/ledShield.h"
 
-#define MILLI       64000
-
 void initLEDs(void) {
+    
     // set pin directions
+#ifdef LED_SHIELD_PRESENT
     TRISAbits.TRISA2 = OUTPUT;
-    TRISAbits.TRISA3 = OUTPUT;      // Also Board LED1
     TRISCbits.TRISC4 = OUTPUT;
     TRISDbits.TRISD4 = OUTPUT;
     TRISDbits.TRISD3 = OUTPUT;
     TRISDbits.TRISD12 = OUTPUT;
     TRISGbits.TRISG1 = OUTPUT;
     TRISGbits.TRISG0 = INPUT;       // button signal
+    RED2 = OFF, YELLOW1 = OFF, YELLOW2 = OFF;
+    GREEN1 = OFF, GREEN2 = OFF, BUTTONPWR = ON;
+#endif
+    TRISAbits.TRISA3 = OUTPUT;      // Also Board LED1
     TRISCbits.TRISC1 = OUTPUT;      // Board LED2
-            
-    RED1 = 0, BOARD_LED2 = 0, RED2 = 0;
-    YELLOW1 = 0, YELLOW2 = 0;
-    GREEN1 = 0, GREEN2 = 0;
-    BUTTONPWR = 1;
+    BOARD_LED1 = OFF, BOARD_LED2 = OFF;
 }
 
+void setBoardLight(int light, int state) {
+    switch (light) {
+        case 0: BOARD_LED1 = state; break;
+        case 1: BOARD_LED2 = state; break;
+        default: BOARD_LED1 = state, BOARD_LED2 = state;
+    }
+}
+
+void blinkBoardLights(int times, int time) {
+    int i = 0;
+    for (i = 0; i < times; i++) {
+        BOARD_LED1 = 1, BOARD_LED2 = 0;
+        delay(time, MILLI);
+        BOARD_LED1 = 0, BOARD_LED2 = 1;
+        delay(time, MILLI);
+    }
+    BOARD_LED1 = 0, BOARD_LED2 = 0;
+}
+
+#ifdef LED_SHIELD_PRESENT
 void toggleShieldLight(int light, int state) {
     switch (light) {
         case 0: RED1 = state; break;
@@ -38,23 +57,5 @@ void toggleAllShieldLights(int state) {
     GREEN1 = state, GREEN2 = state;
 }
 
-void blinkBoardLights(int times, int time) {
-    int i = 0;
-    for (i = 0; i < times; i++) {
-        BOARD_LED1 = 1, BOARD_LED2 = 0;
-        delay(time, MILLI);
-        BOARD_LED1 = 0, BOARD_LED2 = 1;
-        delay(time, MILLI);
-    }
-    BOARD_LED1 = 0, BOARD_LED2 = 0;
-}
-
-void setBoardLight(int light, int state) {
-    switch (light) {
-        case 0: BOARD_LED1 = state; break;
-        case 1: BOARD_LED2 = state; break;
-        default: BOARD_LED1 = state, BOARD_LED2 = state;
-    }
-}
-
 int readButton(void) { return !BUTTONSIG; }
+#endif

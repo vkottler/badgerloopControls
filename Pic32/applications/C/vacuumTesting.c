@@ -7,16 +7,11 @@ void vacuumInitializers(void) {
     
     // hardware
     __builtin_disable_interrupts();
-    
-    initUART();
     I2Cinit(1, 100, true);
     initADC();
-    
     INTCONbits.MVEC = 1;
     __builtin_enable_interrupts();
-    
     CAN_init(ID_FOR_KELLY);
-    
     GREEN1 = 1;
 }
 

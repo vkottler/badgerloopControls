@@ -1,9 +1,16 @@
 #include "utils.h"
 
-static ROLE board_roles[] = {UNASSIGNED, UNASSIGNED, UNASSIGNED, UNASSIGNED, UNASSIGNED, UNASSIGNED };
+static ROLE board_roles[] = {
+    NOT_PRESENT,                // Board 1 Default Role
+    NOT_PRESENT,                // Board 2 Default Role
+    NOT_PRESENT,                // Board 3 Default Role
+    NOT_PRESENT,                // Board 4 Default Role
+    NOT_PRESENT,                // Board 5 Default Role
+    NOT_PRESENT                 // Board 6 Default Role
+};
 
-void setBoardRole(uint8_t board, ROLE role) { board_roles[board] = role; }
-ROLE getBoardRole(uint8_t board) { return board_roles[board]; }
+void setBoardRole(uint8_t board, ROLE role) { board_roles[board-1] = role; }
+ROLE getBoardRole(uint8_t board) { return board_roles[board-1]; }
 
 ROLE charToRole(char c) {
     switch (c) {

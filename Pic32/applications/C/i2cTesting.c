@@ -6,14 +6,9 @@ void I2Cinitializers(void) {
     
     // hardware
     __builtin_disable_interrupts();
-    
-    initUART();
     I2Cinit(1, 400, true);
-    
     INTCONbits.MVEC = 1;
     __builtin_enable_interrupts();
-    
-    
     GREEN1 = 1;
 }
 
