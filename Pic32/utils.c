@@ -31,23 +31,23 @@ ROLE charToRole(char c) {
 
 int getBoardNumber(void) {
     switch(EMAC1SA0) {
-        case MAC1: return 1;
-        case MAC2: return 2;
-        case MAC3: return 3;
-        case MAC4: return 4;
-        case MAC5: return 5;
-        case MAC6: return 6;
-        default: return -1;
+        case MAC1:  return 1;
+        case MAC2:  return 2;
+        case MAC3:  return 3;
+        case MAC4:  return 4;
+        case MAC5:  return 5;
+        case MAC6:  return 6;
+        default:    return -1;
     }
 }
 
 int MACLookUp(int boardNumber) {
     switch (boardNumber) {
-        case 1: return MAC1;
-        case 2: return MAC2;
-        case 3: return MAC3;
-        case 4: return MAC4;
-        default: return -1;
+        case 1:     return MAC1;
+        case 2:     return MAC2;
+        case 3:     return MAC3;
+        case 4:     return MAC4;
+        default:    return -1;
     }
 }
 
@@ -70,4 +70,3 @@ void waitForButton(void) {
     while(!readButton());
     BOARD_LED1 = 0; BOARD_LED2 = 0;
 }
-
