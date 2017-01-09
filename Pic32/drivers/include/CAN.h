@@ -11,14 +11,25 @@
 #include "../../globals.h"
 
 /*
+ * Chosen FIFO usage:
+ * 0: Receive, Mask: 0x400
+ * 1: Receive, Mask: module SID bit
+ * 2: Send, Specific Recipients
+ * 3: Send, Broadcast (i.e. heartbeat)
+ */
+
+/*
  * Uses alternate set of pins (FCANIO = OFF)
- * 
  * CAN1: Pin 15 (AC1RX), Pin 14 (AC1TX)
  * CAN2: Pin 23 (AC2RX), Pin 22 (AC2TX)
  */
 
-#define ID_FOR_KELLY       0x73
+#define ID_FOR_KELLY        0x73
+#define BAUD_250K           1
+//#define BAUD_1M             1 // For interfacing with Kelly Controller
+#define CAP_TIME            1
 
+// Internal CAN Modes
 #define LISTEN_ALL_MODE     7
 #define CONFIG_MODE         4
 #define LISTEN_ONLY_MODE    3
