@@ -1,5 +1,7 @@
-CAN module: Xtend213 on the XPort5005 with two Peak Systems PCAN-miniPCIe
 
-Main motherboard: XTend7100
-CPU connector board: XTend302
-CPU module: XPedite8150 (Intel Atom E3800, up to four cores at 1.91 GHz)
+CPU module:             XPedite8150 (Atom)
+CPU connector board:    XTend302
+Main motherboard:       XTend7100
+CAN module:             XPort5005
+  - populated with two Peak Systems PCAN-miniPCIe modules
+  - XTend213 attached for CANL CANH and GND breakouts
