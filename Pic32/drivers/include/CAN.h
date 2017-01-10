@@ -10,6 +10,16 @@
 #include "../../utils.h"
 #include "../../globals.h"
 
+// CAN settings
+#define BAUD_250K           1
+//#define BAUD_1M             1 // For interfacing with Kelly Controller
+#define CAN_MAIN            1
+#define CAN_ALT             2
+
+// http://stackoverflow.com/questions/13923425/c-preprocessor-concatenation-with-variable
+#define _CAN_SFR(reg, module)   C##module##reg    
+#define CAN_SFR(reg, module)    _CAN_SFR(reg, module)
+
 /*
  * Chosen FIFO usage:
  * 0: Receive, Mask: 0x400
@@ -25,8 +35,6 @@
  */
 
 #define ID_FOR_KELLY        0x73
-#define BAUD_250K           1
-//#define BAUD_1M             1 // For interfacing with Kelly Controller
 #define CAP_TIME            1
 
 // Internal CAN Modes

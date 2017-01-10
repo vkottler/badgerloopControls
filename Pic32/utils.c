@@ -64,9 +64,3 @@ void printBoardNumber(char* message) {
     sprintf(message, "Board %d connected.", getBoardNumber());
     println(message);
 }
-
-void waitForButton(void) {
-    BOARD_LED1 = 1; BOARD_LED2 = 1;
-    while(!readButton());
-    BOARD_LED1 = 0; BOARD_LED2 = 0;
-}

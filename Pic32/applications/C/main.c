@@ -1,6 +1,27 @@
 #include "../include/main.h"
 
-// See config.h for build configuration
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+/* * * * * * *          Software Build Definitions           * * * * * * * * * */
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+// General Settings
+#define SERIAL_DEBUG        1   // determines whether Serial will be usable
+#define TESTING             1   // this asserts that something in the TESTING section in main will be compiled
+//#define PRODUCTION          1   // use the production build (must still uncomment TESTING)
+
+/*
+ * Here we need to specify which board is doing what, if we are running the production build
+ */
+#ifdef PRODUCTION
+#define BOARD1_ROLE     NOT_PRESENT
+#define BOARD2_ROLE     NOT_PRESENT
+#define BOARD3_ROLE     NOT_PRESENT
+#define BOARD4_ROLE     NOT_PRESENT
+#define BOARD5_ROLE     NOT_PRESENT
+#define BOARD6_ROLE     NOT_PRESENT
+#endif
+
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 int main(void) {
     DDPCONbits.JTAGEN = 0;

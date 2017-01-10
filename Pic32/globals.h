@@ -4,30 +4,12 @@
 #define TIMER_5_BIT     0x1
 #define TIMER_5_MASK    0xFFFFFFFE
 
-typedef enum STATE {
-    INIT,
-    IDLE,
-    MANUAL,
-    AUTO,
-    BRAKE,
-    SHUTDOWN
-};
+typedef enum { INIT, IDLE, MANUAL, AUTO, BRAKE, SHUTDOWN } STATE;
 
-typedef enum BRAKING_STATE {
-    INIT,
-    ONE_AXLE,
-    NORMAL,
-    MAX
-};
+typedef enum { INIT_BRAKE, ONE_AXLE_BRAKE, NORMAL_BRAKE, MAX_BRAKE } BRAKING_STATE;
 
-typedef enum INIT_ERROR {
-    HEALTHY,
-    MAC_NOT_FOUND,
-    HP_NO_RESPONSE,
-    SWITCH_X_OPEN,
-    PRESSURE_OOR,
-    VL_NO_RESPONSE
-};
+typedef enum { HEALTHY, MAC_NOT_FOUND, HP_NO_RESPONSE,
+               SWITCH_X_OPEN, PRESSURE_OOR, VL_NO_RESPONSE } INIT_ERROR;
 
 extern volatile int events;
 extern int SID;

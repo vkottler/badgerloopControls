@@ -11,12 +11,12 @@ void initLEDs(void) {
     TRISDbits.TRISD12 = OUTPUT;
     TRISGbits.TRISG1 = OUTPUT;
     TRISGbits.TRISG0 = INPUT;       // button signal
-    RED2 = OFF, YELLOW1 = OFF, YELLOW2 = OFF;
-    GREEN1 = OFF, GREEN2 = OFF, BUTTONPWR = ON;
+    RED2 = 0, YELLOW1 = 0, YELLOW2 = 0;
+    GREEN1 = 0, GREEN2 = 0, BUTTONPWR = 1;
 #endif
     TRISAbits.TRISA3 = OUTPUT;      // Also Board LED1
     TRISCbits.TRISC1 = OUTPUT;      // Board LED2
-    BOARD_LED1 = OFF, BOARD_LED2 = OFF;
+    BOARD_LED1 = 0, BOARD_LED2 = 0;
 }
 
 void setBoardLight(int light, int state) {
@@ -58,4 +58,10 @@ void toggleAllShieldLights(int state) {
 }
 
 int readButton(void) { return !BUTTONSIG; }
+
+void waitForButton(void) {
+    BOARD_LED1 = 1; BOARD_LED2 = 1;
+    while(!readButton());
+    BOARD_LED1 = 0; BOARD_LED2 = 0;
+}
 #endif
