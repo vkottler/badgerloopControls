@@ -69,7 +69,7 @@ float Kelly_get_throttle_voltage(void);
 float Kelly_get_brake_voltage(void);
 float Kelly_get_operational_voltage(void);
 float Kelly_get_battery_voltage(void);
-float Kelly_get_Ib(void);
-float Kelly_get_Ic(void);
+uint8_t Kelly_get_Ib(void);
+uint8_t Kelly_get_Ic(void);
 
 #endif

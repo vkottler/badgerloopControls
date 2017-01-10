@@ -128,21 +128,21 @@ void Kelly_get_batch1(int ID) {
     Kelly_send(CCP_A2D_BATCH_READ1, ID);
     CAN_receive_message(receive);
     brake = receive[2] & 0xff;
-    tps = (receive[2] & 0xff00) >> 8;
-    opVoltage = (receive[2] & 0xff0000) >> 16;
-    Vs = (receive[2] & 0xff000000) >> 24;
+    tps = (receive[2] >> 8) & 0xff;
+    opVoltage = (receive[2] >> 16) & 0xff;
+    Vs = (receive[2] >> 24) & 0xff;
     bPlus = receive[3] & 0xff;
 }
 
-float Kelly_get_throttle_voltage() {
-    return ((float) tps) * 5.0 / 256.0 ;
+float Kelly_get_throttle_voltage(void) {
+    return ((float) tps) * 5.0 / 256.0;
 }
 
-float Kelly_get_brake_voltage() {
+float Kelly_get_brake_voltage(void) {
     return ((float) brake) * 5.0 / 256.0;
 }
 
-float Kelly_get_operational_voltage() {
+float Kelly_get_operational_voltage(void) {
     return ((float) opVoltage) / 1.39;
 }
 
@@ -150,8 +150,8 @@ float Kelly_get_battery_voltage() {
     return ((float) opVoltage) / 1.39;
 }
 
-float Kelly_get_Ib() { return Ib; }
-float Kelly_get_Ic() { return Ic; }
+uint8_t Kelly_get_Ib() { return Ib; }
+uint8_t Kelly_get_Ic() { return Ic; }
 
 void Kelly_get_batch2(int ID) {
     Kelly_send(CCP_A2D_BATCH_READ2, ID);

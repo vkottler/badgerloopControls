@@ -83,9 +83,6 @@ void testCAN(uint8_t board1, ROLE role1, uint8_t board2, ROLE role2) {
     
     printf("\r\nTesting CAN . . .\r\nTest Information:\r\nBoard 1:%d\r\nBoard 2:%d\r\nThis Board: %d\r\n\r\n", board1, board2, thisBoard);
     
-    printf("Push button to continue.\r\n");
-    waitForButton();
-    
     if (thisBoard == board1) {
         can_buffer[0] = SID;            // SID
         can_buffer[1] = 4;              // Size of payload

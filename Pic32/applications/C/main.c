@@ -25,25 +25,27 @@
 
 int main(void) {
     DDPCONbits.JTAGEN = 0;
-    
     initLEDs();
     initializeTimer1(0x8000, 0xffff);
     blinkBoardLights(4, 150);
+    INTCONbits.MVEC = 1;
+    __builtin_enable_interrupts();
     
 #ifdef SERIAL_DEBUG
     initUART();
+    printBoardNumber();
 #endif
     
 #ifdef TESTING
-#ifdef LED_SHIELD_PRESENT
-#ifdef SERIAL_DEBUG
+    
+#if defined SERIAL_DEBUG && defined LED_SHIELD_PRESENT
     printf("Press Button (LED Shield) to continue.\r\n");
-#endif
     waitForButton();
 #endif
-    //vacuumTest();
+    
+    vacuumTest();
     //i2cTesting();
-    testPCBs();
+    //testPCBs();
     //testRetro();
     //uartTesting();
     

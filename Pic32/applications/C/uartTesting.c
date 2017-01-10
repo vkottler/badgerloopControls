@@ -5,9 +5,6 @@ char message[50];
 void uartInitializers(void) {
     
     // hardware
-    __builtin_disable_interrupts();
-    INTCONbits.MVEC = 1;
-    __builtin_enable_interrupts();
     GREEN1 = 1;
 }
 
@@ -17,12 +14,11 @@ void uartTesting(void) {
     
     while (1) {
         
-        printf("Heartbeat.\r\n");
+        //printf("Heartbeat.\r\n");
         if (messageAvailable()) {
             getMessage(message, 50);
-            printf(message); printf("\r\n");
+            printf("%s\r\n", message);
         }
-        
         YELLOW1 = 1;
         delay(500, MILLI);
         YELLOW1 = 0;

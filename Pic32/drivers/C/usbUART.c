@@ -48,8 +48,8 @@ void getMessage(char *message, int maxLength) {
 }
 
 // Deprecated
-void print(const char *string) { printf(string); }
-void println(const char *string) { printf(string); printf("\r\n"); }
+void print(const char *string) { printf("%s", string); }
+void println(const char *string) { printf("%s\r\n", string); }
 
 void _mon_putc(char c) {
     while (pc_buffer_full(&tx_buffer));

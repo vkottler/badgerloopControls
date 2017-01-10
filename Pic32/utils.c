@@ -51,16 +51,14 @@ int MACLookUp(int boardNumber) {
     }
 }
 
-void printMAC(char* message) {
-    sprintf(message, "MAC: %x", EMAC1SA0);
-    println(message);
+void printMAC(void) {
+    printf("MAC: %x %x\r\n", EMAC1SA0, EMAC1SA1);
 }
 
 int getMAC(void) {
     return EMAC1SA0;
 }
 
-void printBoardNumber(char* message) {
-    sprintf(message, "Board %d connected.", getBoardNumber());
-    println(message);
+void printBoardNumber(void) {
+    printf("Board %d connected.\r\n", getBoardNumber());
 }
