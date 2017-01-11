@@ -2,20 +2,32 @@
 
 unsigned int *currentBufferLocation = NULL;
 
-// CAN fifos stem from one single base address
-static volatile unsigned int fifos[(fifo_0_size + fifo_1_size) * BUFFER_SIZE];
+static volatile uint8_t specificCount = 0, generalCount = 0;
+
+/*
+ * Chosen FIFO usage:
+ * 0: Receive, Mask: 0x400
+ * 1: Receive, Mask: module SID bit
+ * 2: Send, Specific Recipients
+ * 3: Send, Broadcast (i.e. heartbeat)
+ */
+static volatile unsigned int fifos[
+    (fifo_0_size + fifo_1_size + fifo_2_size + fifo_3_size) * BUFFER_SIZE
+];
 
 void CAN_fifo_init(void) {
-  
-}
-
-void CAN_temporary_fifo_init(void) {
     CAN_SFR(FIFOCON0bits, CAN_MAIN).FSIZE = fifo_0_size - 1;
-    CAN_SFR(FIFOCON0bits, CAN_MAIN).TXEN = 0;        // 0th fifo set to receive
-
+    CAN_SFR(FIFOCON0bits, CAN_MAIN).TXEN = 0;
     CAN_SFR(FIFOCON1bits, CAN_MAIN).FSIZE = fifo_1_size - 1;
-    CAN_SFR(FIFOCON1bits, CAN_MAIN).TXEN = 1;        // 1st fifo set to send
+    CAN_SFR(FIFOCON1bits, CAN_MAIN).TXEN = 0;
+    CAN_SFR(FIFOCON2bits, CAN_MAIN).FSIZE = fifo_2_size - 1;
+    CAN_SFR(FIFOCON2bits, CAN_MAIN).TXEN = 1;
+    CAN_SFR(FIFOCON3bits, CAN_MAIN).FSIZE = fifo_3_size - 1;
+    CAN_SFR(FIFOCON3bits, CAN_MAIN).TXEN = 1;
 
+    /*
+     * TODO
+     * 
     CAN_SFR(RXM0bits, CAN_MAIN).SID = 0;             // use no bits in the comparison
 
     CAN_SFR(FLTCON0bits, CAN_MAIN).FSEL0 = 0;        // filter 0 used for FIFO 0
@@ -24,6 +36,7 @@ void CAN_temporary_fifo_init(void) {
 
     CAN_SFR(RXF0bits, CAN_MAIN).SID = SID;           // filter 0 matches against SID
     CAN_SFR(RXF0bits, CAN_MAIN).EXID = 0;            // do not use extended identifiers
+    */
 }
 
 // See http://ww1.microchip.com/downloads/en/DeviceDoc/61154C.pdf Bit Timing section
@@ -74,11 +87,14 @@ void CAN_init(ROLE role) {
     CAN_set_mode(CONFIG_MODE);
     CAN_set_timings();
     CAN_SFR(FIFOBA, CAN_MAIN) = KVA_TO_PA(fifos); // just clears 3 MSBs
-    CAN_temporary_fifo_init();
+    CAN_fifo_init();
     CAN_set_mode(NORMAL_MODE); //CAN_set_mode(LOOPBACK_MODE);
 }
 
 int CAN_message_available(void) { return CAN_SFR(FIFOINT0bits, CAN_MAIN).RXNEMPTYIF; }
+
+uint8_t CAN_generic_message_available(void) { return generalCount; }
+uint8_t CAN_specific_message_available(void) { return specificCount; }
 
 int CAN_check_error(void) {
     if (CAN_SFR(TREC, CAN_MAIN)) return -1;
