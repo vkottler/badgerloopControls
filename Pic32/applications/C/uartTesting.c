@@ -2,16 +2,8 @@
 
 char message[50];
 
-void uartInitializers(void) {
-    
-    // hardware
-    GREEN1 = 1;
-}
-
 void uartTesting(void) {
-    
-    uartInitializers();
-    
+    GREEN1 = 1;
     while (1) {
         
         //printf("Heartbeat.\r\n");

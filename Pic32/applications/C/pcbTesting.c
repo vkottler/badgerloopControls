@@ -13,18 +13,12 @@ void flashRed(int onTime, int offTime) {
     RED_LED = 0; delay(offTime, MILLI);
 }
 
-void initializers(void) {
-    __builtin_disable_interrupts();
-    RED_LED_DIR = OUTPUT;
-    GREEN_LED_DIR = OUTPUT;
-    INTCONbits.MVEC = 1;
-    __builtin_enable_interrupts();
-}
-
 void testRetro(void) {
-    IC1_DIR = INPUT; IC2_DIR = INPUT; IC3_DIR = INPUT; IC4_DIR = INPUT; IC5_DIR = INPUT;
-    RED_LED_DIR = OUTPUT;
-    GREEN_LED_DIR = OUTPUT;
+    IC1_DIR = INPUT; 
+    IC2_DIR = INPUT; 
+    IC3_DIR = INPUT; 
+    IC4_DIR = INPUT; 
+    IC5_DIR = INPUT;
     //printf("\r\nTesting Retroreflective Circuits (look at Green LED) . . .\r\n");
     while (1) {
         //if (IC1_PIN || IC2_PIN || IC3_PIN || IC4_PIN || IC5_PIN) {
@@ -48,26 +42,6 @@ void testRetroFrequency(void) {
     }
 }
 
-/**
- * txBoard transmits the data 0x0FF0 every push button press with a SID of
- * TxBoardNumber
- * rxBoard flashes green LED when it receives data
- * 
-1.Program both board 2 and 4. Board 2 is Tx board. Board 4 is Rx board.
-2.Hit the push button on board 4. Expectation: green light on board 4.
-3.Hit the push button on board 2. Expectation: red light on board 2. 
- * (waiting to send message)
-4.Hit the push button on board 2. Expectation: red light turns off on 2. 
- * Green light is on for 100ms. Board 4 green light turns on indicating message
- *  received. Then board 4 red light turns on. Red light on board 2 turn backs on.
-5.Hit push button on board 4. Expectation:  red and green lights turn off. Board
- *  4 is ready to receive message again.
-6.Repeat steps 3-6
- * 
- * @param txBoardNumber: board # of transceiver
- * @param rxBoardNumber: board # of receiver
- * 
- **/
 void testCAN(uint8_t board1, ROLE role1, uint8_t board2, ROLE role2) {
     int count = 0, thisBoard = getBoardNumber();
     
@@ -134,8 +108,8 @@ void testBCM(void) {
 void testPCBs(void) {
     uint8_t board1 = 0, board2 = 0;
     char role1 = UNASSIGNED, role2 = UNASSIGNED;
-    
-    initializers();
+    RED_LED_DIR = OUTPUT;
+    GREEN_LED_DIR = OUTPUT;
     printf("SOFTWARE LOADED: PCB Testing\r\n\r\n");
     while (1) {
         printf("Please type 'MCM', 'BCM', 'VNM', 'RETRO', 'RETROF' or 'CAN' to begin: \r\n");

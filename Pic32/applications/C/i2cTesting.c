@@ -1,19 +1,7 @@
 #include "../include/i2cTesting.h"
 
-//char message[100];
-
-void I2Cinitializers(void) {
-    
-    // hardware
-    __builtin_disable_interrupts();
-    I2Cinit(1, 400, true);
-    INTCONbits.MVEC = 1;
-    __builtin_enable_interrupts();
-    GREEN1 = 1;
-}
-
 void lineTest(void) {
-    int i;
+    int i = 0;
     while (1) {
         if (i == 128) i = 0;
         ssd1306_fillScreen(false);
@@ -60,7 +48,8 @@ void error(void) {
 }
 
 void i2cTesting(void) {
-    I2Cinitializers();
+    I2Cinit(1, 400, true);
+    GREEN1 = 1;
     
     if (!ssd1306_init()) error();
     
