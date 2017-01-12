@@ -6,6 +6,7 @@ int main(void) {
 /*                          Static Initializations                            */
 /******************************************************************************/
     DDPCONbits.JTAGEN = 0;
+    initLEDs();
     initializeTimer1(0x8000, 0xffff);
     INTCONbits.MVEC = 1;
     __builtin_enable_interrupts();
@@ -31,7 +32,8 @@ int main(void) {
 #endif
     
     // Select which test to run by uncommenting one of these
-    vacuumTest();
+    //vacuumTest();
+    productionTesting();
     //i2cTesting();
     //testPCBs();
     //testRetro();

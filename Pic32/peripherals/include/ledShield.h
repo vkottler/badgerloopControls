@@ -5,8 +5,6 @@
 #include "../../globals.h"
 #include "../../drivers/include/timer1.h"
 
-//#define LED_SHIELD_PRESENT  1   // this asserts that the custom LED proto-shield will be present and can be used
-
 // (RA3 = LD4, RC1 = LD5)
 #define OUTPUT          0
 #define INPUT           1

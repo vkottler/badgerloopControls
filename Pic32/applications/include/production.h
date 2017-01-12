@@ -9,4 +9,19 @@
 
 void run(ROLE boardRole);
 
+#if defined PRODUCTION_TESTING
+
+ROLE heartbeatMessageToRole(CAN_MESSAGE *message);
+bool initialize_peripherals(ROLE role);
+bool initialize_heartbeat_order(void);
+void CAN_send_heartbeat(void);
+
+extern CAN_MESSAGE curr;
+extern uint8_t num_endpoints;
+extern int i;
+extern ROLE *heartbeat_order;
+extern uint8_t heartbeat_index;
+
+#endif
+
 #endif
