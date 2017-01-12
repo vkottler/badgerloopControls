@@ -201,6 +201,14 @@ bool CAN_receive_specific(CAN_MESSAGE *message) {
     __builtin_enable_interrupts();
 }
 
+bool CAN_message_is_heartbeat(CAN_MESSAGE *message) {
+    return (message->message_num == WCM_HB || 
+            message->message_num == VNM_HB ||
+            message->message_num == VSM_HB ||
+            message->message_num == MCM_HB ||
+            message->message_num == BCM_HB);
+}
+
 // TODO add ISRs
 void __ISR (MAIN_CAN_VECTOR, IPL1SOFT) MAIN_CAN_Interrupt (void) {
     

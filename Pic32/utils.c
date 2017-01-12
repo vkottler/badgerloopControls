@@ -9,8 +9,13 @@ static ROLE board_roles[] = {
     NOT_PRESENT                 // Board 6 Default Role
 };
 
-void setBoardRole(uint8_t board, ROLE role) { board_roles[board-1] = role; }
-ROLE getBoardRole(uint8_t board) { return board_roles[board-1]; }
+void setBoardRole(uint8_t board, ROLE role) { 
+    board_roles[board-1] = role;
+}
+
+ROLE getBoardRole(uint8_t board) { 
+    return board_roles[board-1];
+}
 
 ROLE charToRole(char c) {
     switch (c) {
@@ -39,6 +44,10 @@ int getBoardNumber(void) {
         case MAC6:  return 6;
         default:    return -1;
     }
+}
+
+ROLE getThisRole(void) {
+    return getBoardRole(getBoardNumber());
 }
 
 int MACLookUp(int boardNumber) {

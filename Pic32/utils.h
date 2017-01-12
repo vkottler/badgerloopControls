@@ -14,7 +14,9 @@
 #define MAC5    0xD0BF
 #define MAC6    0x3EBE
 
-typedef enum { VNM, BCM, MCM, VSM, UNASSIGNED, TEST, NOT_PRESENT } ROLE;
+#define NUM_BOARDS  6
+
+typedef enum { WCM, VNM, BCM, MCM, VSM, TEST, NOT_PRESENT, UNASSIGNED } ROLE;
 
 void setBoardRole(uint8_t board, ROLE role);
 ROLE getBoardRole(uint8_t board);

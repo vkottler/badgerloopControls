@@ -5,6 +5,8 @@
 #include "../../utils.h"
 #include "../../drivers/include/CAN.h"
 
+//#define WCM_PRESENT     1
+
 void run(ROLE boardRole);
 
 #endif

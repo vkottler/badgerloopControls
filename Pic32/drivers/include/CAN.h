@@ -18,13 +18,19 @@
 #include "../../globals.h"
 
 /******************************************************************************/
-/*                   Structs and Compiler Directives                          */
+/*                Structs, Enums and Compiler Directives                      */
 /******************************************************************************/
+typedef enum {
+    INVALID,
+    WCM_HB, VNM_HB, VSM_HB, BCM_HB, MCM_HB
+            
+} MESSAGE_TYPE;
+
 typedef union {
     struct {
         unsigned SIZE:5;
         unsigned SID:11;
-        uint8_t message_num;
+        MESSAGE_TYPE message_num:8;
         uint8_t byte0;
         uint8_t byte1;
         uint8_t byte2;
@@ -36,6 +42,12 @@ typedef union {
     struct {
         unsigned :16;
         uint8_t bytes[8];
+    };
+    struct {
+        unsigned :16;
+        uint8_t message_byte;
+        unsigned :32;
+        unsigned :24;
     };
     struct {
         unsigned :16;
@@ -122,6 +134,7 @@ void CAN_send(CAN_MESSAGE *message);
 void CAN_broadcast(CAN_MESSAGE *message);
 bool CAN_receive_broadcast(CAN_MESSAGE *message);
 bool CAN_receive_specific(CAN_MESSAGE *message);
+bool CAN_message_is_heartbeat(CAN_MESSAGE *message);
 /******************************************************************************/
 
 #endif
