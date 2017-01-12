@@ -29,7 +29,7 @@ KELLY_CMD brkSW = {.name = COM_SW_BRK, .length = 2, .data = brkSWData, .resp_len
 KELLY_CMD revSW = {.name = COM_SW_REV, .length = 2, .data = revSWData, .resp_length = 1};
 
 int i;
-uint32_t toSend[4], receive[4];
+CAN_MESSAGE toSend, receive;
 KELLY_CMD *curr;
 
 uint8_t throttle_low, throttle_high, 
@@ -38,7 +38,7 @@ uint8_t throttle_low, throttle_high,
         Ib, Ic, Vb, Vc;
 
 void Kelly_send(COMMAND_NAME cmd, int ID) {
-    toSend[0] = ID;
+    toSend.SID = ID;
     switch (cmd) {
         case CCP_FLASH_READ1: curr = &read1; break;
         case CCP_FLASH_READ2: curr = &read2; break;
@@ -55,48 +55,45 @@ void Kelly_send(COMMAND_NAME cmd, int ID) {
         case COM_SW_REV: curr = &revSW; break;
         default: return; 
     }
-    toSend[1] = curr->length;
-    toSend[2] = 0; toSend[3] = 0;
-    for (i = 0; i < curr->length; i++) {
-        if (i < 4) toSend[2] |= curr->data[i] << (8 * i);
-        else toSend[3] |= curr->data[i] << (8 * (i-4));
-    }
-    CAN_send_message(toSend);
+    toSend.SIZE = curr->length;
+    toSend.dataw0 = 0; toSend.dataw1 = 0;
+    for (i = 0; i < curr->length; i++) toSend.bytes[i] = curr->data[i];
+    CAN_send(&toSend);
 }
 
 void Kelly_get_model(char *buffer, int ID) {
     Kelly_send(CCP_FLASH_READ1, ID);
-    CAN_receive_message(receive);
+    CAN_receive_specific(&receive);
     for (i = 0; i < 8; i++) {
-        if (i < 4) buffer[i] = (receive[2] & (0xff << 8*i)) >> (8*i);
-        else buffer[i] = (receive[3] & (0xff << 8*(i-4))) >> (8*(i-4));
+        if (i < 4) buffer[i] = (receive.dataw0 & (0xff << 8*i)) >> (8*i);
+        else buffer[i] = (receive.dataw1 & (0xff << 8*(i-4))) >> (8*(i-4));
     }
     buffer[8] = '\0';
 }
 
 void Kelly_get_software_ver(char *buffer, int ID) {
     Kelly_send(CCP_FLASH_READ2, ID);
-    CAN_receive_message(receive);
-    buffer[0] = (receive[2] & 0xff) + 48; buffer[1] = '.';
-    buffer[2] = (receive[2] & 0xff00 >> 8) + 48; buffer[3] = '\0';
+    CAN_receive_specific(&receive);
+    buffer[0] = (receive.dataw0 & 0xff) + 48; buffer[1] = '.';
+    buffer[2] = (receive.dataw0 & 0xff00 >> 8) + 48; buffer[3] = '\0';
 }
 
 void Kelly_get_throttle_low_high(int ID) {
     Kelly_send(CCP_FLASH_READ3, ID);
-    CAN_receive_message(receive);
-    throttle_low = receive[2] & 0xff;
+    CAN_receive_specific(&receive);
+    throttle_low = receive.dataw0 & 0xff;
     Kelly_send(CCP_FLASH_READ5, ID);
-    CAN_receive_message(receive);
-    throttle_high = receive[2] & 0xff;
+    CAN_receive_specific(&receive);
+    throttle_high = receive.dataw0 & 0xff;
 }
 
 void Kelly_get_brake_low_high(int ID) {
     Kelly_send(CCP_FLASH_READ4, ID);
-    CAN_receive_message(receive);
-    brake_low = receive[2] & 0xff;
+    CAN_receive_specific(&receive);
+    brake_low = receive.dataw0 & 0xff;
     Kelly_send(CCP_FLASH_READ6, ID);
-    CAN_receive_message(receive);
-    brake_high = receive[2] & 0xff;
+    CAN_receive_specific(&receive);
+    brake_high = receive.dataw0 & 0xff;
 }
 
 void Kelly_print_info(char *buffer, int ID) {
@@ -126,12 +123,12 @@ void Kelly_print_info(char *buffer, int ID) {
 
 void Kelly_get_batch1(int ID) {
     Kelly_send(CCP_A2D_BATCH_READ1, ID);
-    CAN_receive_message(receive);
-    brake = receive[2] & 0xff;
-    tps = (receive[2] >> 8) & 0xff;
-    opVoltage = (receive[2] >> 16) & 0xff;
-    Vs = (receive[2] >> 24) & 0xff;
-    bPlus = receive[3] & 0xff;
+    CAN_receive_specific(&receive);
+    brake = receive.dataw0 & 0xff;
+    tps = (receive.dataw0 >> 8) & 0xff;
+    opVoltage = (receive.dataw0 >> 16) & 0xff;
+    Vs = (receive.dataw0 >> 24) & 0xff;
+    bPlus = receive.dataw1 & 0xff;
 }
 
 float Kelly_get_throttle_voltage(void) {
@@ -155,11 +152,11 @@ uint8_t Kelly_get_Ic() { return Ic; }
 
 void Kelly_get_batch2(int ID) {
     Kelly_send(CCP_A2D_BATCH_READ2, ID);
-    CAN_receive_message(receive);
-    Ib = receive[2] & 0xff;
-    Ic = (receive[2] & 0xff00) >> 8;
-    Vb = (receive[2] & 0xff0000) >> 16;
-    Vc = (receive[2] & 0xff000000) >> 24;
+    CAN_receive_specific(&receive);
+    Ib = receive.dataw0 & 0xff;
+    Ic = (receive.dataw0 & 0xff00) >> 8;
+    Vb = (receive.dataw0 & 0xff0000) >> 16;
+    Vc = (receive.dataw0 & 0xff000000) >> 24;
 }
 
 void Kelly_print_batch1(char *buffer, int ID) {

@@ -2,7 +2,7 @@
 
 unsigned int *currentBufferLocation = NULL;
 
-static volatile uint8_t specificCount = 0, generalCount = 0;
+static volatile uint8_t specificCount = 0, broadcastCount = 0;
 
 /*
  * Chosen FIFO usage:
@@ -10,33 +10,63 @@ static volatile uint8_t specificCount = 0, generalCount = 0;
  * 1: Receive, Mask: module SID bit
  * 2: Send, Specific Recipients
  * 3: Send, Broadcast (i.e. heartbeat)
+ * 
+ * See CAN.h to see how FIFO_SIZE gets computed
  */
-static volatile unsigned int fifos[
-    (fifo_0_size + fifo_1_size + fifo_2_size + fifo_3_size) * BUFFER_SIZE
-];
+static volatile unsigned int fifos[FIFO_SIZE];
 
+/*
+ * Disclaimer:
+ * 
+ * It takes a while to internalize how Microchip designed their CAN module.
+ * 
+ * They provide 4 acceptance filter mask registers. This controls whether or not
+ * an incoming SID bit even gets considered in the comparison with the filter's
+ * SID. There are 32 filters and each one of those filters has to choose one of
+ * the four masks. If you're not thinking "what the hell" by now I congratulate you.
+ */
 void CAN_fifo_init(void) {
+    memset((void *) fifos, 0, FIFO_SIZE);                                // initialize memory to 0
+     
+    // Let the CAN module know how 
     CAN_SFR(FIFOCON0bits, CAN_MAIN).FSIZE = fifo_0_size - 1;
     CAN_SFR(FIFOCON0bits, CAN_MAIN).TXEN = 0;
+    CAN_SFR(FIFOCON0bits, CAN_MAIN).DONLY = 1;                  // only store data bytes received
     CAN_SFR(FIFOCON1bits, CAN_MAIN).FSIZE = fifo_1_size - 1;
     CAN_SFR(FIFOCON1bits, CAN_MAIN).TXEN = 0;
+    CAN_SFR(FIFOCON1bits, CAN_MAIN).DONLY = 1;                  // only store data bytes received
+    
     CAN_SFR(FIFOCON2bits, CAN_MAIN).FSIZE = fifo_2_size - 1;
     CAN_SFR(FIFOCON2bits, CAN_MAIN).TXEN = 1;
+    CAN_SFR(FIFOCON2bits, CAN_MAIN).TXPRI = 0;                  // specific recipient message lower priority
     CAN_SFR(FIFOCON3bits, CAN_MAIN).FSIZE = fifo_3_size - 1;
     CAN_SFR(FIFOCON3bits, CAN_MAIN).TXEN = 1;
+    CAN_SFR(FIFOCON3bits, CAN_MAIN).TXPRI = 1;                  // heartbeat higher priority
 
-    /*
-     * TODO
-     * 
-    CAN_SFR(RXM0bits, CAN_MAIN).SID = 0;             // use no bits in the comparison
+    CAN_SFR(RXM0bits, CAN_MAIN).SID = ALL;                      // mask 0: only compare ALL bit
+    CAN_SFR(RXM1bits, CAN_MAIN).SID = SID;                      // mask 1: only compare SID bit
+    
+    CAN_SFR(FLTCON0bits, CAN_MAIN).FSEL0 = 0;                   // filter 0 used for FIFO 0
+    CAN_SFR(FLTCON0bits, CAN_MAIN).MSEL0 = 0;                   // filter 0 uses mask 0
+    CAN_SFR(FLTCON0bits, CAN_MAIN).FLTEN0 = 1;                  // enable filter 0
+    CAN_SFR(RXF0bits, CAN_MAIN).SID = ALL;                      // ALL bit needs to be asserted
+    CAN_SFR(RXF0bits, CAN_MAIN).EXID = 0;                       // do not use extended identifier
+    
+    CAN_SFR(FLTCON0bits, CAN_MAIN).FSEL1 = 0;                   // filter 0 used for FIFO 1
+    CAN_SFR(FLTCON0bits, CAN_MAIN).MSEL1 = 0;                   // filter 0 uses mask 1
+    CAN_SFR(FLTCON0bits, CAN_MAIN).FLTEN1 = 1;                  // enable filter 1
+    CAN_SFR(RXF1bits, CAN_MAIN).SID = SID;                      // this module's SID bit needs to be asserted
+    CAN_SFR(RXF1bits, CAN_MAIN).EXID = 0;                       // do not use extended identifier
+    
+    CAN_SFR(FIFOBA, CAN_MAIN) = KVA_TO_PA(fifos);               // just clears 3 MSBs
+}
 
-    CAN_SFR(FLTCON0bits, CAN_MAIN).FSEL0 = 0;        // filter 0 used for FIFO 0
-    CAN_SFR(FLTCON0bits, CAN_MAIN).MSEL0 = 0;        // filter 0 uses mask 0
-    CAN_SFR(FLTCON0bits, CAN_MAIN).FLTEN0 = 1;       // enable filter 0
-
-    CAN_SFR(RXF0bits, CAN_MAIN).SID = SID;           // filter 0 matches against SID
-    CAN_SFR(RXF0bits, CAN_MAIN).EXID = 0;            // do not use extended identifiers
-    */
+void CAN_set_up_interrupts(void) {
+    
+    CAN_SFR(FIFOINT0bits, CAN_MAIN).RXNEMPTYIE = 1;             // interrupt when not empty
+    CAN_SFR(FIFOINT0bits, CAN_MAIN).RXNEMPTYIF = 0;
+    CAN_SFR(FIFOINT1bits, CAN_MAIN).RXNEMPTYIE = 1;             // interrupt when not empty
+    CAN_SFR(FIFOINT1bits, CAN_MAIN).RXNEMPTYIF = 0;             
 }
 
 // See http://ww1.microchip.com/downloads/en/DeviceDoc/61154C.pdf Bit Timing section
@@ -50,11 +80,11 @@ void CAN_set_timings(void) {
 
 // Want 16 Tq every 1/250kHz, so FTq = 4MHz
 #if defined(BAUD_250K)
-    CAN_SFR(CFGbits, CAN_MAIN).SEG1PH = 4;   // + 5 Tq
-    CAN_SFR(CFGbits, CAN_MAIN).SEG2PH = 4;   // + 5 Tq
-    CAN_SFR(CFGbits, CAN_MAIN).PRSEG = 4;    // + 5 Tq (+ 1 Tq from sync segment) = 16 Tq
-    CAN_SFR(CFGbits, CAN_MAIN).SJW = 1;      // +/- 2 Tq
-    CAN_SFR(CFGbits, CAN_MAIN).BRP = 7;      // = (64 000 000 / (2 * FTq) - 1 = 7
+    CAN_SFR(CFGbits, CAN_MAIN).SEG1PH = 4;              // + 5 Tq
+    CAN_SFR(CFGbits, CAN_MAIN).SEG2PH = 4;              // + 5 Tq
+    CAN_SFR(CFGbits, CAN_MAIN).PRSEG = 4;               // + 5 Tq (+ 1 Tq from sync segment) = 16 Tq
+    CAN_SFR(CFGbits, CAN_MAIN).SJW = 1;                 // +/- 2 Tq
+    CAN_SFR(CFGbits, CAN_MAIN).BRP = 7;                 // = (64 000 000 / (2 * FTq) - 1 = 7
 
 // Want 8 Tq every 1/1MHz, so FTq = 8 MHz
 #elif defined(BAUD_1M)
@@ -86,34 +116,79 @@ void CAN_init(ROLE role) {
     CAN_SFR(CONbits, CAN_MAIN).ON = 1;
     CAN_set_mode(CONFIG_MODE);
     CAN_set_timings();
-    CAN_SFR(FIFOBA, CAN_MAIN) = KVA_TO_PA(fifos); // just clears 3 MSBs
     CAN_fifo_init();
+    CAN_set_up_interrupts();
     CAN_set_mode(NORMAL_MODE); //CAN_set_mode(LOOPBACK_MODE);
 }
 
-int CAN_message_available(void) { return CAN_SFR(FIFOINT0bits, CAN_MAIN).RXNEMPTYIF; }
-
-uint8_t CAN_generic_message_available(void) { return generalCount; }
-uint8_t CAN_specific_message_available(void) { return specificCount; }
-
 int CAN_check_error(void) {
-    if (CAN_SFR(TREC, CAN_MAIN)) return -1;
-    return 0;
+    return CAN_SFR(TREC, CAN_MAIN);
 }
 
-void CAN_send_message(uint32_t *message) {
-    int i;
+// FIFO 2
+void CAN_send(CAN_MESSAGE *message) {
+    while(!CAN_SFR(FIFOINT2bits, CAN_MAIN).TXNFULLIF);              // wait until FIFO is not full
+    __builtin_disable_interrupts();
+    currentBufferLocation = PA_TO_KVA1(CAN_SFR(FIFOUA2, CAN_MAIN));
+    currentBufferLocation[0] = message->SID;
+    currentBufferLocation[1] = message->SIZE;
+    currentBufferLocation[2] = message->dataw0;
+    currentBufferLocation[3] = message->dataw1;
+    CAN_SFR(FIFOCON2SET, CAN_MAIN) = 0x2000;     // increment pointer for fifo
+    CAN_SFR(FIFOCON2bits, CAN_MAIN).TXREQ = 1;   // tell CAN to send message
+    __builtin_enable_interrupts();
+}
+
+// FIFO 3
+void CAN_broadcast(CAN_MESSAGE *message) {
+    while(!CAN_SFR(FIFOINT3bits, CAN_MAIN).TXNFULLIF);              // wait until FIFO is not full
+    __builtin_disable_interrupts();
+    currentBufferLocation = PA_TO_KVA1(CAN_SFR(FIFOUA3, CAN_MAIN));
+    currentBufferLocation[0] = message->SID;
+    currentBufferLocation[1] = message->SIZE;
+    currentBufferLocation[2] = message->dataw0;
+    currentBufferLocation[3] = message->dataw1;
+    CAN_SFR(FIFOCON3SET, CAN_MAIN) = 0x2000;     // increment pointer for fifo
+    CAN_SFR(FIFOCON3bits, CAN_MAIN).TXREQ = 1;   // tell CAN to send message
+    __builtin_enable_interrupts();
+}
+
+// FIFO 0
+bool CAN_receive_broadcast(CAN_MESSAGE *message) {
+    if (!broadcastCount) return false;
+    __builtin_disable_interrupts();
+    currentBufferLocation = PA_TO_KVA1(CAN_SFR(FIFOUA0, CAN_MAIN));
+#if defined DATA_ONLY
+    message->dataw0 = currentBufferLocation[0];
+    message->dataw1 = currentBufferLocation[1];
+#else
+    message->SIZE = currentBufferLocation[1] & 0x1f;
+    message->SID = currentBufferLocation[0] & 0x7ff;
+    message->dataw0 = currentBufferLocation[2];
+    message->dataw1 = currentBufferLocation[3];
+#endif
+    broadcastCount--;
+    CAN_SFR(FIFOCON0SET, CAN_MAIN) = 0x2000;
+    __builtin_enable_interrupts();
+}
+
+// FIFO 1
+bool CAN_receive_specific(CAN_MESSAGE *message) {
+    if (!specificCount) return false;
+    __builtin_disable_interrupts();
     currentBufferLocation = PA_TO_KVA1(CAN_SFR(FIFOUA1, CAN_MAIN));
-    for (i = 0; i < BUFFER_SIZE; i++) currentBufferLocation[i] = message[i];
-    CAN_SFR(FIFOCON1SET, CAN_MAIN) = 0x2000;     // increment pointer for fifo
-    CAN_SFR(FIFOCON1bits, CAN_MAIN).TXREQ = 1;   // tell CAN to send message
+#if defined DATA_ONLY
+    message->dataw0 = currentBufferLocation[0];
+    message->dataw1 = currentBufferLocation[1];
+#else
+    message->SIZE = currentBufferLocation[1] & 0x1f;
+    message->SID = currentBufferLocation[0] & 0x7ff;
+    message->dataw0 = currentBufferLocation[2];
+    message->dataw1 = currentBufferLocation[3];
+#endif
+    specificCount--;
+    CAN_SFR(FIFOCON1SET, CAN_MAIN) = 0x2000;
+    __builtin_enable_interrupts();
 }
 
-void CAN_receive_message(uint32_t *receive) {
-    int i, arbitraryTimeout = 0;
-    while (!CAN_SFR(FIFOINT0bits, CAN_MAIN).RXNEMPTYIF && arbitraryTimeout++ < 50000);                   // not sure about this line of code
-    currentBufferLocation = PA_TO_KVA1(CAN_SFR(FIFOUA0, CAN_MAIN));                                      // get the address of RX FIFO pointer
-    for (i = 0; i < BUFFER_SIZE; i++)
-        receive[i] = (arbitraryTimeout >= 50000) ? -1 : currentBufferLocation[i];       // for now set all values to -1 if we didn't get anything
-    CAN_SFR(FIFOCON0SET, CAN_MAIN) = 0x2000;                                                             // tell module that bit has been read
-}
+// TODO add ISRs

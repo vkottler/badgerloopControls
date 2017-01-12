@@ -1,7 +1,6 @@
 #include "../include/pcbTesting.h"
 
 char message[50];
-uint32_t can_buffer[BUFFER_SIZE];
 
 void flashGreen(int onTime, int offTime) {
     GREEN_LED = 1; delay(onTime, MILLI);
@@ -43,6 +42,7 @@ void testRetroFrequency(void) {
 }
 
 void testCAN(uint8_t board1, ROLE role1, uint8_t board2, ROLE role2) {
+    CAN_MESSAGE send, receive;
     int count = 0, thisBoard = getBoardNumber();
     
     setBoardRole(board1, role1);
@@ -58,35 +58,36 @@ void testCAN(uint8_t board1, ROLE role1, uint8_t board2, ROLE role2) {
     printf("\r\nTesting CAN . . .\r\nTest Information:\r\nBoard 1:%d\r\nBoard 2:%d\r\nThis Board: %d\r\n\r\n", board1, board2, thisBoard);
     
     if (thisBoard == board1) {
-        can_buffer[0] = SID;            // SID
-        can_buffer[1] = 4;              // Size of payload
-        can_buffer[3] = 0;              // shouldn't matter
+        send.SID = SID;            // SID
+        send.SIZE = 4;              // Size of payload
+        send.dataw0 = 0;
+        send.dataw1 = 0;              // shouldn't matter
         
         while (1) {
-            printf("Sending %4d . . .", count);
-            can_buffer[0] = SID;        // SID
-            can_buffer[2] = count++;
-            CAN_send_message(can_buffer);
+            printf("Sending %4d . . .", send.dataw0);
+            CAN_send(&send);
+            send.dataw0++;
             printf(" Finished sending.\r\n");
             delay(1000, MILLI);
         }
     }
     
     else if (thisBoard == board2) {
-        can_buffer[0] = 0; can_buffer[1] = 0; can_buffer[2] = 0; can_buffer[3] = 0;
         RED_LED = 1;
         GREEN_LED = 0;
         
         while (1) {
-            if (CAN_message_available()) {
+            if (CAN_receive_specific(&receive)) {
                 printf("Message received! ");
-                CAN_receive_message(can_buffer);
-                printf("SID: %d, Size: %d, Data: %d\r\n", can_buffer[0] & 0x7ff, can_buffer[1], can_buffer[2]);
+#if defined DATA_ONLY
+                printf("Data: 0x%x 0x%x\r\n", receive.dataw0, receive.dataw1);
+#else
+                printf("SID: %d, Size: %d, Data: 0x%x 0x%x\r\n", receive.SID, receive.SIZE, receive.dataw0, receive.dataw1);
+#endif
                 flashGreen(100, 0);
             }
         }
     }
-    
     else printf("Board number mismatch. Returning to main loop.\r\n");
 }
 

@@ -6,9 +6,36 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include <sys/kmem.h>
+#include <string.h>
 
 #include "../../utils.h"
 #include "../../globals.h"
+
+typedef union {
+    struct {
+        unsigned SIZE:5;
+        unsigned SID:11;
+        uint8_t message_num;
+        uint8_t byte0;
+        uint8_t byte1;
+        uint8_t byte2;
+        uint8_t byte3;
+        uint8_t byte4;
+        uint8_t byte5;
+        uint8_t byte6;
+        
+    };
+    struct {
+        unsigned :16;
+        uint8_t bytes[8];
+    };
+    struct {
+        unsigned :16;
+        uint32_t dataw0;
+        uint32_t dataw1;
+    };
+    unsigned char raw_data[10];
+} CAN_MESSAGE;
 
 /*
  * Uses alternate set of pins (FCANIO = OFF)
@@ -19,6 +46,7 @@
 // CAN settings
 #define BAUD_250K           1
 //#define BAUD_1M             1 // For interfacing with Kelly Controller
+#define DATA_ONLY           1
 #define CAN_MAIN            1
 #define CAN_ALT             2
 
@@ -26,11 +54,16 @@
 #define _CAN_SFR(reg, module)   C##module##reg    
 #define CAN_SFR(reg, module)    _CAN_SFR(reg, module)
 
-#define BUFFER_SIZE         4 // 4 * 4 bytes in a single message buffer
+#if defined(DATA_ONLY)
+#define BUFFER_SIZE         2   // 2 sets of 4 bytes in a single message buffer
+#else
+#define BUFFER_SIZE         4   // 4 sets of 4 bytes in a single message buffer
+#endif
 #define fifo_0_size         8
 #define fifo_1_size         8
 #define fifo_2_size         8
 #define fifo_3_size         8
+#define FIFO_SIZE ((fifo_0_size + fifo_1_size) * BUFFER_SIZE) + ((fifo_2_size + fifo_3_size) * 4)
 
 #define ID_FOR_KELLY        0x73
 #define CAP_TIME            1
@@ -58,8 +91,9 @@
 
 void CAN_init(ROLE role);
 int CAN_check_error(void);
-void CAN_send_message(uint32_t *message);
-void CAN_receive_message(uint32_t *receive);
-int CAN_message_available(void);
+void CAN_send(CAN_MESSAGE *message);
+void CAN_broadcast(CAN_MESSAGE *message);
+bool CAN_receive_broadcast(CAN_MESSAGE *message);
+bool CAN_receive_specific(CAN_MESSAGE *message);
 
 #endif
