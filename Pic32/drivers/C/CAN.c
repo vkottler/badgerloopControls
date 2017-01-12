@@ -66,14 +66,24 @@ void CAN_set_up_interrupts(void) {
     CAN_SFR(FIFOINT0bits, CAN_MAIN).RXNEMPTYIE = 1;             // interrupt when not empty
     CAN_SFR(FIFOINT0bits, CAN_MAIN).RXNEMPTYIF = 0;
     CAN_SFR(FIFOINT1bits, CAN_MAIN).RXNEMPTYIE = 1;             // interrupt when not empty
-    CAN_SFR(FIFOINT1bits, CAN_MAIN).RXNEMPTYIF = 0;             
+    CAN_SFR(FIFOINT1bits, CAN_MAIN).RXNEMPTYIF = 0;          
+    
+    // enable interrupts globally
+    IEC1bits.CAN1IE = 1;
+    IEC1bits.CAN2IE = 1;
+    IPC11bits.CAN1IP = 1;
+    IPC11bits.CAN1IS = 0;
+    IPC11bits.CAN2IP = 1;
+    IPC11bits.CAN2IS = 0;
+    MAIN_CAN_FLAG = 0;
+    ALT_CAN_FLAG = 0;
 }
 
 // See http://ww1.microchip.com/downloads/en/DeviceDoc/61154C.pdf Bit Timing section
 void CAN_set_timings(void) {
 #ifdef CAP_TIME
-      CAN_SFR(CONbits, CAN_MAIN).CANCAP = 1;             // capture timestamps
-      CAN_SFR(TMRbits, CAN_MAIN).CANTSPRE = 64000;       // increment every millisecond
+    CAN_SFR(CONbits, CAN_MAIN).CANCAP = 1;             // capture timestamps
+    CAN_SFR(TMRbits, CAN_MAIN).CANTSPRE = 64000;       // increment every millisecond
 #endif
     CAN_SFR(CFGbits, CAN_MAIN).SAM = 1;                  // Sample 3 times between SEG1PH and SEG2PH
     CAN_SFR(CFGbits, CAN_MAIN).SEG2PHTS = 1;             // SEG2PH set manually
@@ -192,3 +202,13 @@ bool CAN_receive_specific(CAN_MESSAGE *message) {
 }
 
 // TODO add ISRs
+void __ISR (MAIN_CAN_VECTOR, IPL1SOFT) MAIN_CAN_Interrupt (void) {
+    
+    // jump table?
+    
+    MAIN_CAN_FLAG = 0;
+}
+
+void __ISR (ALT_CAN_VECTOR, IPL1SOFT) ALT_CAN_Interrupt (void) {
+    ALT_CAN_FLAG = 0;
+}

@@ -1,6 +1,12 @@
 #ifndef _CAN__H__
 #define _CAN__H__
 
+/*
+ * Uses alternate set of pins (FCANIO = OFF)
+ * CAN1: Pin 15 (AC1RX), Pin 14 (AC1TX)
+ * CAN2: Pin 23 (AC2RX), Pin 22 (AC2TX)
+ */
+
 // Libraries
 #include <xc.h>
 #include <stdint.h>
@@ -11,6 +17,9 @@
 #include "../../utils.h"
 #include "../../globals.h"
 
+/******************************************************************************/
+/*                   Structs and Compiler Directives                          */
+/******************************************************************************/
 typedef union {
     struct {
         unsigned SIZE:5;
@@ -23,7 +32,6 @@ typedef union {
         uint8_t byte4;
         uint8_t byte5;
         uint8_t byte6;
-        
     };
     struct {
         unsigned :16;
@@ -37,23 +45,31 @@ typedef union {
     unsigned char raw_data[10];
 } CAN_MESSAGE;
 
-/*
- * Uses alternate set of pins (FCANIO = OFF)
- * CAN1: Pin 15 (AC1RX), Pin 14 (AC1TX)
- * CAN2: Pin 23 (AC2RX), Pin 22 (AC2TX)
- */
-
-// CAN settings
-#define BAUD_250K           1
-//#define BAUD_1M             1 // For interfacing with Kelly Controller
-#define DATA_ONLY           1
-#define CAN_MAIN            1
-#define CAN_ALT             2
-
 // http://stackoverflow.com/questions/13923425/c-preprocessor-concatenation-with-variable
 #define _CAN_SFR(reg, module)   C##module##reg    
 #define CAN_SFR(reg, module)    _CAN_SFR(reg, module)
+/******************************************************************************/
 
+
+/******************************************************************************/
+/*                           Pre-build Settings                               */
+/******************************************************************************/
+#define BAUD_250K           1
+//#define BAUD_1M             1 // For interfacing with Kelly Controller
+#define DATA_ONLY           1
+#define CAP_TIME            1
+#define CAN_MAIN            1
+#define CAN_ALT             2
+#define MAIN_CAN_VECTOR         _CAN_1_VECTOR
+#define ALT_CAN_VECTOR          _CAN_2_VECTOR
+#define MAIN_CAN_FLAG           IFS1bits.CAN1IF
+#define ALT_CAN_FLAG            IFS1bits.CAN2IF
+/******************************************************************************/
+
+
+/******************************************************************************/
+/*                             FIFO Setup                                     */
+/******************************************************************************/
 #if defined(DATA_ONLY)
 #define BUFFER_SIZE         2   // 2 sets of 4 bytes in a single message buffer
 #else
@@ -64,19 +80,24 @@ typedef union {
 #define fifo_2_size         8
 #define fifo_3_size         8
 #define FIFO_SIZE ((fifo_0_size + fifo_1_size) * BUFFER_SIZE) + ((fifo_2_size + fifo_3_size) * 4)
+/******************************************************************************/
 
-#define ID_FOR_KELLY        0x73
-#define CAP_TIME            1
 
-// Internal CAN Modes
+/******************************************************************************/
+/*                     Internal CAN Mode Definitions                          */
+/******************************************************************************/
 #define LISTEN_ALL_MODE     7
 #define CONFIG_MODE         4
 #define LISTEN_ONLY_MODE    3
 #define LOOPBACK_MODE       2
 #define DISABLE_MODE        1
 #define NORMAL_MODE         0
+/******************************************************************************/
 
-// SIDs from (http://bit.ly/2iQw5cs)
+
+/******************************************************************************/
+/*                      Module SIDs  (http://bit.ly/2iQw5cs)                  */
+/******************************************************************************/
 #define VNM_SID 0x001
 #define VSM_SID 0x002
 #define BCM_SID 0x004
@@ -88,12 +109,19 @@ typedef union {
 #define FLEX3   0x100
 #define FLEX4   0x200
 #define ALL     0x400
+#define ID_FOR_KELLY        0x73
+/******************************************************************************/
 
+
+/******************************************************************************/
+/*                                 Functions                                  */
+/******************************************************************************/
 void CAN_init(ROLE role);
 int CAN_check_error(void);
 void CAN_send(CAN_MESSAGE *message);
 void CAN_broadcast(CAN_MESSAGE *message);
 bool CAN_receive_broadcast(CAN_MESSAGE *message);
 bool CAN_receive_specific(CAN_MESSAGE *message);
+/******************************************************************************/
 
 #endif
