@@ -50,6 +50,39 @@ ROLE getThisRole(void) {
     return getBoardRole(getBoardNumber());
 }
 
+//typedef enum { WCM, VNM, BCM, MCM, VSM, TEST, NOT_PRESENT, UNASSIGNED } ROLE;
+void printRole(ROLE role) {
+    switch (role) {
+        case WCM: printf("WCM"); break;
+        case VNM: printf("VNM"); break;
+        case BCM: printf("BCM"); break;
+        case MCM: printf("MCM"); break;
+        case VSM: printf("VSM"); break;
+        case TEST: printf("TEST"); break;
+        case NOT_PRESENT: printf("NOT_PRESENT"); break;
+        case UNASSIGNED: printf("UNASSIGNED"); break;
+        default: printf("UNKNOWN_ROLE");
+    }
+}
+
+void printRoleRawValue(ROLE role) {
+    printRole(role);
+    printf(": %d or 0x%x\r\n", role, role);
+}
+
+void printAllRolesRawValue(void) {
+    printf("\r\n=== ROLES ===\r\n");
+    printRoleRawValue(WCM);
+    printRoleRawValue(VNM);
+    printRoleRawValue(BCM);
+    printRoleRawValue(MCM);
+    printRoleRawValue(VSM);
+    printRoleRawValue(TEST);
+    printRoleRawValue(NOT_PRESENT);
+    printRoleRawValue(UNASSIGNED);
+    printf("=============\r\n\r\n");
+}
+
 int MACLookUp(int boardNumber) {
     switch (boardNumber) {
         case 1:     return MAC1;

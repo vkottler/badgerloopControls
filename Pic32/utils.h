@@ -4,7 +4,6 @@
 #include <xc.h>
 #include <stdio.h>
 
-#include "drivers/include/usbUART.h"
 #include "peripherals/include/ledShield.h"
 
 #define MAC1    0xA7B5  // Vaughn's Personal Board
@@ -21,10 +20,15 @@ typedef enum { WCM, VNM, BCM, MCM, VSM, TEST, NOT_PRESENT, UNASSIGNED } ROLE;
 void setBoardRole(uint8_t board, ROLE role);
 ROLE getBoardRole(uint8_t board);
 int getBoardNumber(void);
-void printMAC(void);
-void printBoardNumber(void);
 void waitForButton(void);
 int MACLookUp(int);
 int getMAC(void);
+
+// Printing
+void printMAC(void);
+void printBoardNumber(void);
+void printRole(ROLE role);
+void printRoleRawValue(ROLE role);
+void printAllRolesRawValue(void);
 
 #endif

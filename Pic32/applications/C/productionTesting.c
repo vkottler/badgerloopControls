@@ -13,6 +13,8 @@ void productionTesting(void) {
 }
 #else
 
+int i;
+
 bool testRun(void) {
     
 }
@@ -22,11 +24,11 @@ bool testHeartbeatMessageToRole(void) {
 }
 
 bool testInitializePeripherals(void) {
-    
+    return initialize_peripherals(getThisRole());
 }
 
 bool testInitializeHeartbeatOrder(void) {
-    
+    return initialize_heartbeat_order();
 }
 
 void productionTesting(void) {
@@ -38,8 +40,50 @@ void productionTesting(void) {
     setBoardRole(5, BOARD5_ROLE);
     setBoardRole(6, BOARD6_ROLE);
     
+    printf("Testing initialize_peripherals . . .");
+    if (!testInitializePeripherals()) {
+        printf("\r\nERROR: Board's role not properly set.\r\nROLE = ");
+        printRoleRawValue(getThisRole());
+        printf("Available choices:");
+        printAllRolesRawValue();
+    }
+    else { 
+        printf(" Passed! This module: ");
+        printRoleRawValue(getThisRole());
+    }
+    
+    printf("Testing initialize heartbeat order . . .");
+    if (!testInitializeHeartbeatOrder()) {
+        printf(" FAILED\r\n");
+        printf("There was either not enough memory available to allocate %d endpoints or not all endpoints were detected.");
+        while(1) {
+            delay(250);
+            blinkBoardLights(50, 50);
+            delay(500);
+        }
+    }
+    
+    else {
+        printf(" Passed!\r\n");
+    
+        printf("Information:\r\n\r\n");
+        printf("Num endpoints: %d\r\n", num_endpoints);
+        printf("Contents: ");
+        for (i = 0; i < num_endpoints; i++) {
+            printRole(heartbeat_order[i]);
+            if (i != num_endpoints) printf(", ");
+            else printf("\r\n\r\n");
+        }
+    }
+    
     while (1) {
-        
+        printf("Sending heartbeat . . .");
+        CAN_send_heartbeat();
+        printf(" heartbeat sent.\r\n");
+        delay(250);
+        blinkBoardLights(50, 50);
+        delay(250);
+        blinkBoardLights(5, 50);
     }
 }
 

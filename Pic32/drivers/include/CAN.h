@@ -1,6 +1,8 @@
 #ifndef _CAN__H__
 #define _CAN__H__
 
+#include <stdio.h>
+
 /*
  * Uses alternate set of pins (FCANIO = OFF)
  * CAN1: Pin 15 (AC1RX), Pin 14 (AC1TX)

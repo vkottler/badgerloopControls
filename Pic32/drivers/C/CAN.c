@@ -26,7 +26,7 @@ static volatile unsigned int fifos[FIFO_SIZE];
  * the four masks. If you're not thinking "what the hell" by now I congratulate you.
  */
 void CAN_fifo_init(void) {
-    memset((void *) fifos, 0, FIFO_SIZE);                                // initialize memory to 0
+    memset((void *) fifos, 0, FIFO_SIZE);                       // initialize memory to 0
      
     // Let the CAN module know how 
     CAN_SFR(FIFOCON0bits, CAN_MAIN).FSIZE = fifo_0_size - 1;
@@ -62,7 +62,7 @@ void CAN_fifo_init(void) {
 }
 
 void CAN_set_up_interrupts(void) {
-    
+    CAN_SFR(INTbits, CAN_MAIN).RBIE = 1;
     CAN_SFR(FIFOINT0bits, CAN_MAIN).RXNEMPTYIE = 1;             // interrupt when not empty
     CAN_SFR(FIFOINT0bits, CAN_MAIN).RXNEMPTYIF = 0;
     CAN_SFR(FIFOINT1bits, CAN_MAIN).RXNEMPTYIE = 1;             // interrupt when not empty
@@ -212,8 +212,17 @@ bool CAN_message_is_heartbeat(CAN_MESSAGE *message) {
 // TODO add ISRs
 void __ISR (MAIN_CAN_VECTOR, IPL1SOFT) MAIN_CAN_Interrupt (void) {
     
-    // jump table?
+    printf("CAN interrupt!");
     
+    if (CAN_SFR(VECbits, CAN_MAIN).ICODE > 32) {
+        // interrupt did not occur because of a message
+    }
+    
+    else {
+        if (CAN_SFR(VECbits, CAN_MAIN).ICODE == 0) broadcastCount++;
+        if (CAN_SFR(VECbits, CAN_MAIN).ICODE == 1) specificCount++;
+        CAN_SFR(INTbits, CAN_MAIN).RBIF = 0;
+    }
     MAIN_CAN_FLAG = 0;
 }
 
