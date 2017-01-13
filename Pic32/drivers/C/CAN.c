@@ -128,7 +128,11 @@ void CAN_init(ROLE role) {
     CAN_set_timings();
     CAN_fifo_init();
     CAN_set_up_interrupts();
-    CAN_set_mode(NORMAL_MODE); //CAN_set_mode(LOOPBACK_MODE);
+#ifdef LOOPBACK
+    CAN_set_mode(LOOPBACK_MODE);
+#else
+    CAN_set_mode(NORMAL_MODE);
+#endif
 }
 
 int CAN_check_error(void) {

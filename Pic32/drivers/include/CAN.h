@@ -11,6 +11,7 @@
 
 // Libraries
 #include <xc.h>
+#include <sys/attribs.h>
 #include <stdint.h>
 #include <stdbool.h>
 #include <sys/kmem.h>
@@ -72,12 +73,13 @@ typedef union {
 //#define BAUD_1M             1 // For interfacing with Kelly Controller
 #define DATA_ONLY           1
 #define CAP_TIME            1
+//#define LOOPBACK            1
 #define CAN_MAIN            1
 #define CAN_ALT             2
-#define MAIN_CAN_VECTOR         _CAN_1_VECTOR
-#define ALT_CAN_VECTOR          _CAN_2_VECTOR
-#define MAIN_CAN_FLAG           IFS1bits.CAN1IF
-#define ALT_CAN_FLAG            IFS1bits.CAN2IF
+#define MAIN_CAN_VECTOR     _CAN_1_VECTOR
+#define ALT_CAN_VECTOR      _CAN_2_VECTOR
+#define MAIN_CAN_FLAG       IFS1bits.CAN1IF
+#define ALT_CAN_FLAG        IFS1bits.CAN2IF
 /******************************************************************************/
 
 

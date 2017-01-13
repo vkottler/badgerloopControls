@@ -15,6 +15,14 @@ void productionTesting(void) {
 
 int i;
 
+void fail(void) {
+    while(1) {
+        delay(250, MILLI);
+        blinkBoardLights(5, 50);
+        delay(500, MILLI);
+    }
+}
+
 bool testRun(void) {
     
 }
@@ -46,6 +54,7 @@ void productionTesting(void) {
         printRoleRawValue(getThisRole());
         printf("Available choices:");
         printAllRolesRawValue();
+        fail();
     }
     else { 
         printf(" Passed! This module: ");
@@ -56,33 +65,31 @@ void productionTesting(void) {
     if (!testInitializeHeartbeatOrder()) {
         printf(" FAILED\r\n");
         printf("There was either not enough memory available to allocate %d endpoints or not all endpoints were detected.");
-        while(1) {
-            delay(250);
-            blinkBoardLights(50, 50);
-            delay(500);
-        }
+        fail();
     }
     
     else {
         printf(" Passed!\r\n");
     
         printf("Information:\r\n\r\n");
-        printf("Num endpoints: %d\r\n", num_endpoints);
+        printf("Num endpoints: %u\r\n", num_endpoints);
         printf("Contents: ");
         for (i = 0; i < num_endpoints; i++) {
             printRole(heartbeat_order[i]);
-            if (i != num_endpoints) printf(", ");
+            if (i != num_endpoints - 1) printf(", ");
             else printf("\r\n\r\n");
         }
     }
+    
+    delay(1000, MILLI);
     
     while (1) {
         printf("Sending heartbeat . . .");
         CAN_send_heartbeat();
         printf(" heartbeat sent.\r\n");
-        delay(250);
-        blinkBoardLights(50, 50);
-        delay(250);
+        delay(250, MILLI);
+        blinkBoardLights(5, 50);
+        delay(250, MILLI);
         blinkBoardLights(5, 50);
     }
 }

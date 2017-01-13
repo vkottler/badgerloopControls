@@ -67,7 +67,7 @@ void printRole(ROLE role) {
 
 void printRoleRawValue(ROLE role) {
     printRole(role);
-    printf(": %d or 0x%x\r\n", role, role);
+    printf(" - %d or 0x%x\r\n", role, role);
 }
 
 void printAllRolesRawValue(void) {
