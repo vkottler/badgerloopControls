@@ -2,7 +2,7 @@
 
 unsigned int *currentBufferLocation = NULL;
 
-static volatile uint8_t specificCount = 0, broadcastCount = 0;
+volatile uint8_t specificCount = 0, broadcastCount = 0;
 
 /*
  * Chosen FIFO usage:
@@ -233,3 +233,14 @@ void __ISR (MAIN_CAN_VECTOR, IPL1SOFT) MAIN_CAN_Interrupt (void) {
 void __ISR (ALT_CAN_VECTOR, IPL1SOFT) ALT_CAN_Interrupt (void) {
     ALT_CAN_FLAG = 0;
 }
+
+#if (defined TESTING || defined PRODUCTION_TESTING) && defined SERIAL_DEBUG
+void CAN_message_dump(CAN_MESSAGE *message) {
+    int i;
+    printf("\r\n=========== CAN MESSAGE DUMP ================\r\n");
+    printf("SID: %u\r\nSize: %u\r\n", message->SID, message->SIZE);
+    for (i = 0; i < message->SIZE; i++)
+        printf("Data %u: %u (%c)\r\n", i, message->bytes[i], message->bytes[i]);
+    printf("=============================================\r\n\r\n");
+}
+#endif

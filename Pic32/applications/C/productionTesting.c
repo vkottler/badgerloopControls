@@ -1,11 +1,9 @@
 #include "../include/productionTesting.h"
 
 // this is needed so that if we undefine PRODUCTION_TESTING nothing breaks
-#ifndef PRODUCTION_TESTING
+#if !defined PRODUCTION_TESTING || !defined LED_SHIELD_PRESENT || !defined SERIAL_DEBUG
 void productionTesting(void) {
-#ifdef SERIAL_DEBUG
-    printf("PRODUCTION_TESTING must be defined globally. Rebuild.\r\n");
-#endif
+    printf("PRODUCTION_TESTING and LED_SHIELD_PRESENT must be defined globally. Rebuild.\r\n");
     while(1) {
         blinkBoardLights(3, 150);
         delay(550);
@@ -14,6 +12,7 @@ void productionTesting(void) {
 #else
 
 int i;
+CAN_MESSAGE test_message = {.SID = 0, .SIZE = 0, .dataw0 = 0, .dataw1 = 0};
 
 void fail(void) {
     while(1) {
@@ -84,9 +83,25 @@ void productionTesting(void) {
     delay(1000, MILLI);
     
     while (1) {
-        printf("Sending heartbeat . . .");
-        CAN_send_heartbeat();
-        printf(" heartbeat sent.\r\n");
+        
+        if (readButton()) {
+            printf("Sending heartbeat . . .");
+            CAN_send_heartbeat();
+            printf(" heartbeat sent.\r\n");
+        }
+        
+        printf("# broadcasts waiting: %u # messages waiting: %u", broadcastCount, specificCount);
+        
+        while (CAN_receive_broadcast(&test_message)) {
+            printf("Receiving broadcast . . .\r\n");
+            CAN_message_dump(&test_message);
+        }
+        
+        while (CAN_receive_specific(&test_message)) {
+            printf("Receiving message . . .\r\n");
+            CAN_message_dump(&test_message);
+        }
+        
         delay(250, MILLI);
         blinkBoardLights(5, 50);
         delay(250, MILLI);

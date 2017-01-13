@@ -1,7 +1,9 @@
 #ifndef _CAN__H__
 #define _CAN__H__
 
+#ifdef SERIAL_DEBUG
 #include <stdio.h>
+#endif
 
 /*
  * Uses alternate set of pins (FCANIO = OFF)
@@ -140,5 +142,10 @@ bool CAN_receive_broadcast(CAN_MESSAGE *message);
 bool CAN_receive_specific(CAN_MESSAGE *message);
 bool CAN_message_is_heartbeat(CAN_MESSAGE *message);
 /******************************************************************************/
+
+#if (defined TESTING || defined PRODUCTION_TESTING) && defined SERIAL_DEBUG
+extern volatile uint8_t specificCount, broadcastCount;
+void CAN_message_dump(CAN_MESSAGE *message);
+#endif
 
 #endif
