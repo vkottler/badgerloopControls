@@ -67,10 +67,11 @@ void printRole(ROLE role) {
 
 void printRoleRawValue(ROLE role) {
     printRole(role);
-    printf(" - %d or 0x%x\r\n", role, role);
+    printf("\t%d\t0x%x\r\n", role, role);
 }
 
 void printAllRolesRawValue(void) {
+    int i = 0;
     printf("\r\n=== ROLES ===\r\n");
     printRoleRawValue(WCM);
     printRoleRawValue(VNM);
@@ -80,6 +81,11 @@ void printAllRolesRawValue(void) {
     printRoleRawValue(TEST);
     printRoleRawValue(NOT_PRESENT);
     printRoleRawValue(UNASSIGNED);
+    printf("==  BOARDS ==\r\n");
+    for (i = 0; i < NUM_BOARDS; i++) {
+        printf("Board %d: ", i + 1);
+        printRoleRawValue(board_roles[i]);
+    }
     printf("=============\r\n\r\n");
 }
 

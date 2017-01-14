@@ -85,7 +85,7 @@ void CAN_send_heartbeat(void) {
         default: curr.message_num = INVALID; break;
     }
     curr.byte1 = (uint8_t) state;
-    CAN_send(&curr);
+    CAN_broadcast(&curr);
 }
 
 /*

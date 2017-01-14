@@ -15,10 +15,10 @@
 // i.e. which board number has which PCB attached
 #if defined PRODUCTION || defined PRODUCTION_TESTING
 #define BOARD1_ROLE     NOT_PRESENT
-#define BOARD2_ROLE     NOT_PRESENT
+#define BOARD2_ROLE     VSM
 #define BOARD3_ROLE     NOT_PRESENT
 #define BOARD4_ROLE     NOT_PRESENT
-#define BOARD5_ROLE     NOT_PRESENT
+#define BOARD5_ROLE     VNM
 #define BOARD6_ROLE     NOT_PRESENT
 #endif
 /******************************************************************************/

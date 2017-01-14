@@ -3,6 +3,7 @@
 
 #ifdef SERIAL_DEBUG
 #include <stdio.h>
+#include "../../peripherals/include/ledShield.h"
 #endif
 
 /*
@@ -31,8 +32,8 @@ typedef enum {
             
 } MESSAGE_TYPE;
 
-typedef union {
-    struct {
+typedef union __attribute__((packed)) {
+    struct __attribute__((packed)) {
         unsigned SIZE:5;
         unsigned SID:11;
         MESSAGE_TYPE message_num:8;
@@ -44,17 +45,17 @@ typedef union {
         uint8_t byte5;
         uint8_t byte6;
     };
-    struct {
+    struct __attribute__((packed)) {
         unsigned :16;
         uint8_t bytes[8];
     };
-    struct {
+    struct __attribute__((packed)) {
         unsigned :16;
         uint8_t message_byte;
         unsigned :32;
         unsigned :24;
     };
-    struct {
+    struct __attribute__((packed)) {
         unsigned :16;
         uint32_t dataw0;
         uint32_t dataw1;
@@ -78,10 +79,18 @@ typedef union {
 //#define LOOPBACK            1
 #define CAN_MAIN            1
 #define CAN_ALT             2
+
+#if CAN_MAIN == 1
 #define MAIN_CAN_VECTOR     _CAN_1_VECTOR
 #define ALT_CAN_VECTOR      _CAN_2_VECTOR
 #define MAIN_CAN_FLAG       IFS1bits.CAN1IF
 #define ALT_CAN_FLAG        IFS1bits.CAN2IF
+#else
+#define MAIN_CAN_VECTOR     _CAN_2_VECTOR
+#define ALT_CAN_VECTOR      _CAN_1_VECTOR
+#define MAIN_CAN_FLAG       IFS1bits.CAN2IF
+#define ALT_CAN_FLAG        IFS1bits.CAN1IF
+#endif
 /******************************************************************************/
 
 
@@ -98,6 +107,10 @@ typedef union {
 #define fifo_2_size         8
 #define fifo_3_size         8
 #define FIFO_SIZE ((fifo_0_size + fifo_1_size) * BUFFER_SIZE) + ((fifo_2_size + fifo_3_size) * 4)
+#define GLOBAL_RECEIVE_ENABLE       CAN_SFR(FIFOINT0bits, CAN_MAIN).RXNEMPTYIE
+#define ADDRESSED_RECEIVE_ENABLE   CAN_SFR(FIFOINT1bits, CAN_MAIN).RXNEMPTYIE
+#define GLOBAL_RECEIVE_FLAG         CAN_SFR(FIFOINT0bits, CAN_MAIN).RXNEMPTYIF
+#define ADDRESSED_RECEIVE_FLAG      CAN_SFR(FIFOINT1bits, CAN_MAIN).RXNEMPTYIF
 /******************************************************************************/
 
 

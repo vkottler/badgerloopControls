@@ -12,7 +12,6 @@ void productionTesting(void) {
 #else
 
 int i;
-CAN_MESSAGE test_message = {.SID = 0, .SIZE = 0, .dataw0 = 0, .dataw1 = 0};
 
 void fail(void) {
     while(1) {
@@ -46,6 +45,8 @@ void productionTesting(void) {
     setBoardRole(4, BOARD4_ROLE);
     setBoardRole(5, BOARD5_ROLE);
     setBoardRole(6, BOARD6_ROLE);
+    printAllRolesRawValue();
+    printf("sizeof CAN_MESSAGE: %d bytes, sizeof MESSAGE_TYPE enum: %d bytes\r\n", sizeof(CAN_MESSAGE), sizeof(MESSAGE_TYPE));
     
     printf("Testing initialize_peripherals . . .");
     if (!testInitializePeripherals()) {
@@ -90,16 +91,16 @@ void productionTesting(void) {
             printf(" heartbeat sent.\r\n");
         }
         
-        printf("# broadcasts waiting: %u # messages waiting: %u", broadcastCount, specificCount);
+        printf("# broadcasts waiting: %u # messages waiting: %u\r\n", broadcastCount, specificCount);
         
-        while (CAN_receive_broadcast(&test_message)) {
+        while (CAN_receive_broadcast(&curr)) {
             printf("Receiving broadcast . . .\r\n");
-            CAN_message_dump(&test_message);
+            CAN_message_dump(&curr);
         }
         
-        while (CAN_receive_specific(&test_message)) {
+        while (CAN_receive_specific(&curr)) {
             printf("Receiving message . . .\r\n");
-            CAN_message_dump(&test_message);
+            CAN_message_dump(&curr);
         }
         
         delay(250, MILLI);

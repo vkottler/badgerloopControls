@@ -7,7 +7,7 @@
 #include "peripherals/include/ledShield.h"
 
 // applications
-#if defined TESTING
+#if defined TESTING || defined PRODUCTION_TESTING
 #include "applications/include/vacuumTesting.h"
 #include "applications/include/i2cTesting.h"
 #include "applications/include/uartTesting.h"

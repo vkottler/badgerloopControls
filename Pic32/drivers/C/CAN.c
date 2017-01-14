@@ -63,10 +63,10 @@ void CAN_fifo_init(void) {
 
 void CAN_set_up_interrupts(void) {
     CAN_SFR(INTbits, CAN_MAIN).RBIE = 1;
-    CAN_SFR(FIFOINT0bits, CAN_MAIN).RXNEMPTYIE = 1;             // interrupt when not empty
-    CAN_SFR(FIFOINT0bits, CAN_MAIN).RXNEMPTYIF = 0;
-    CAN_SFR(FIFOINT1bits, CAN_MAIN).RXNEMPTYIE = 1;             // interrupt when not empty
-    CAN_SFR(FIFOINT1bits, CAN_MAIN).RXNEMPTYIF = 0;          
+    GLOBAL_RECEIVE_ENABLE = 1;                  // interrupt when not empty
+    GLOBAL_RECEIVE_FLAG = 0;
+    ADDRESSED_RECEIVE_ENABLE = 1;               // interrupt when not empty
+    ADDRESSED_RECEIVE_FLAG = 0;           
     
     // enable interrupts globally
     IEC1bits.CAN1IE = 1;
@@ -142,7 +142,7 @@ int CAN_check_error(void) {
 // FIFO 2
 void CAN_send(CAN_MESSAGE *message) {
     while(!CAN_SFR(FIFOINT2bits, CAN_MAIN).TXNFULLIF);              // wait until FIFO is not full
-    __builtin_disable_interrupts();
+    //__builtin_disable_interrupts();
     currentBufferLocation = PA_TO_KVA1(CAN_SFR(FIFOUA2, CAN_MAIN));
     currentBufferLocation[0] = message->SID;
     currentBufferLocation[1] = message->SIZE;
@@ -150,13 +150,14 @@ void CAN_send(CAN_MESSAGE *message) {
     currentBufferLocation[3] = message->dataw1;
     CAN_SFR(FIFOCON2SET, CAN_MAIN) = 0x2000;     // increment pointer for fifo
     CAN_SFR(FIFOCON2bits, CAN_MAIN).TXREQ = 1;   // tell CAN to send message
-    __builtin_enable_interrupts();
+    //__builtin_enable_interrupts();
+    CAN_message_dump(message);
 }
 
 // FIFO 3
 void CAN_broadcast(CAN_MESSAGE *message) {
     while(!CAN_SFR(FIFOINT3bits, CAN_MAIN).TXNFULLIF);              // wait until FIFO is not full
-    __builtin_disable_interrupts();
+    //__builtin_disable_interrupts();
     currentBufferLocation = PA_TO_KVA1(CAN_SFR(FIFOUA3, CAN_MAIN));
     currentBufferLocation[0] = message->SID;
     currentBufferLocation[1] = message->SIZE;
@@ -164,13 +165,14 @@ void CAN_broadcast(CAN_MESSAGE *message) {
     currentBufferLocation[3] = message->dataw1;
     CAN_SFR(FIFOCON3SET, CAN_MAIN) = 0x2000;     // increment pointer for fifo
     CAN_SFR(FIFOCON3bits, CAN_MAIN).TXREQ = 1;   // tell CAN to send message
-    __builtin_enable_interrupts();
+    //__builtin_enable_interrupts();
+    CAN_message_dump(message);
 }
 
 // FIFO 0
 bool CAN_receive_broadcast(CAN_MESSAGE *message) {
     if (!broadcastCount) return false;
-    __builtin_disable_interrupts();
+    //__builtin_disable_interrupts();
     currentBufferLocation = PA_TO_KVA1(CAN_SFR(FIFOUA0, CAN_MAIN));
 #if defined DATA_ONLY
     message->dataw0 = currentBufferLocation[0];
@@ -183,13 +185,14 @@ bool CAN_receive_broadcast(CAN_MESSAGE *message) {
 #endif
     broadcastCount--;
     CAN_SFR(FIFOCON0SET, CAN_MAIN) = 0x2000;
-    __builtin_enable_interrupts();
+    //__builtin_enable_interrupts();
+    GLOBAL_RECEIVE_ENABLE = 1;
 }
 
 // FIFO 1
 bool CAN_receive_specific(CAN_MESSAGE *message) {
     if (!specificCount) return false;
-    __builtin_disable_interrupts();
+    //__builtin_disable_interrupts();
     currentBufferLocation = PA_TO_KVA1(CAN_SFR(FIFOUA1, CAN_MAIN));
 #if defined DATA_ONLY
     message->dataw0 = currentBufferLocation[0];
@@ -202,7 +205,8 @@ bool CAN_receive_specific(CAN_MESSAGE *message) {
 #endif
     specificCount--;
     CAN_SFR(FIFOCON1SET, CAN_MAIN) = 0x2000;
-    __builtin_enable_interrupts();
+    //__builtin_enable_interrupts();
+    ADDRESSED_RECEIVE_ENABLE = 1;
 }
 
 bool CAN_message_is_heartbeat(CAN_MESSAGE *message) {
@@ -216,15 +220,21 @@ bool CAN_message_is_heartbeat(CAN_MESSAGE *message) {
 // TODO add ISRs
 void __ISR (MAIN_CAN_VECTOR, IPL1SOFT) MAIN_CAN_Interrupt (void) {
     
-    printf("CAN interrupt!");
-    
     if (CAN_SFR(VECbits, CAN_MAIN).ICODE > 32) {
         // interrupt did not occur because of a message
     }
     
     else {
-        if (CAN_SFR(VECbits, CAN_MAIN).ICODE == 0) broadcastCount++;
-        if (CAN_SFR(VECbits, CAN_MAIN).ICODE == 1) specificCount++;
+        if (CAN_SFR(VECbits, CAN_MAIN).ICODE == 0) {
+            GLOBAL_RECEIVE_ENABLE = 0;
+            GLOBAL_RECEIVE_FLAG = 0;
+            broadcastCount++;
+        }
+        else if (CAN_SFR(VECbits, CAN_MAIN).ICODE == 1) {
+            ADDRESSED_RECEIVE_ENABLE = 0;
+            ADDRESSED_RECEIVE_FLAG = 0;
+            specificCount++;
+        }
         CAN_SFR(INTbits, CAN_MAIN).RBIF = 0;
     }
     MAIN_CAN_FLAG = 0;
@@ -238,9 +248,24 @@ void __ISR (ALT_CAN_VECTOR, IPL1SOFT) ALT_CAN_Interrupt (void) {
 void CAN_message_dump(CAN_MESSAGE *message) {
     int i;
     printf("\r\n=========== CAN MESSAGE DUMP ================\r\n");
+#ifndef DATA_ONLY
     printf("SID: %u\r\nSize: %u\r\n", message->SID, message->SIZE);
-    for (i = 0; i < message->SIZE; i++)
-        printf("Data %u: %u (%c)\r\n", i, message->bytes[i], message->bytes[i]);
+#else
+    printf("WARNING: Data Only has been chosen\r\n");
+#endif
+    printf("Message Type:\t");
+    switch (message->message_num) {
+        case INVALID: printf("INVALID"); break;
+        case WCM_HB: printf("WCM_HB"); break;
+        case VNM_HB: printf("VNM_HB"); break;
+        case VSM_HB: printf("VSM_HB"); break;
+        case BCM_HB: printf("BCM_HB"); break;
+        case MCM_HB: printf("MCM_HB"); break;
+        default: printf("!! UNKNOWN !!");
+    }
+    printf("\r\n");
+    for (i = 1; i < 8; i++)
+        printf("Byte %d:\t\t%u\t(%c)\r\n", i - 1, message->bytes[i], message->bytes[i]);
     printf("=============================================\r\n\r\n");
 }
 #endif
