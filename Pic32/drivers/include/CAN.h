@@ -46,7 +46,10 @@ typedef union __attribute__((packed)) {
         uint8_t byte6;
     };
     struct __attribute__((packed)) {
-        unsigned :16;
+        unsigned :6;
+        unsigned priority:1;
+        unsigned from:3;
+        unsigned :6;
         uint8_t bytes[8];
     };
     struct __attribute__((packed)) {
@@ -74,7 +77,7 @@ typedef union __attribute__((packed)) {
 /******************************************************************************/
 #define BAUD_250K           1
 //#define BAUD_1M             1 // For interfacing with Kelly Controller
-#define DATA_ONLY           1
+//#define DATA_ONLY           1
 #define CAP_TIME            1
 //#define LOOPBACK            1
 #define CAN_MAIN            1
@@ -141,6 +144,12 @@ typedef union __attribute__((packed)) {
 #define FLEX4   0x200
 #define ALL     0x400
 #define ID_FOR_KELLY        0x73
+#define VNM_FROM_ID 1 
+#define VSM_FROM_ID 2
+#define BCM_FROM_ID 3
+#define MCM_FROM_ID 4
+#define WCM_FROM_ID 5
+#define BMS_FROM_ID 6
 /******************************************************************************/
 
 
@@ -149,8 +158,8 @@ typedef union __attribute__((packed)) {
 /******************************************************************************/
 void CAN_init(ROLE role);
 int CAN_check_error(void);
-void CAN_send(CAN_MESSAGE *message);
-void CAN_broadcast(CAN_MESSAGE *message);
+bool CAN_send(CAN_MESSAGE *message);
+bool CAN_broadcast(CAN_MESSAGE *message);
 bool CAN_receive_broadcast(CAN_MESSAGE *message);
 bool CAN_receive_specific(CAN_MESSAGE *message);
 bool CAN_message_is_heartbeat(CAN_MESSAGE *message);

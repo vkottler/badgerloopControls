@@ -116,12 +116,12 @@ int CAN_set_mode(int mode) {
 void CAN_init(ROLE role) {
     setBoardRole(getBoardNumber(), role);
     switch (role) {
-        case VNM:   SID = VNM_SID; break;
-        case BCM:   SID = BCM_SID; break;
-        case MCM:   SID = MCM_SID; break;
-        case VSM:   SID = VSM_SID; break;
-        case TEST:  SID = ID_FOR_KELLY; break;
-        default:    SID = 0x400; break;
+        case VNM:   SID = VNM_SID; from_ID = VNM_FROM_ID; break;
+        case BCM:   SID = BCM_SID; from_ID = BCM_FROM_ID; break;
+        case MCM:   SID = MCM_SID; from_ID = MCM_FROM_ID; break;
+        case VSM:   SID = VSM_SID; from_ID = VSM_FROM_ID; break;
+        case TEST:  SID = ID_FOR_KELLY; from_ID = 0; break;
+        default:    SID = 0x400; from_ID = 7; break;
     }
     CAN_SFR(CONbits, CAN_MAIN).ON = 1;
     CAN_set_mode(CONFIG_MODE);
@@ -140,9 +140,11 @@ int CAN_check_error(void) {
 }
 
 // FIFO 2
-void CAN_send(CAN_MESSAGE *message) {
-    while(!CAN_SFR(FIFOINT2bits, CAN_MAIN).TXNFULLIF);              // wait until FIFO is not full
-    //__builtin_disable_interrupts();
+//
+// Returns true/false based on whether or not it's possible to send the message currently
+bool CAN_send(CAN_MESSAGE *message) {
+    if (!CAN_SFR(FIFOINT2bits, CAN_MAIN).TXNFULLIF) return false;   // wait until FIFO is not full
+    message->from = from_ID;
     currentBufferLocation = PA_TO_KVA1(CAN_SFR(FIFOUA2, CAN_MAIN));
     currentBufferLocation[0] = message->SID;
     currentBufferLocation[1] = message->SIZE;
@@ -150,14 +152,17 @@ void CAN_send(CAN_MESSAGE *message) {
     currentBufferLocation[3] = message->dataw1;
     CAN_SFR(FIFOCON2SET, CAN_MAIN) = 0x2000;     // increment pointer for fifo
     CAN_SFR(FIFOCON2bits, CAN_MAIN).TXREQ = 1;   // tell CAN to send message
-    //__builtin_enable_interrupts();
+#if defined PRODUCTION_TESTING && defined SERIAL_DEBUG
     CAN_message_dump(message);
+#endif
 }
 
 // FIFO 3
-void CAN_broadcast(CAN_MESSAGE *message) {
-    while(!CAN_SFR(FIFOINT3bits, CAN_MAIN).TXNFULLIF);              // wait until FIFO is not full
-    //__builtin_disable_interrupts();
+//
+// Returns true/false based on whether or not it's possible to send the message currently
+bool CAN_broadcast(CAN_MESSAGE *message) {
+    if (!CAN_SFR(FIFOINT3bits, CAN_MAIN).TXNFULLIF) return false;
+    message->from = from_ID;
     currentBufferLocation = PA_TO_KVA1(CAN_SFR(FIFOUA3, CAN_MAIN));
     currentBufferLocation[0] = message->SID;
     currentBufferLocation[1] = message->SIZE;
@@ -165,8 +170,10 @@ void CAN_broadcast(CAN_MESSAGE *message) {
     currentBufferLocation[3] = message->dataw1;
     CAN_SFR(FIFOCON3SET, CAN_MAIN) = 0x2000;     // increment pointer for fifo
     CAN_SFR(FIFOCON3bits, CAN_MAIN).TXREQ = 1;   // tell CAN to send message
-    //__builtin_enable_interrupts();
+#if defined PRODUCTION_TESTING && defined SERIAL_DEBUG
     CAN_message_dump(message);
+#endif
+    return true;
 }
 
 // FIFO 0
@@ -249,7 +256,17 @@ void CAN_message_dump(CAN_MESSAGE *message) {
     int i;
     printf("\r\n=========== CAN MESSAGE DUMP ================\r\n");
 #ifndef DATA_ONLY
-    printf("SID: %u\r\nSize: %u\r\n", message->SID, message->SIZE);
+    printf("SID:\t%u\tsender:\t", message->SID);
+    switch(message->from) {
+        case VNM_FROM_ID: printf("VNM"); break;
+        case VSM_FROM_ID: printf("VSM"); break;
+        case BCM_FROM_ID: printf("BCM"); break;
+        case MCM_FROM_ID: printf("MCM"); break;
+        case WCM_FROM_ID: printf("WCM"); break;
+        case BMS_FROM_ID: printf("BMS"); break;
+        default: printf("UNKNOWN SENDER");
+    }
+    printf("\r\nSize: %u\r\n", message->SIZE);
 #else
     printf("WARNING: Data Only has been chosen\r\n");
 #endif

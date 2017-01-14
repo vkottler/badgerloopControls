@@ -1,6 +1,8 @@
 #ifndef _GLOBALS__H__
 #define _GLOBALS__H__
 
+#include <stdint.h>
+
 /******************************************************************************/
 /* * * * * * *          Software Build Definitions          * * * * * * * * * */
 /******************************************************************************/
@@ -32,6 +34,7 @@ typedef enum { HEALTHY, MAC_NOT_FOUND, HP_NO_RESPONSE,
 
 // CAN globals
 extern int SID;
+extern uint8_t from_ID;
 extern STATE state, next_state;
 
 // Not currently being used
