@@ -28,42 +28,64 @@
 /******************************************************************************/
 typedef enum {
     INVALID,
-    WCM_HB, VNM_HB, VSM_HB, BCM_HB, MCM_HB
+    WCM_HB, VNM_HB, VSM_HB, BCM_HB, MCM_HB, 
+    TEST_MSG, PING
             
 } MESSAGE_TYPE;
 
-typedef union __attribute__((packed)) {
-    struct __attribute__((packed)) {
-        unsigned SIZE:5;
-        unsigned SID:11;
-        MESSAGE_TYPE message_num:8;
-        uint8_t byte0;
-        uint8_t byte1;
-        uint8_t byte2;
-        uint8_t byte3;
-        uint8_t byte4;
-        uint8_t byte5;
-        uint8_t byte6;
+typedef union {
+    struct {
+        
+        // SID
+        union {
+            struct {
+                unsigned SID:11;
+                unsigned FILHIT:5;
+                unsigned TS:16;
+            };
+            struct {
+                unsigned VNM_bit:1; 
+                unsigned VSM_bit:1;
+                unsigned BCM_bit:1; 
+                unsigned MCM_bit:1;
+                unsigned WCM_bit:1; 
+                unsigned BMS_bit:1;
+                unsigned from:3;
+                unsigned priority:1;
+                unsigned all:1;
+                unsigned :21;
+            };
+            uint32_t SIDword;
+        };
+        
+        // SIZE word
+        unsigned SIZE:4;
+        unsigned RBO:1;
+        unsigned :3;
+        unsigned RB1:1;
+        unsigned RTR:1;
+        unsigned EID:18;
+        unsigned IDE:1;
+        unsigned SRR:1;
+        unsigned :2;
+        
+        // data word 1
+        MESSAGE_TYPE message_num:8; uint8_t byte0;
+        uint8_t byte1; uint8_t byte2;
+        
+        // data word 0
+        uint8_t byte3; uint8_t byte4;
+        uint8_t byte5; uint8_t byte6;
     };
-    struct __attribute__((packed)) {
-        unsigned :6;
-        unsigned priority:1;
-        unsigned from:3;
-        unsigned :6;
+    struct {
+        unsigned :32; unsigned :32;
+        uint32_t dataw0; uint32_t dataw1;
+    };
+    struct {
+        unsigned :32; unsigned :32;
         uint8_t bytes[8];
     };
-    struct __attribute__((packed)) {
-        unsigned :16;
-        uint8_t message_byte;
-        unsigned :32;
-        unsigned :24;
-    };
-    struct __attribute__((packed)) {
-        unsigned :16;
-        uint32_t dataw0;
-        uint32_t dataw1;
-    };
-    unsigned char raw_data[10];
+    unsigned int raw[4];
 } CAN_MESSAGE;
 
 // http://stackoverflow.com/questions/13923425/c-preprocessor-concatenation-with-variable
@@ -77,11 +99,9 @@ typedef union __attribute__((packed)) {
 /******************************************************************************/
 #define BAUD_250K           1
 //#define BAUD_1M             1 // For interfacing with Kelly Controller
-//#define DATA_ONLY           1
 #define CAP_TIME            1
-//#define LOOPBACK            1
-#define CAN_MAIN            1
-#define CAN_ALT             2
+#define CAN_MAIN            2
+#define CAN_ALT             1
 
 #if CAN_MAIN == 1
 #define MAIN_CAN_VECTOR     _CAN_1_VECTOR
@@ -100,20 +120,19 @@ typedef union __attribute__((packed)) {
 /******************************************************************************/
 /*                             FIFO Setup                                     */
 /******************************************************************************/
-#if defined(DATA_ONLY)
-#define BUFFER_SIZE         2   // 2 sets of 4 bytes in a single message buffer
-#else
-#define BUFFER_SIZE         4   // 4 sets of 4 bytes in a single message buffer
-#endif
 #define fifo_0_size         8
 #define fifo_1_size         8
 #define fifo_2_size         8
 #define fifo_3_size         8
-#define FIFO_SIZE ((fifo_0_size + fifo_1_size) * BUFFER_SIZE) + ((fifo_2_size + fifo_3_size) * 4)
+#define FIFO_SIZE           fifo_0_size + fifo_1_size + fifo_2_size + fifo_3_size
 #define GLOBAL_RECEIVE_ENABLE       CAN_SFR(FIFOINT0bits, CAN_MAIN).RXNEMPTYIE
-#define ADDRESSED_RECEIVE_ENABLE   CAN_SFR(FIFOINT1bits, CAN_MAIN).RXNEMPTYIE
+#define ADDRESSED_RECEIVE_ENABLE    CAN_SFR(FIFOINT1bits, CAN_MAIN).RXNEMPTYIE
 #define GLOBAL_RECEIVE_FLAG         CAN_SFR(FIFOINT0bits, CAN_MAIN).RXNEMPTYIF
 #define ADDRESSED_RECEIVE_FLAG      CAN_SFR(FIFOINT1bits, CAN_MAIN).RXNEMPTYIF
+#define BROADCAST_REC_ADDR              PA_TO_KVA1(CAN_SFR(FIFOUA0, CAN_MAIN))
+#define ADDRESSED_REC_ADDR              PA_TO_KVA1(CAN_SFR(FIFOUA1, CAN_MAIN))
+#define ADDRESSED_SEND_ADDR             PA_TO_KVA1(CAN_SFR(FIFOUA2, CAN_MAIN))
+#define BROADCAST_SEND_ADDR             PA_TO_KVA1(CAN_SFR(FIFOUA3, CAN_MAIN))
 /******************************************************************************/
 
 
@@ -138,10 +157,6 @@ typedef union __attribute__((packed)) {
 #define MCM_SID 0x008
 #define WCM_SID 0x010
 #define BMS_SID 0x020
-#define FLEX1   0x040
-#define FLEX2   0x080
-#define FLEX3   0x100
-#define FLEX4   0x200
 #define ALL     0x400
 #define ID_FOR_KELLY        0x73
 #define VNM_FROM_ID 1 
@@ -158,16 +173,16 @@ typedef union __attribute__((packed)) {
 /******************************************************************************/
 void CAN_init(ROLE role);
 int CAN_check_error(void);
-bool CAN_send(CAN_MESSAGE *message);
-bool CAN_broadcast(CAN_MESSAGE *message);
+bool CAN_send(void);
+bool CAN_broadcast(void);
 bool CAN_receive_broadcast(CAN_MESSAGE *message);
 bool CAN_receive_specific(CAN_MESSAGE *message);
 bool CAN_message_is_heartbeat(CAN_MESSAGE *message);
 /******************************************************************************/
 
 #if (defined TESTING || defined PRODUCTION_TESTING) && defined SERIAL_DEBUG
-extern volatile uint8_t specificCount, broadcastCount;
-void CAN_message_dump(CAN_MESSAGE *message);
+void CAN_message_dump(CAN_MESSAGE *message, bool outgoing);
+void CAN_print_errors(void);
 #endif
 
 #endif

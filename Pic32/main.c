@@ -19,22 +19,24 @@ int main(void) {
     setBoardRole(6, BOARD6_ROLE);
     CAN_init(getThisRole());
     
-    if (sizeof(CAN_MESSAGE) != 10 || sizeof(MESSAGE_TYPE) != 1) {
 #ifdef SERIAL_DEBUG
-        printf("ERROR: sizeof CAN_MESSAGE is %d bytes, sizeof MESSAGE_TYPE enum is %d bytes.\r\n"
-                "CAN_MESSAGE must be 10 bytes and MESSAGE_TYPE enum must be 1 byte.\r\n"
-                "Rebuild with compiler option -fshort-enums added.", sizeof(CAN_MESSAGE), sizeof(MESSAGE_TYPE)); 
+    initUART();
+    printBoardNumber();
+    printAllRolesRawValue();
+    printf("CAN_MAIN: %d\tCAN_ALT: %d\tFIFO total size: %d messages\r\n", CAN_MAIN, CAN_ALT, FIFO_SIZE);
+#endif 
+    
+    if (sizeof(CAN_MESSAGE) != 16 || sizeof(MESSAGE_TYPE) != 1) {
+#ifdef SERIAL_DEBUG
+        printf("ERROR: sizeof CAN_MESSAGE is %d bytes, sizeof MESSAGE_TYPE enum is %d bytes.\r\n", sizeof(CAN_MESSAGE), sizeof(MESSAGE_TYPE));
+        printf("CAN_MESSAGE must be 16 bytes and MESSAGE_TYPE enum must be 1 byte.\r\n");
+        printf("Rebuild with compiler option -fshort-enums added.");
 #endif
         while (1) {
             blinkBoardLights(4, 150);
             delay(1000, MILLI);
         }
     }
-#ifdef SERIAL_DEBUG
-    initUART();
-    printBoardNumber();
-    printAllRolesRawValue();
-#endif 
 /******************************************************************************/
     
     

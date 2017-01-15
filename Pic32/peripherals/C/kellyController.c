@@ -1,5 +1,7 @@
 #include "../include/kellyController.h"
 
+/* Have done too much CAN refactoring this needs a few minutes before it's good to go again
+
 uint8_t read1Data[] = {0xF2, INFO_MODULE_NAME, 8};
 uint8_t read2Data[] = {0xF2, INFO_SOFTWARE_VER, 2};
 uint8_t read3Data[] = {0xF2, CAL_TPS_DEAD_ZONE_LOW, 1};
@@ -29,8 +31,8 @@ KELLY_CMD brkSW = {.name = COM_SW_BRK, .length = 2, .data = brkSWData, .resp_len
 KELLY_CMD revSW = {.name = COM_SW_REV, .length = 2, .data = revSWData, .resp_length = 1};
 
 int i;
-CAN_MESSAGE toSend, receive;
-KELLY_CMD *curr;
+CAN_MESSAGE *toSend, *receive;
+KELLY_CMD *currCMD;
 
 uint8_t throttle_low, throttle_high, 
         brake_low, brake_high, brake, 
@@ -40,24 +42,24 @@ uint8_t throttle_low, throttle_high,
 void Kelly_send(COMMAND_NAME cmd, int ID) {
     toSend.SID = ID;
     switch (cmd) {
-        case CCP_FLASH_READ1: curr = &read1; break;
-        case CCP_FLASH_READ2: curr = &read2; break;
-        case CCP_FLASH_READ3: curr = &read3; break;
-        case CCP_FLASH_READ4: curr = &read4; break;
-        case CCP_FLASH_READ5: curr = &read5; break;
-        case CCP_FLASH_READ6: curr = &read6; break;
-        case CCP_A2D_BATCH_READ1: curr = &batch1; break;
-        case CCP_A2D_BATCH_READ2: curr = &batch2; break;
-        case CCP_MONITOR1: curr = &ccp1; break;
-        case CCP_MONITOR2: curr = &ccp2; break;
-        case COM_SW_ACC: curr = &accSW; break;
-        case COM_SW_BRK: curr = &brkSW; break;
-        case COM_SW_REV: curr = &revSW; break;
+        case CCP_FLASH_READ1: currCMD = &read1; break;
+        case CCP_FLASH_READ2: currCMD = &read2; break;
+        case CCP_FLASH_READ3: currCMD = &read3; break;
+        case CCP_FLASH_READ4: currCMD = &read4; break;
+        case CCP_FLASH_READ5: currCMD = &read5; break;
+        case CCP_FLASH_READ6: currCMD = &read6; break;
+        case CCP_A2D_BATCH_READ1: currCMD = &batch1; break;
+        case CCP_A2D_BATCH_READ2: currCMD = &batch2; break;
+        case CCP_MONITOR1: currCMD = &ccp1; break;
+        case CCP_MONITOR2: currCMD = &ccp2; break;
+        case COM_SW_ACC: currCMD = &accSW; break;
+        case COM_SW_BRK: currCMD = &brkSW; break;
+        case COM_SW_REV: currCMD = &revSW; break;
         default: return; 
     }
-    toSend.SIZE = curr->length;
+    toSend.SIZE = currCMD->length;
     toSend.dataw0 = 0; toSend.dataw1 = 0;
-    for (i = 0; i < curr->length; i++) toSend.bytes[i] = curr->data[i];
+    for (i = 0; i < currCMD->length; i++) toSend.bytes[i] = currCMD->data[i];
     CAN_send(&toSend);
 }
 
@@ -180,3 +182,5 @@ void Kelly_print_batch2(char *buffer, int ID) {
     println(buffer);
     println("========================================");
 }
+
+ */

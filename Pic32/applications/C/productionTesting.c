@@ -14,6 +14,7 @@ void productionTesting(void) {
 #else
 
 int i;
+char uartReceive[50];
 
 void fail(void) {
     while(1) {
@@ -21,6 +22,12 @@ void fail(void) {
         blinkBoardLights(5, 50);
         delay(500, MILLI);
     }
+}
+
+void whoami(void) {
+    printf("You are:\t");
+    printRole(getThisRole());
+    printf("\tSID:\t%d\tfrom ID:%d\r\n", SID, from_ID);
 }
 
 bool testRun(void) {
@@ -31,16 +38,54 @@ bool testHeartbeatMessageToRole(void) {
     
 }
 
+void test_send_specific(void) {
+    sending = ADDRESSED_SEND_ADDR;
+    bool validInput = false;
+    printf("To which module?\r\n");
+    while (!validInput) {
+        if (messageAvailable()) {
+            getMessage(uartReceive, 50);
+            validInput = true;
+            if (!strcmp(uartReceive, "WCM"))        sending->SID = WCM_SID;
+            else if (!strcmp(uartReceive, "VNM"))   sending->SID = VNM_SID;
+            else if (!strcmp(uartReceive, "VSM"))   sending->SID = VSM_SID;
+            else if (!strcmp(uartReceive, "BCM"))   sending->SID = BCM_SID;
+            else if (!strcmp(uartReceive, "MCM"))   sending->SID = MCM_SID;
+            else {
+                printf("'%s' is not a recognized module!\r\n", uartReceive);
+                validInput = false;
+            }
+        }
+        blinkRed(1, 250);
+    }
+    sending->from = from_ID;
+    sending->SIZE = 1;
+    sending->message_num = PING;
+    if (!CAN_send())
+        printf("ERROR: Could not send test message.\r\n");
+}
+
+void sendTestCANmessage(void) {
+    sending = BROADCAST_SEND_ADDR;
+    sending->SID = ALL;
+    sending->from = from_ID;
+    sending->SIZE = 8;
+    sending->message_num = TEST_MSG;
+    strcpy("hello!", sending->bytes);
+    if (!CAN_broadcast())
+        printf("ERROR: Could not send test message.\r\n");
+}
+
 void testInitializePeripherals(void) {
     printf("Testing initialize_peripherals . . .");
-    if (initialize_peripherals(getThisRole())) {
+    if (!initialize_peripherals(getThisRole())) {
         printf("\r\nERROR: Board's role not properly set.\r\nROLE = ");
         printRoleRawValue(getThisRole());
         printf("Available choices:");
         printAllRolesRawValue();
         fail();
     }
-    printf(" Passed! This module: ");
+    printf(" Passed! This module:\t");
     printRoleRawValue(getThisRole());
 }
 
@@ -63,27 +108,30 @@ void testInitializeHeartbeatOrder(void) {
 }
 
 void productionTesting(void) {
+    memset(uartReceive, '\0', 50);
     testInitializePeripherals();
     testInitializeHeartbeatOrder();
     
     while (1) {
         
         if (messageAvailable()) {
-            // TODO
-            CAN_send_heartbeat();
+            getMessage(uartReceive, 50);
+            if (!strcmp(uartReceive, "heartbeat")) CAN_send_heartbeat();
+            else if (!strcmp(uartReceive, "test")) sendTestCANmessage();
+            else if (!strcmp(uartReceive, "whoami")) whoami();
+            else if (!strcmp(uartReceive, "testsend") || !strcmp(uartReceive, "ping")) test_send_specific();
+            else printf("Did not recognize: %s\r\n", uartReceive);
         }
         
-        //printf("# broadcasts waiting: %u # messages waiting: %u\r\n", broadcastCount, specificCount);
-        
-        while (CAN_receive_broadcast(&curr)) {
-            printf("Receiving broadcast . . .\r\n");
-            CAN_message_dump(&curr);
+        if (CAN_receive_broadcast(receiving)) {
+            CAN_message_dump(receiving, false);
         }
         
-        while (CAN_receive_specific(&curr)) {
-            printf("Receiving message . . .\r\n");
-            CAN_message_dump(&curr);
+        if (CAN_receive_specific(receiving)) {
+            CAN_message_dump(receiving, false);
         }
+        
+        if (CAN_check_error()) CAN_print_errors();
         
         blinkGreen(1, 250);
     }

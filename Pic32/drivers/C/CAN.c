@@ -1,8 +1,6 @@
 #include "../include/CAN.h"
 
-unsigned int *currentBufferLocation = NULL;
-
-volatile uint8_t specificCount = 0, broadcastCount = 0;
+volatile bool specificAvailable = false, broadcastAvailable = false;
 
 /*
  * Chosen FIFO usage:
@@ -13,7 +11,7 @@ volatile uint8_t specificCount = 0, broadcastCount = 0;
  * 
  * See CAN.h to see how FIFO_SIZE gets computed
  */
-static volatile unsigned int fifos[FIFO_SIZE];
+static volatile CAN_MESSAGE fifos[FIFO_SIZE];
 
 /*
  * Disclaimer:
@@ -26,16 +24,13 @@ static volatile unsigned int fifos[FIFO_SIZE];
  * the four masks. If you're not thinking "what the hell" by now I congratulate you.
  */
 void CAN_fifo_init(void) {
-    memset((void *) fifos, 0, FIFO_SIZE);                       // initialize memory to 0
+    memset((void *) fifos, 0, sizeof(CAN_MESSAGE) * FIFO_SIZE);
      
     // Let the CAN module know how 
     CAN_SFR(FIFOCON0bits, CAN_MAIN).FSIZE = fifo_0_size - 1;
     CAN_SFR(FIFOCON0bits, CAN_MAIN).TXEN = 0;
-    CAN_SFR(FIFOCON0bits, CAN_MAIN).DONLY = 1;                  // only store data bytes received
     CAN_SFR(FIFOCON1bits, CAN_MAIN).FSIZE = fifo_1_size - 1;
     CAN_SFR(FIFOCON1bits, CAN_MAIN).TXEN = 0;
-    CAN_SFR(FIFOCON1bits, CAN_MAIN).DONLY = 1;                  // only store data bytes received
-    
     CAN_SFR(FIFOCON2bits, CAN_MAIN).FSIZE = fifo_2_size - 1;
     CAN_SFR(FIFOCON2bits, CAN_MAIN).TXEN = 1;
     CAN_SFR(FIFOCON2bits, CAN_MAIN).TXPRI = 0;                  // specific recipient message lower priority
@@ -43,20 +38,25 @@ void CAN_fifo_init(void) {
     CAN_SFR(FIFOCON3bits, CAN_MAIN).TXEN = 1;
     CAN_SFR(FIFOCON3bits, CAN_MAIN).TXPRI = 1;                  // heartbeat higher priority
 
-    CAN_SFR(RXM0bits, CAN_MAIN).SID = ALL;                      // mask 0: only compare ALL bit
-    CAN_SFR(RXM1bits, CAN_MAIN).SID = SID;                      // mask 1: only compare SID bit
+    CAN_SFR(RXM0bits, CAN_MAIN).SID = ALL;                    // mask 0: only compare ALL bit
+    CAN_SFR(RXM0bits, CAN_MAIN).MIDE = 1;
+    CAN_SFR(RXM1bits, CAN_MAIN).SID = SID;                      // mask 1: only compare SIDs bit
+    CAN_SFR(RXM1bits, CAN_MAIN).MIDE = 1;
     
-    CAN_SFR(FLTCON0bits, CAN_MAIN).FSEL0 = 0;                   // filter 0 used for FIFO 0
-    CAN_SFR(FLTCON0bits, CAN_MAIN).MSEL0 = 0;                   // filter 0 uses mask 0
-    CAN_SFR(FLTCON0bits, CAN_MAIN).FLTEN0 = 1;                  // enable filter 0
     CAN_SFR(RXF0bits, CAN_MAIN).SID = ALL;                      // ALL bit needs to be asserted
     CAN_SFR(RXF0bits, CAN_MAIN).EXID = 0;                       // do not use extended identifier
     
-    CAN_SFR(FLTCON0bits, CAN_MAIN).FSEL1 = 0;                   // filter 0 used for FIFO 1
-    CAN_SFR(FLTCON0bits, CAN_MAIN).MSEL1 = 0;                   // filter 0 uses mask 1
-    CAN_SFR(FLTCON0bits, CAN_MAIN).FLTEN1 = 1;                  // enable filter 1
     CAN_SFR(RXF1bits, CAN_MAIN).SID = SID;                      // this module's SID bit needs to be asserted
     CAN_SFR(RXF1bits, CAN_MAIN).EXID = 0;                       // do not use extended identifier
+    
+    CAN_SFR(FLTCON0bits, CAN_MAIN).FSEL0 = 0;                   // filter 0 used for FIFO 0
+    CAN_SFR(FLTCON0bits, CAN_MAIN).MSEL0 = 0;                   // filter 0 uses mask 0
+    
+    CAN_SFR(FLTCON0bits, CAN_MAIN).FSEL1 = 1;                   // filter 1 used for FIFO 1
+    CAN_SFR(FLTCON0bits, CAN_MAIN).MSEL1 = 1;                   // filter 1 uses mask 1
+   
+    CAN_SFR(FLTCON0bits, CAN_MAIN).FLTEN0 = 1;                  // enable filter 0
+    CAN_SFR(FLTCON0bits, CAN_MAIN).FLTEN1 = 1;                  // enable filter 1 
     
     CAN_SFR(FIFOBA, CAN_MAIN) = KVA_TO_PA(fifos);               // just clears 3 MSBs
 }
@@ -128,87 +128,56 @@ void CAN_init(ROLE role) {
     CAN_set_timings();
     CAN_fifo_init();
     CAN_set_up_interrupts();
-#ifdef LOOPBACK
-    CAN_set_mode(LOOPBACK_MODE);
-#else
     CAN_set_mode(NORMAL_MODE);
-#endif
 }
 
 int CAN_check_error(void) {
     return CAN_SFR(TREC, CAN_MAIN);
 }
 
-void CAN_load_message(CAN_MESSAGE *message) {
-    currentBufferLocation[0] = message->SID;
-    currentBufferLocation[1] = message->SIZE;
-    currentBufferLocation[2] = message->dataw0;
-    currentBufferLocation[3] = message->dataw1;
-}
-
-void CAN_unload_message(CAN_MESSAGE *message) {
-#if defined DATA_ONLY
-    message->dataw0 = currentBufferLocation[0];
-    message->dataw1 = currentBufferLocation[1];
-#else
-    message->SIZE = currentBufferLocation[1];
-    message->SID = currentBufferLocation[0];
-    message->dataw0 = currentBufferLocation[2];
-    message->dataw1 = currentBufferLocation[3];
-#endif
-}
-
 // FIFO 2
 //
 // Returns true/false based on whether or not it's possible to send the message currently
-bool CAN_send(CAN_MESSAGE *message) {
+bool CAN_send(void) {
     if (!CAN_SFR(FIFOINT2bits, CAN_MAIN).TXNFULLIF) return false;   // wait until FIFO is not full
-    message->from = from_ID;
-    currentBufferLocation = PA_TO_KVA1(CAN_SFR(FIFOUA2, CAN_MAIN));
-    CAN_load_message(message);
+#if defined PRODUCTION_TESTING && defined SERIAL_DEBUG
+    CAN_message_dump(ADDRESSED_SEND_ADDR, true);
+#endif
     CAN_SFR(FIFOCON2SET, CAN_MAIN) = 0x2000;     // increment pointer for fifo
     CAN_SFR(FIFOCON2bits, CAN_MAIN).TXREQ = 1;   // tell CAN to send message
-#if defined PRODUCTION_TESTING && defined SERIAL_DEBUG
-    printf("--------------- SENDING ---------------------");
-    CAN_message_dump(message);
-#endif
+
 }
 
 // FIFO 3
 //
 // Returns true/false based on whether or not it's possible to send the message currently
-bool CAN_broadcast(CAN_MESSAGE *message) {
+bool CAN_broadcast(void) {
     if (!CAN_SFR(FIFOINT3bits, CAN_MAIN).TXNFULLIF) return false;
-    message->from = from_ID;
-    currentBufferLocation = PA_TO_KVA1(CAN_SFR(FIFOUA3, CAN_MAIN));
-    CAN_load_message(message);
+#if defined PRODUCTION_TESTING && defined SERIAL_DEBUG
+    CAN_message_dump(BROADCAST_SEND_ADDR, true);
+#endif
     CAN_SFR(FIFOCON3SET, CAN_MAIN) = 0x2000;     // increment pointer for fifo
     CAN_SFR(FIFOCON3bits, CAN_MAIN).TXREQ = 1;   // tell CAN to send message
-#if defined PRODUCTION_TESTING && defined SERIAL_DEBUG
-    printf("--------------- SENDING ---------------------");
-    CAN_message_dump(message);
-#endif
+
     return true;
 }
 
 // FIFO 0
 bool CAN_receive_broadcast(CAN_MESSAGE *message) {
-    if (!broadcastCount) return false;
-    currentBufferLocation = PA_TO_KVA1(CAN_SFR(FIFOUA0, CAN_MAIN));
-    CAN_unload_message(message);
-    broadcastCount--;
+    if (!broadcastAvailable) return false;
+    message = BROADCAST_REC_ADDR;
     CAN_SFR(FIFOCON0SET, CAN_MAIN) = 0x2000;
     GLOBAL_RECEIVE_ENABLE = 1;
+    broadcastAvailable = false;
 }
 
 // FIFO 1
 bool CAN_receive_specific(CAN_MESSAGE *message) {
-    if (!specificCount) return false;
-    currentBufferLocation = PA_TO_KVA1(CAN_SFR(FIFOUA1, CAN_MAIN));
-    CAN_unload_message(message);
-    specificCount--;
+    if (!specificAvailable) return false;
+    message = ADDRESSED_REC_ADDR;
     CAN_SFR(FIFOCON1SET, CAN_MAIN) = 0x2000;
     ADDRESSED_RECEIVE_ENABLE = 1;
+    specificAvailable = false;
 }
 
 bool CAN_message_is_heartbeat(CAN_MESSAGE *message) {
@@ -224,18 +193,20 @@ void __ISR (MAIN_CAN_VECTOR, IPL1SOFT) MAIN_CAN_Interrupt (void) {
     
     if (CAN_SFR(VECbits, CAN_MAIN).ICODE > 32) {
         // interrupt did not occur because of a message
+#ifdef PCB_PRESENT
+        RED_LED = 1;
+#endif
     }
-    
     else {
         if (CAN_SFR(VECbits, CAN_MAIN).ICODE == 0) {
             GLOBAL_RECEIVE_ENABLE = 0;
             GLOBAL_RECEIVE_FLAG = 0;
-            broadcastCount++;
+            broadcastAvailable = true;
         }
         else if (CAN_SFR(VECbits, CAN_MAIN).ICODE == 1) {
             ADDRESSED_RECEIVE_ENABLE = 0;
             ADDRESSED_RECEIVE_FLAG = 0;
-            specificCount++;
+            specificAvailable = true;
         }
         CAN_SFR(INTbits, CAN_MAIN).RBIF = 0;
     }
@@ -247,11 +218,27 @@ void __ISR (ALT_CAN_VECTOR, IPL1SOFT) ALT_CAN_Interrupt (void) {
 }
 
 #if (defined TESTING || defined PRODUCTION_TESTING) && defined SERIAL_DEBUG
-void CAN_message_dump(CAN_MESSAGE *message) {
+
+void CAN_print_errors(void) {
+    printf("=========== CAN ERROR DUMP =================\r\n");
+    if (CAN_SFR(TRECbits, CAN_MAIN).EWARN) printf("Transmitter/Receiver Error State Warning\r\n");
+    if (CAN_SFR(TRECbits, CAN_MAIN).TXBO) printf("Transmitter in Error State Bus OFF\r\n");
+    if (CAN_SFR(TRECbits, CAN_MAIN).TXBP) printf("Transmitter in Error State Bus Passive\r\n");
+    if (CAN_SFR(TRECbits, CAN_MAIN).RXBP) printf("Receiver in Error State Bus Passive\r\n");
+    if (CAN_SFR(TRECbits, CAN_MAIN).TXWARN) printf("Transmitter in Error State Warning\r\n");
+    if (CAN_SFR(TRECbits, CAN_MAIN).RXWARN) printf("Receiver in Error State Warning\r\n");
+    if (CAN_SFR(TRECbits, CAN_MAIN).TERRCNT) printf("Transmit Error Count: %d\r\n", CAN_SFR(TRECbits, CAN_MAIN).TERRCNT);
+    if (CAN_SFR(TRECbits, CAN_MAIN).RERRCNT) printf("Receiver Error Count: %d\r\n", CAN_SFR(TRECbits, CAN_MAIN).RERRCNT);
+    printf("=============================================\r\n");
+}
+
+void CAN_message_dump(CAN_MESSAGE *message, bool outgoing) {
     int i;
     printf("\r\n=========== CAN MESSAGE DUMP ================\r\n");
-#ifndef DATA_ONLY
-    printf("SID:\t%u\tsender:\t", message->SID);
+    if (outgoing) printf("--------------- SENDING ---------------------\r\n");
+    else          printf("--------------- RECEIVING -------------------\r\n");
+    
+    printf("SID:\t0x%x\tsender:\t", message->SID);
     switch(message->from) {
         case VNM_FROM_ID: printf("VNM"); break;
         case VSM_FROM_ID: printf("VSM"); break;
@@ -259,12 +246,17 @@ void CAN_message_dump(CAN_MESSAGE *message) {
         case MCM_FROM_ID: printf("MCM"); break;
         case WCM_FROM_ID: printf("WCM"); break;
         case BMS_FROM_ID: printf("BMS"); break;
-        default: printf("UNKNOWN SENDER");
+        default: printf("UNKNOWN SENDER (%u)", message->from);
     }
-    printf("\r\nSize: %u\r\n", message->SIZE);
-#else
-    printf("WARNING: Data Only has been chosen\r\n");
-#endif
+    printf("\r\n");
+    if (!outgoing) {
+        switch (message->FILHIT) {
+            case 0: printf("Filter hit:\tBROADCAST\t%d\r\n");
+            case 1: printf("Filter hit:\tADDRESSED\t%d\r\n");
+        }
+        printf("Timestamp:\t%d\r\n", message->TS / 1000);
+    }
+    printf("Size:\t%u\r\n", message->SIZE);
     printf("Message Type:\t");
     switch (message->message_num) {
         case INVALID: printf("INVALID"); break;
@@ -273,10 +265,12 @@ void CAN_message_dump(CAN_MESSAGE *message) {
         case VSM_HB: printf("VSM_HB"); break;
         case BCM_HB: printf("BCM_HB"); break;
         case MCM_HB: printf("MCM_HB"); break;
+        case TEST_MSG: printf("TEST_MSG"); break;
+        case PING: printf("PING"); break;
         default: printf("!! UNKNOWN !!");
     }
-    printf("\r\n");
-    for (i = 1; i < 8; i++)
+    printf(" (%d)\r\n", message->message_num);
+    for (i = 1; i < message->SIZE; i++)
         printf("Byte %d:\t\t%u\t(%c)\r\n", i - 1, message->bytes[i], message->bytes[i]);
     printf("=============================================\r\n\r\n");
 }

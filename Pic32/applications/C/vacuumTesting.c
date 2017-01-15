@@ -1,5 +1,7 @@
 #include "../include/vacuumTesting.h"
 
+/*
+
 char message[255];
 uint32_t receive[4];
 
@@ -83,3 +85,5 @@ void vacuumTest(void) {
         }
     }
 }
+
+*/

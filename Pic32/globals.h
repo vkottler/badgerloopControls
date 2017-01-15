@@ -23,10 +23,10 @@
 #if defined PRODUCTION || defined PRODUCTION_TESTING
 #define BOARD1_ROLE     NOT_PRESENT
 #define BOARD2_ROLE     NOT_PRESENT
-#define BOARD3_ROLE     NOT_PRESENT
-#define BOARD4_ROLE     NOT_PRESENT
+#define BOARD3_ROLE     VNM
+#define BOARD4_ROLE     MCM
 #define BOARD5_ROLE     NOT_PRESENT
-#define BOARD6_ROLE     NOT_PRESENT
+#define BOARD6_ROLE     BCM
 #endif
 /******************************************************************************/
 

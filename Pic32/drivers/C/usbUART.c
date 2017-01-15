@@ -3,7 +3,7 @@
 PC_Buffer tx_buffer, rx_buffer;
 volatile uint8_t availableCount = 0;
 
-void initUART() {
+void initUART(void) {
     
     // Initialize produce/consume buffers
     pc_buffer_init(&tx_buffer, BUFSIZ);

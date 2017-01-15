@@ -1,6 +1,6 @@
 #include "../include/production.h"
 
-CAN_MESSAGE curr = {.SID = 0, .SIZE = 0, .message_num = INVALID, .dataw0 = 0, .dataw1 = 0};
+CAN_MESSAGE *sending, *receiving;
 
 #ifdef WCM_PRESENT
     uint8_t num_endpoints = 1;
@@ -74,17 +74,19 @@ bool initialize_heartbeat_order(void) {
 }
 
 void CAN_send_heartbeat(void) {
-    curr.SID = ALL;
-    curr.SIZE = 2;
+    sending = BROADCAST_SEND_ADDR;
+    sending->SID = ALL;
+    sending->from = from_ID;
+    sending->SIZE = 2;
     switch(getThisRole()) {
-        case VNM: curr.message_num = VNM_HB; break;
-        case BCM: curr.message_num = BCM_HB; break;
-        case MCM: curr.message_num = MCM_HB; break;
-        case VSM: curr.message_num = VSM_HB; break;
-        default: curr.message_num = INVALID; break;
+        case VNM: sending->message_num = VNM_HB; break;
+        case BCM: sending->message_num = BCM_HB; break;
+        case MCM: sending->message_num = MCM_HB; break;
+        case VSM: sending->message_num = VSM_HB; break;
+        default: sending->message_num = INVALID; break;
     }
-    curr.byte1 = (uint8_t) state;
-    CAN_broadcast(&curr);
+    sending->byte1 = (uint8_t) state;
+    CAN_broadcast();
 }
 
 /*
@@ -105,13 +107,13 @@ void run(ROLE role) {
     while (1) {
         
         // get broadcasted CAN messages
-        while (CAN_receive_broadcast(&curr)) {
+        if (CAN_receive_broadcast(receiving)) {
             
             // message is a heartbeat message
-            if (CAN_message_is_heartbeat(&curr)) {
+            if (CAN_message_is_heartbeat(receiving)) {
                 
                 // heartbeat arrived in expected order
-                if (heartbeatMessageToRole(&curr) == heartbeat_order[heartbeat_index]) {
+                if (heartbeatMessageToRole(receiving) == heartbeat_order[heartbeat_index]) {
                     heartbeat_index++;
                     
                     // check if we are the next node to send the heartbeat
@@ -129,15 +131,15 @@ void run(ROLE role) {
             
             // message is not a heartbeat message
             else {
-                switch (curr.message_num) {
+                switch (receiving->message_num) {
                     
                 }
             }
         }
         
         // get addressed CAN messages
-        while (CAN_receive_specific(&curr)) {
-            switch (curr.message_num) {
+        if (CAN_receive_specific(receiving)) {
+            switch (receiving->message_num) {
                 
             }
         }

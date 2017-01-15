@@ -17,23 +17,6 @@ ROLE getBoardRole(uint8_t board) {
     return board_roles[board-1];
 }
 
-ROLE charToRole(char c) {
-    switch (c) {
-        case 'v':
-        case 'V':
-            return VNM;
-        case 's':
-        case 'S':
-            return VSM;
-        case 'm':
-        case 'M':
-            return MCM;
-        case 'b':
-        case 'B':
-            return BCM;
-    }
-}
-
 int getBoardNumber(void) {
     switch(EMAC1SA0) {
         case MAC1:  return 1;
@@ -59,8 +42,8 @@ void printRole(ROLE role) {
         case MCM: printf("MCM"); break;
         case VSM: printf("VSM"); break;
         case TEST: printf("TEST"); break;
-        case NOT_PRESENT: printf("NOT_PRESENT"); break;
-        case UNASSIGNED: printf("UNASSIGNED"); break;
+        case NOT_PRESENT: printf("NP"); break;
+        case UNASSIGNED: printf("UA"); break;
         default: printf("UNKNOWN_ROLE");
     }
 }

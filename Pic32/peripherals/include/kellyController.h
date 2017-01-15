@@ -1,6 +1,8 @@
 #ifndef _KELLYCONTROLLER__H__
 #define _KELLYCONTROLLER__H__
 
+/*
+
 #include <stdio.h>
 #include <string.h>
 #include <stdint.h>
@@ -14,7 +16,7 @@
  * 
  * Receiving a response:
  * one or two data frames as response
- */
+ *
 
 #define TORQUE_ID               0x6B // standard 11 bit IDs (107))
 #define SPEED_ID                100 // 
@@ -71,5 +73,7 @@ float Kelly_get_operational_voltage(void);
 float Kelly_get_battery_voltage(void);
 uint8_t Kelly_get_Ib(void);
 uint8_t Kelly_get_Ic(void);
+
+*/
 
 #endif
