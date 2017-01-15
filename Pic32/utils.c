@@ -98,13 +98,13 @@ void printBoardNumber(void) {
 
 void printState(STATE s) {
     switch (s) {
-        case INIT:          printf("INIT");
-        case IDLE:          printf("IDLE");
-        case MANUAL:        printf("MANUAL");
-        case AUTO:          printf("AUTO");
-        case BRAKE:         printf("BRAKE");
-        case SHUTDOWN:      printf("SHUTDOWN");
-        case UNDER_TEST:    printf("UNDER_TEST");
+        case INIT:          printf("INIT"); break;
+        case IDLE:          printf("IDLE"); break;
+        case MANUAL:        printf("MANUAL"); break;
+        case AUTO:          printf("AUTO"); break;
+        case BRAKE:         printf("BRAKE"); break;
+        case SHUTDOWN:      printf("SHUTDOWN"); break;
+        case UNDER_TEST:    printf("UNDER_TEST"); break;
         default:            printf("UNKNOWN");
     }
 }

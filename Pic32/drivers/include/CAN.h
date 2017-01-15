@@ -120,19 +120,22 @@ typedef union {
 /******************************************************************************/
 /*                             FIFO Setup                                     */
 /******************************************************************************/
-#define fifo_0_size         8
-#define fifo_1_size         8
-#define fifo_2_size         8
-#define fifo_3_size         8
-#define FIFO_SIZE           fifo_0_size + fifo_1_size + fifo_2_size + fifo_3_size
+#define fifo_0_size                 8
+#define fifo_1_size                 8
+#define fifo_2_size                 8
+#define fifo_3_size                 8
+#define FIFO_SIZE                   fifo_0_size + fifo_1_size + fifo_2_size + fifo_3_size
 #define GLOBAL_RECEIVE_ENABLE       CAN_SFR(FIFOINT0bits, CAN_MAIN).RXNEMPTYIE
 #define ADDRESSED_RECEIVE_ENABLE    CAN_SFR(FIFOINT1bits, CAN_MAIN).RXNEMPTYIE
 #define GLOBAL_RECEIVE_FLAG         CAN_SFR(FIFOINT0bits, CAN_MAIN).RXNEMPTYIF
 #define ADDRESSED_RECEIVE_FLAG      CAN_SFR(FIFOINT1bits, CAN_MAIN).RXNEMPTYIF
-#define BROADCAST_REC_ADDR              PA_TO_KVA1(CAN_SFR(FIFOUA0, CAN_MAIN))
-#define ADDRESSED_REC_ADDR              PA_TO_KVA1(CAN_SFR(FIFOUA1, CAN_MAIN))
-#define ADDRESSED_SEND_ADDR             PA_TO_KVA1(CAN_SFR(FIFOUA2, CAN_MAIN))
-#define BROADCAST_SEND_ADDR             PA_TO_KVA1(CAN_SFR(FIFOUA3, CAN_MAIN))
+#define BROADCAST_REC_ADDR          PA_TO_KVA1(CAN_SFR(FIFOUA0, CAN_MAIN))
+#define ADDRESSED_REC_ADDR          PA_TO_KVA1(CAN_SFR(FIFOUA1, CAN_MAIN))
+#define ADDRESSED_SEND_ADDR         PA_TO_KVA1(CAN_SFR(FIFOUA2, CAN_MAIN))
+#define BROADCAST_SEND_ADDR         PA_TO_KVA1(CAN_SFR(FIFOUA3, CAN_MAIN))
+#define CAN_TIMER_FLAG              CAN_SFR(INTbits, CAN_MAIN).CTMRIF
+#define CAN_TIMER_EN                CAN_SFR(INTbits, CAN_MAIN).CTMRIE
+#define CAN_MAIN_VECTOR_BITS        CAN_SFR(VECbits, CAN_MAIN)
 /******************************************************************************/
 
 

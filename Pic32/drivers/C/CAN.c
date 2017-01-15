@@ -1,6 +1,7 @@
 #include "../include/CAN.h"
 
 volatile bool specificAvailable = false, broadcastAvailable = false;
+volatile unsigned int numOverflows = 0;
 
 unsigned int *receivePointer;
 
@@ -65,6 +66,9 @@ void CAN_fifo_init(void) {
 
 void CAN_set_up_interrupts(void) {
     CAN_SFR(INTbits, CAN_MAIN).RBIE = 1;
+#ifdef CAP_TIME
+    CAN_TIMER_EN = 1;
+#endif
     GLOBAL_RECEIVE_ENABLE = 1;                  // interrupt when not empty
     GLOBAL_RECEIVE_FLAG = 0;
     ADDRESSED_RECEIVE_ENABLE = 1;               // interrupt when not empty
@@ -147,7 +151,7 @@ bool CAN_send(void) {
 #endif
     CAN_SFR(FIFOCON2SET, CAN_MAIN) = 0x2000;     // increment pointer for fifo
     CAN_SFR(FIFOCON2bits, CAN_MAIN).TXREQ = 1;   // tell CAN to send message
-
+    return true;
 }
 
 // FIFO 3
@@ -160,7 +164,6 @@ bool CAN_broadcast(void) {
 #endif
     CAN_SFR(FIFOCON3SET, CAN_MAIN) = 0x2000;     // increment pointer for fifo
     CAN_SFR(FIFOCON3bits, CAN_MAIN).TXREQ = 1;   // tell CAN to send message
-
     return true;
 }
 
@@ -201,19 +204,19 @@ bool CAN_message_is_heartbeat(CAN_MESSAGE *message) {
 // TODO add ISRs
 void __ISR (MAIN_CAN_VECTOR, IPL1SOFT) MAIN_CAN_Interrupt (void) {
     
-    if (CAN_SFR(VECbits, CAN_MAIN).ICODE > 32) {
-        // interrupt did not occur because of a message
-#ifdef PCB_PRESENT
-        RED_LED = 1;
-#endif
+    if (CAN_MAIN_VECTOR_BITS.ICODE > 32) {
+        if (CAN_MAIN_VECTOR_BITS.ICODE == 0x46) {
+            numOverflows++;
+            CAN_TIMER_FLAG = 0;
+        }
     }
     else {
-        if (CAN_SFR(VECbits, CAN_MAIN).ICODE == 0) {
+        if (CAN_MAIN_VECTOR_BITS.ICODE == 0) {
             GLOBAL_RECEIVE_ENABLE = 0;
             GLOBAL_RECEIVE_FLAG = 0;
             broadcastAvailable = true;
         }
-        else if (CAN_SFR(VECbits, CAN_MAIN).ICODE == 1) {
+        else if (CAN_MAIN_VECTOR_BITS.ICODE == 1) {
             ADDRESSED_RECEIVE_ENABLE = 0;
             ADDRESSED_RECEIVE_FLAG = 0;
             specificAvailable = true;
@@ -242,13 +245,7 @@ void CAN_print_errors(void) {
     printf("=============================================\r\n");
 }
 
-void CAN_message_dump(CAN_MESSAGE *message, bool outgoing) {
-    int i;
-    printf("\r\n=========== CAN MESSAGE DUMP ================\r\n");
-    if (outgoing) printf("--------------- SENDING ---------------------\r\n");
-    else          printf("--------------- RECEIVING -------------------\r\n");
-    
-    printf("SID:\t0x%x\tsender:\t", message->SID);
+void CAN_print_sender(CAN_MESSAGE *message) {
     switch(message->from) {
         case VNM_FROM_ID: printf("VNM"); break;
         case VSM_FROM_ID: printf("VSM"); break;
@@ -258,17 +255,9 @@ void CAN_message_dump(CAN_MESSAGE *message, bool outgoing) {
         case BMS_FROM_ID: printf("BMS"); break;
         default: printf("UNKNOWN SENDER (%u)", message->from);
     }
-    printf("\r\n");
-    if (!outgoing) {
-        switch (message->FILHIT) {
-            case 0: printf("Filter hit:\tBROADCAST\r\n");
-            case 1: printf("Filter hit:\tADDRESSED\r\n");
-        }
-        printf("Timestamp:\t%d\r\n", message->TS / 1000);
-    }
-    printf("Size:\t%u\r\n", message->SIZE);
-    
-    printf("Message Type:\t");
+}
+
+void CAN_print_message_type(CAN_MESSAGE *message) {
     switch (message->message_num) {
         case INVALID: printf("INVALID"); break;
         case WCM_HB: printf("WCM_HB"); break;
@@ -281,10 +270,35 @@ void CAN_message_dump(CAN_MESSAGE *message, bool outgoing) {
         default: printf("!! UNKNOWN !!");
     }
     printf(" (%d)\r\n", message->message_num);
-    if (CAN_message_is_heartbeat(message)) printState(message->message_num);
+}
+
+void CAN_message_dump(CAN_MESSAGE *message, bool outgoing) {
+    int i;
+    printf("\r\n=========== CAN MESSAGE DUMP ================\r\n");
+    if (outgoing) printf("--------------- SENDING ---------------------\r\n");
+    else          printf("--------------- RECEIVING -------------------\r\n");
+    printf("SID:\t0x%x\tsender:\t", message->SID);
+    CAN_print_sender(message);
+    printf("\r\n");
+    if (!outgoing) {
+        switch (message->FILHIT) {
+            case 0: printf("Filter hit:\tBROADCAST\r\n"); break;
+            case 1: printf("Filter hit:\tADDRESSED\r\n"); break;
+        }
+        printf("Timestamp:\t%d (seconds since start)\r\n", (message->TS +65535*numOverflows) / 1000);
+    }
+    printf("Size:\t%u\r\n", message->SIZE);
+    
+    printf("Message Type:\t");
+    CAN_print_message_type(message);
+    if (CAN_message_is_heartbeat(message)) {
+        printf("State:\t\t");
+        printState(message->byte0);
+        printf("\r\n");
+    }
     else {
-    for (i = 1; i < message->SIZE; i++)
-        printf("Byte %d:\t\t%u\t(%c)\r\n", i - 1, message->bytes[i], message->bytes[i]);
+        for (i = 1; i < message->SIZE; i++)
+            printf("Byte %d:\t\t%u\t(%c)\r\n", i - 1, message->bytes[i], message->bytes[i]);
     }
     printf("=============================================\r\n\r\n");
 }

@@ -27,7 +27,7 @@ void fail(void) {
 void whoami(void) {
     printf("You are:\t");
     printRole(getThisRole());
-    printf("\tSID:\t%d\tfrom ID:%d\r\n", SID, from_ID);
+    printf("\r\nSID:\t%d\r\nfrom ID:%d\r\n", SID, from_ID);
 }
 
 bool testRun(void) {
