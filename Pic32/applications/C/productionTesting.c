@@ -108,6 +108,7 @@ void testInitializeHeartbeatOrder(void) {
 }
 
 void productionTesting(void) {
+    int loopIteration = 0;
     memset(uartReceive, '\0', 50);
     testInitializePeripherals();
     testInitializeHeartbeatOrder();
@@ -125,6 +126,14 @@ void productionTesting(void) {
         
         if (CAN_receive_broadcast(&receiving)) {
             CAN_message_dump(&receiving, false);
+            if (CAN_message_is_heartbeat(&receiving) && 
+               (receiving.from == HEARTBEAT_SENDER || 
+                receiving.from == heartbeat_order[heartbeat_index])) {
+                if (heartbeat_order[++heartbeat_index] == getThisRole())
+                    CAN_send_heartbeat();
+                if (heartbeat_index == num_endpoints) 
+                    heartbeat_index = 0;
+            }
         }
         
         if (CAN_receive_specific(&receiving)) {
@@ -133,8 +142,11 @@ void productionTesting(void) {
         
         if (CAN_check_error()) CAN_print_errors();
         
-        blinkGreen(1, 250);
-    }
+        blinkGreen(2, 250);
+        
+        if (loopIteration++ % 4 == 0 && getThisRole() == HEARTBEAT_SENDER)
+            CAN_send_heartbeat();
+    }   
 }
 
 #endif

@@ -12,17 +12,6 @@ int i;
 ROLE *heartbeat_order;
 uint8_t heartbeat_index = 0;
 
-ROLE heartbeatMessageToRole(CAN_MESSAGE *message) {
-    switch (message->message_num) {
-        case WCM_HB: return WCM;
-        case MCM_HB: return MCM;
-        case VSM_HB: return VSM;
-        case VNM_HB: return VNM;
-        case BCM_HB: return BCM;
-        default: return NOT_PRESENT;
-    }
-}
-
 bool initialize_peripherals(ROLE role) {
     switch (role) {
         case VNM:
@@ -54,11 +43,13 @@ bool initialize_heartbeat_order(void) {
 // if the WCM is attached it goes first
 #ifdef WCM_PRESENT
     heartbeat_order[0] = WCM;
-    heartbeat_index = 1;
+#else
+    heartbeat_order[0] = HEARTBEAT_SENDER;
 #endif
     
     // Find the active boards and put them in ascending order
     i = 1;
+    heartbeat_index = 1;
     while (heartbeat_index < num_endpoints && i <= NUM_BOARDS) {
         if (getBoardRole(i) != NOT_PRESENT) 
             heartbeat_order[heartbeat_index++] = getBoardRole(i);
@@ -73,10 +64,10 @@ bool initialize_heartbeat_order(void) {
     return true;
 }
 
-void CAN_send_heartbeat(void) {
+bool CAN_send_heartbeat(void) {
     sending = BROADCAST_SEND_ADDR;
     sending->SID = ALL;
-    sending->from = from_ID;
+    sending->from = getThisRole();
     sending->SIZE = 2;
     switch(getThisRole()) {
         case VNM: sending->message_num = VNM_HB; break;
@@ -86,7 +77,12 @@ void CAN_send_heartbeat(void) {
         default: sending->message_num = INVALID; break;
     }
     sending->byte1 = (uint8_t) state;
-    CAN_broadcast();
+#ifdef SERIAL_DEBUG
+    printf("sending ");
+    printRole(sending->from);
+    printf(" heartbeat . . .\r\n");
+#endif
+    return CAN_broadcast();
 }
 
 /*
@@ -113,7 +109,7 @@ void run(ROLE role) {
             if (CAN_message_is_heartbeat(&receiving)) {
                 
                 // heartbeat arrived in expected order
-                if (heartbeatMessageToRole(&receiving) == heartbeat_order[heartbeat_index]) {
+                if (receiving.from == heartbeat_order[heartbeat_index]) {
                     heartbeat_index++;
                     
                     // check if we are the next node to send the heartbeat

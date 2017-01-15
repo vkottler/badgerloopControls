@@ -21,9 +21,10 @@ int main(void) {
     
 #ifdef SERIAL_DEBUG
     initUART();
+    blinkBoardLights(50, 50);
     printBoardNumber();
     printAllRolesRawValue();
-    printf("CAN_MAIN: %d\tCAN_ALT: %d\tFIFO total size: %d messages\r\n", CAN_MAIN, CAN_ALT, FIFO_SIZE);
+    printf("CAN_MAIN: %d\tCAN_ALT: %d\r\nFIFO total size: %d messages (message size: %d)\r\n", CAN_MAIN, CAN_ALT, FIFO_SIZE, sizeof(CAN_MESSAGE));
 #endif 
     
     if (sizeof(CAN_MESSAGE) != 16 || sizeof(MESSAGE_TYPE) != 1) {

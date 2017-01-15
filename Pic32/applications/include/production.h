@@ -14,7 +14,7 @@ void run(ROLE boardRole);
 ROLE heartbeatMessageToRole(CAN_MESSAGE *message);
 bool initialize_peripherals(ROLE role);
 bool initialize_heartbeat_order(void);
-void CAN_send_heartbeat(void);
+bool CAN_send_heartbeat(void);
 
 extern CAN_MESSAGE *sending, receiving;
 extern uint8_t num_endpoints;

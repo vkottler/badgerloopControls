@@ -122,12 +122,12 @@ int CAN_set_mode(int mode) {
 void CAN_init(ROLE role) {
     setBoardRole(getBoardNumber(), role);
     switch (role) {
-        case VNM:   SID = VNM_SID; from_ID = VNM_FROM_ID; break;
-        case BCM:   SID = BCM_SID; from_ID = BCM_FROM_ID; break;
-        case MCM:   SID = MCM_SID; from_ID = MCM_FROM_ID; break;
-        case VSM:   SID = VSM_SID; from_ID = VSM_FROM_ID; break;
-        case TEST:  SID = ID_FOR_KELLY; from_ID = 0; break;
-        default:    SID = 0x400; from_ID = 7; break;
+        case VNM:   SID = VNM_SID; break;
+        case BCM:   SID = BCM_SID; break;
+        case MCM:   SID = MCM_SID; break;
+        case VSM:   SID = VSM_SID; break;
+        case TEST:  SID = ID_FOR_KELLY; break;
+        default:    SID = 0x400; break;
     }
     CAN_SFR(CONbits, CAN_MAIN).ON = 1;
     CAN_set_mode(CONFIG_MODE);
@@ -160,7 +160,7 @@ bool CAN_send(void) {
 bool CAN_broadcast(void) {
     if (!CAN_SFR(FIFOINT3bits, CAN_MAIN).TXNFULLIF) return false;
 #if defined PRODUCTION_TESTING && defined SERIAL_DEBUG
-    CAN_message_dump(BROADCAST_SEND_ADDR, true);
+    //CAN_message_dump(BROADCAST_SEND_ADDR, true);
 #endif
     CAN_SFR(FIFOCON3SET, CAN_MAIN) = 0x2000;     // increment pointer for fifo
     CAN_SFR(FIFOCON3bits, CAN_MAIN).TXREQ = 1;   // tell CAN to send message
@@ -234,27 +234,13 @@ void __ISR (ALT_CAN_VECTOR, IPL1SOFT) ALT_CAN_Interrupt (void) {
 
 void CAN_print_errors(void) {
     printf("=========== CAN ERROR DUMP =================\r\n");
-    if (CAN_SFR(TRECbits, CAN_MAIN).EWARN) printf("Transmitter/Receiver Error State Warning\r\n");
     if (CAN_SFR(TRECbits, CAN_MAIN).TXBO) printf("Transmitter in Error State Bus OFF\r\n");
-    if (CAN_SFR(TRECbits, CAN_MAIN).TXBP) printf("Transmitter in Error State Bus Passive\r\n");
+    else if (CAN_SFR(TRECbits, CAN_MAIN).TXBP) printf("Transmitter in Error State Bus Passive\r\n");
+    else if (CAN_SFR(TRECbits, CAN_MAIN).TXWARN) printf("Transmitter in Error State Warning\r\n");
     if (CAN_SFR(TRECbits, CAN_MAIN).RXBP) printf("Receiver in Error State Bus Passive\r\n");
-    if (CAN_SFR(TRECbits, CAN_MAIN).TXWARN) printf("Transmitter in Error State Warning\r\n");
-    if (CAN_SFR(TRECbits, CAN_MAIN).RXWARN) printf("Receiver in Error State Warning\r\n");
-    if (CAN_SFR(TRECbits, CAN_MAIN).TERRCNT) printf("Transmit Error Count: %d\r\n", CAN_SFR(TRECbits, CAN_MAIN).TERRCNT);
-    if (CAN_SFR(TRECbits, CAN_MAIN).RERRCNT) printf("Receiver Error Count: %d\r\n", CAN_SFR(TRECbits, CAN_MAIN).RERRCNT);
+    else if (CAN_SFR(TRECbits, CAN_MAIN).RXWARN) printf("Receiver in Error State Warning\r\n");
+    printf("TX error count:%d\tRX error count:\t%d", CAN_SFR(TRECbits, CAN_MAIN).TERRCNT, CAN_SFR(TRECbits, CAN_MAIN).RERRCNT);
     printf("=============================================\r\n");
-}
-
-void CAN_print_sender(CAN_MESSAGE *message) {
-    switch(message->from) {
-        case VNM_FROM_ID: printf("VNM"); break;
-        case VSM_FROM_ID: printf("VSM"); break;
-        case BCM_FROM_ID: printf("BCM"); break;
-        case MCM_FROM_ID: printf("MCM"); break;
-        case WCM_FROM_ID: printf("WCM"); break;
-        case BMS_FROM_ID: printf("BMS"); break;
-        default: printf("UNKNOWN SENDER (%u)", message->from);
-    }
 }
 
 void CAN_print_message_type(CAN_MESSAGE *message) {
@@ -278,7 +264,7 @@ void CAN_message_dump(CAN_MESSAGE *message, bool outgoing) {
     if (outgoing) printf("--------------- SENDING ---------------------\r\n");
     else          printf("--------------- RECEIVING -------------------\r\n");
     printf("SID:\t0x%x\tsender:\t", message->SID);
-    CAN_print_sender(message);
+    printRole(message->from);
     printf("\r\n");
     if (!outgoing) {
         switch (message->FILHIT) {

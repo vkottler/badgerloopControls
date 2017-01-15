@@ -154,20 +154,14 @@ typedef union {
 /******************************************************************************/
 /*                      Module SIDs  (http://bit.ly/2iQw5cs)                  */
 /******************************************************************************/
-#define VNM_SID 0x001
-#define VSM_SID 0x002
-#define BCM_SID 0x004
-#define MCM_SID 0x008
-#define WCM_SID 0x010
-#define BMS_SID 0x020
-#define ALL     0x400
+#define VNM_SID             0x001
+#define VSM_SID             0x002
+#define BCM_SID             0x004
+#define MCM_SID             0x008
+#define WCM_SID             0x010
+#define BMS_SID             0x020
+#define ALL                 0x400
 #define ID_FOR_KELLY        0x73
-#define VNM_FROM_ID 1 
-#define VSM_FROM_ID 2
-#define BCM_FROM_ID 3
-#define MCM_FROM_ID 4
-#define WCM_FROM_ID 5
-#define BMS_FROM_ID 6
 /******************************************************************************/
 
 
