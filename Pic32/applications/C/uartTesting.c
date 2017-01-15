@@ -3,7 +3,6 @@
 char message[50];
 
 void uartTesting(void) {
-    GREEN1 = 1;
     while (1) {
         
         //printf("Heartbeat.\r\n");
@@ -11,9 +10,6 @@ void uartTesting(void) {
             getMessage(message, 50);
             printf("%s\r\n", message);
         }
-        YELLOW1 = 1;
-        delay(500, MILLI);
-        YELLOW1 = 0;
-        delay(500, MILLI);
+        blinkBoardLights(5, 100);
     }
 }

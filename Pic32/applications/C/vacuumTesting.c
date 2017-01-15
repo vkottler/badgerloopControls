@@ -4,14 +4,8 @@ char message[255];
 uint32_t receive[4];
 
 void vacuumInitializers(void) {
-    
-    // hardware
-    //__builtin_disable_interrupts();
     I2Cinit(1, 100, true);
     initADC();
-    //__builtin_enable_interrupts();
-    CAN_init(TEST);
-    GREEN1 = 1;
 }
 
 void helpMessage(void) {

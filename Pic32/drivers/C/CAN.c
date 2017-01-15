@@ -139,6 +139,25 @@ int CAN_check_error(void) {
     return CAN_SFR(TREC, CAN_MAIN);
 }
 
+void CAN_load_message(CAN_MESSAGE *message) {
+    currentBufferLocation[0] = message->SID;
+    currentBufferLocation[1] = message->SIZE;
+    currentBufferLocation[2] = message->dataw0;
+    currentBufferLocation[3] = message->dataw1;
+}
+
+void CAN_unload_message(CAN_MESSAGE *message) {
+#if defined DATA_ONLY
+    message->dataw0 = currentBufferLocation[0];
+    message->dataw1 = currentBufferLocation[1];
+#else
+    message->SIZE = currentBufferLocation[1];
+    message->SID = currentBufferLocation[0];
+    message->dataw0 = currentBufferLocation[2];
+    message->dataw1 = currentBufferLocation[3];
+#endif
+}
+
 // FIFO 2
 //
 // Returns true/false based on whether or not it's possible to send the message currently
@@ -146,13 +165,11 @@ bool CAN_send(CAN_MESSAGE *message) {
     if (!CAN_SFR(FIFOINT2bits, CAN_MAIN).TXNFULLIF) return false;   // wait until FIFO is not full
     message->from = from_ID;
     currentBufferLocation = PA_TO_KVA1(CAN_SFR(FIFOUA2, CAN_MAIN));
-    currentBufferLocation[0] = message->SID;
-    currentBufferLocation[1] = message->SIZE;
-    currentBufferLocation[2] = message->dataw0;
-    currentBufferLocation[3] = message->dataw1;
+    CAN_load_message(message);
     CAN_SFR(FIFOCON2SET, CAN_MAIN) = 0x2000;     // increment pointer for fifo
     CAN_SFR(FIFOCON2bits, CAN_MAIN).TXREQ = 1;   // tell CAN to send message
 #if defined PRODUCTION_TESTING && defined SERIAL_DEBUG
+    printf("--------------- SENDING ---------------------");
     CAN_message_dump(message);
 #endif
 }
@@ -164,13 +181,11 @@ bool CAN_broadcast(CAN_MESSAGE *message) {
     if (!CAN_SFR(FIFOINT3bits, CAN_MAIN).TXNFULLIF) return false;
     message->from = from_ID;
     currentBufferLocation = PA_TO_KVA1(CAN_SFR(FIFOUA3, CAN_MAIN));
-    currentBufferLocation[0] = message->SID;
-    currentBufferLocation[1] = message->SIZE;
-    currentBufferLocation[2] = message->dataw0;
-    currentBufferLocation[3] = message->dataw1;
+    CAN_load_message(message);
     CAN_SFR(FIFOCON3SET, CAN_MAIN) = 0x2000;     // increment pointer for fifo
     CAN_SFR(FIFOCON3bits, CAN_MAIN).TXREQ = 1;   // tell CAN to send message
 #if defined PRODUCTION_TESTING && defined SERIAL_DEBUG
+    printf("--------------- SENDING ---------------------");
     CAN_message_dump(message);
 #endif
     return true;
@@ -179,40 +194,20 @@ bool CAN_broadcast(CAN_MESSAGE *message) {
 // FIFO 0
 bool CAN_receive_broadcast(CAN_MESSAGE *message) {
     if (!broadcastCount) return false;
-    //__builtin_disable_interrupts();
     currentBufferLocation = PA_TO_KVA1(CAN_SFR(FIFOUA0, CAN_MAIN));
-#if defined DATA_ONLY
-    message->dataw0 = currentBufferLocation[0];
-    message->dataw1 = currentBufferLocation[1];
-#else
-    message->SIZE = currentBufferLocation[1] & 0x1f;
-    message->SID = currentBufferLocation[0] & 0x7ff;
-    message->dataw0 = currentBufferLocation[2];
-    message->dataw1 = currentBufferLocation[3];
-#endif
+    CAN_unload_message(message);
     broadcastCount--;
     CAN_SFR(FIFOCON0SET, CAN_MAIN) = 0x2000;
-    //__builtin_enable_interrupts();
     GLOBAL_RECEIVE_ENABLE = 1;
 }
 
 // FIFO 1
 bool CAN_receive_specific(CAN_MESSAGE *message) {
     if (!specificCount) return false;
-    //__builtin_disable_interrupts();
     currentBufferLocation = PA_TO_KVA1(CAN_SFR(FIFOUA1, CAN_MAIN));
-#if defined DATA_ONLY
-    message->dataw0 = currentBufferLocation[0];
-    message->dataw1 = currentBufferLocation[1];
-#else
-    message->SIZE = currentBufferLocation[1] & 0x1f;
-    message->SID = currentBufferLocation[0] & 0x7ff;
-    message->dataw0 = currentBufferLocation[2];
-    message->dataw1 = currentBufferLocation[3];
-#endif
+    CAN_unload_message(message);
     specificCount--;
     CAN_SFR(FIFOCON1SET, CAN_MAIN) = 0x2000;
-    //__builtin_enable_interrupts();
     ADDRESSED_RECEIVE_ENABLE = 1;
 }
 

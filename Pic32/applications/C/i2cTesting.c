@@ -6,10 +6,6 @@ void lineTest(void) {
         if (i == 128) i = 0;
         ssd1306_fillScreen(false);
         ssd1306_drawLine(0, i++, 128);
-        delay(10, MILLI);
-        YELLOW1 = 1;
-        delay(10, MILLI);
-        YELLOW1 = 0;
     }
 }
 
@@ -38,18 +34,14 @@ void charactersTest(void) {
 }
 
 void error(void) {
-    GREEN2 = 0;
     while (1) {
-        RED2 = 1;
+        blinkBoardLights(5, 100);
         delay(500, MILLI);
-        RED2 = 0;
-        delay(500, MILLI); 
     }
 }
 
 void i2cTesting(void) {
     I2Cinit(1, 400, true);
-    GREEN1 = 1;
     
     if (!ssd1306_init()) error();
     

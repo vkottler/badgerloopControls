@@ -24,7 +24,6 @@ ROLE heartbeatMessageToRole(CAN_MESSAGE *message) {
 }
 
 bool initialize_peripherals(ROLE role) {
-    CAN_init(role);             // every module uses CAN
     switch (role) {
         case VNM:
             break;
