@@ -123,12 +123,12 @@ void productionTesting(void) {
             else printf("Did not recognize: %s\r\n", uartReceive);
         }
         
-        if (CAN_receive_broadcast(receiving)) {
-            CAN_message_dump(receiving, false);
+        if (CAN_receive_broadcast(&receiving)) {
+            CAN_message_dump(&receiving, false);
         }
         
-        if (CAN_receive_specific(receiving)) {
-            CAN_message_dump(receiving, false);
+        if (CAN_receive_specific(&receiving)) {
+            CAN_message_dump(&receiving, false);
         }
         
         if (CAN_check_error()) CAN_print_errors();

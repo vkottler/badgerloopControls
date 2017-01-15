@@ -1,6 +1,6 @@
 #include "../include/production.h"
 
-CAN_MESSAGE *sending, *receiving;
+CAN_MESSAGE *sending, receiving;
 
 #ifdef WCM_PRESENT
     uint8_t num_endpoints = 1;
@@ -107,13 +107,13 @@ void run(ROLE role) {
     while (1) {
         
         // get broadcasted CAN messages
-        if (CAN_receive_broadcast(receiving)) {
+        if (CAN_receive_broadcast(&receiving)) {
             
             // message is a heartbeat message
-            if (CAN_message_is_heartbeat(receiving)) {
+            if (CAN_message_is_heartbeat(&receiving)) {
                 
                 // heartbeat arrived in expected order
-                if (heartbeatMessageToRole(receiving) == heartbeat_order[heartbeat_index]) {
+                if (heartbeatMessageToRole(&receiving) == heartbeat_order[heartbeat_index]) {
                     heartbeat_index++;
                     
                     // check if we are the next node to send the heartbeat
@@ -131,15 +131,15 @@ void run(ROLE role) {
             
             // message is not a heartbeat message
             else {
-                switch (receiving->message_num) {
+                switch (receiving.message_num) {
                     
                 }
             }
         }
         
         // get addressed CAN messages
-        if (CAN_receive_specific(receiving)) {
-            switch (receiving->message_num) {
+        if (CAN_receive_specific(&receiving)) {
+            switch (receiving.message_num) {
                 
             }
         }

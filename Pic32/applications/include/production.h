@@ -16,7 +16,7 @@ bool initialize_peripherals(ROLE role);
 bool initialize_heartbeat_order(void);
 void CAN_send_heartbeat(void);
 
-extern CAN_MESSAGE *sending, *receiving;
+extern CAN_MESSAGE *sending, receiving;
 extern uint8_t num_endpoints;
 extern ROLE *heartbeat_order;
 extern uint8_t heartbeat_index;

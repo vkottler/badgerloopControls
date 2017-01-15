@@ -4,6 +4,7 @@
 #include <xc.h>
 #include <stdio.h>
 
+#include "globals.h"
 #include "peripherals/include/ledShield.h"
 
 #define MAC1    0xA7B5  // Vaughn's Personal Board
@@ -24,11 +25,14 @@ void waitForButton(void);
 int MACLookUp(int);
 int getMAC(void);
 
+#ifdef SERIAL_DEBUG
 // Printing
 void printMAC(void);
 void printBoardNumber(void);
 void printRole(ROLE role);
 void printRoleRawValue(ROLE role);
 void printAllRolesRawValue(void);
+void printState(STATE s);
+#endif
 
 #endif

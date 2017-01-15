@@ -2,6 +2,8 @@
 
 volatile bool specificAvailable = false, broadcastAvailable = false;
 
+unsigned int *receivePointer;
+
 /*
  * Chosen FIFO usage:
  * 0: Receive, Mask: 0x400
@@ -165,7 +167,11 @@ bool CAN_broadcast(void) {
 // FIFO 0
 bool CAN_receive_broadcast(CAN_MESSAGE *message) {
     if (!broadcastAvailable) return false;
-    message = BROADCAST_REC_ADDR;
+    receivePointer = BROADCAST_REC_ADDR;
+    message->raw[0] = receivePointer[0];
+    message->raw[1] = receivePointer[1];
+    message->raw[2] = receivePointer[2];
+    message->raw[3] = receivePointer[3];
     CAN_SFR(FIFOCON0SET, CAN_MAIN) = 0x2000;
     GLOBAL_RECEIVE_ENABLE = 1;
     broadcastAvailable = false;
@@ -174,7 +180,11 @@ bool CAN_receive_broadcast(CAN_MESSAGE *message) {
 // FIFO 1
 bool CAN_receive_specific(CAN_MESSAGE *message) {
     if (!specificAvailable) return false;
-    message = ADDRESSED_REC_ADDR;
+    receivePointer = ADDRESSED_REC_ADDR;
+    message->raw[0] = receivePointer[0];
+    message->raw[1] = receivePointer[1];
+    message->raw[2] = receivePointer[2];
+    message->raw[3] = receivePointer[3];
     CAN_SFR(FIFOCON1SET, CAN_MAIN) = 0x2000;
     ADDRESSED_RECEIVE_ENABLE = 1;
     specificAvailable = false;
@@ -251,12 +261,13 @@ void CAN_message_dump(CAN_MESSAGE *message, bool outgoing) {
     printf("\r\n");
     if (!outgoing) {
         switch (message->FILHIT) {
-            case 0: printf("Filter hit:\tBROADCAST\t%d\r\n");
-            case 1: printf("Filter hit:\tADDRESSED\t%d\r\n");
+            case 0: printf("Filter hit:\tBROADCAST\r\n");
+            case 1: printf("Filter hit:\tADDRESSED\r\n");
         }
         printf("Timestamp:\t%d\r\n", message->TS / 1000);
     }
     printf("Size:\t%u\r\n", message->SIZE);
+    
     printf("Message Type:\t");
     switch (message->message_num) {
         case INVALID: printf("INVALID"); break;
@@ -270,8 +281,11 @@ void CAN_message_dump(CAN_MESSAGE *message, bool outgoing) {
         default: printf("!! UNKNOWN !!");
     }
     printf(" (%d)\r\n", message->message_num);
+    if (CAN_message_is_heartbeat(message)) printState(message->message_num);
+    else {
     for (i = 1; i < message->SIZE; i++)
         printf("Byte %d:\t\t%u\t(%c)\r\n", i - 1, message->bytes[i], message->bytes[i]);
+    }
     printf("=============================================\r\n\r\n");
 }
 #endif

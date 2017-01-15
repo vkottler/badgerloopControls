@@ -30,7 +30,7 @@
 #endif
 /******************************************************************************/
 
-typedef enum { INIT, IDLE, MANUAL, AUTO, BRAKE, SHUTDOWN } STATE;
+typedef enum { INIT, IDLE, MANUAL, AUTO, BRAKE, SHUTDOWN, UNDER_TEST } STATE;
 
 typedef enum { INIT_BRAKE, ONE_AXLE_BRAKE, NORMAL_BRAKE, MAX_BRAKE } BRAKING_STATE;
 

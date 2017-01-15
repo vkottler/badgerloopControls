@@ -33,7 +33,21 @@ ROLE getThisRole(void) {
     return getBoardRole(getBoardNumber());
 }
 
-//typedef enum { WCM, VNM, BCM, MCM, VSM, TEST, NOT_PRESENT, UNASSIGNED } ROLE;
+int getMAC(void) {
+    return EMAC1SA0;
+}
+
+int MACLookUp(int boardNumber) {
+    switch (boardNumber) {
+        case 1:     return MAC1;
+        case 2:     return MAC2;
+        case 3:     return MAC3;
+        case 4:     return MAC4;
+        default:    return -1;
+    }
+}
+
+#ifdef SERIAL_DEBUG
 void printRole(ROLE role) {
     switch (role) {
         case WCM: printf("WCM"); break;
@@ -72,24 +86,26 @@ void printAllRolesRawValue(void) {
     printf("=============\r\n\r\n");
 }
 
-int MACLookUp(int boardNumber) {
-    switch (boardNumber) {
-        case 1:     return MAC1;
-        case 2:     return MAC2;
-        case 3:     return MAC3;
-        case 4:     return MAC4;
-        default:    return -1;
-    }
-}
-
 void printMAC(void) {
     printf("MAC: %x %x\r\n", EMAC1SA0, EMAC1SA1);
 }
 
-int getMAC(void) {
-    return EMAC1SA0;
-}
+
 
 void printBoardNumber(void) {
     printf("Board %d connected.\r\n", getBoardNumber());
 }
+
+void printState(STATE s) {
+    switch (s) {
+        case INIT:          printf("INIT");
+        case IDLE:          printf("IDLE");
+        case MANUAL:        printf("MANUAL");
+        case AUTO:          printf("AUTO");
+        case BRAKE:         printf("BRAKE");
+        case SHUTDOWN:      printf("SHUTDOWN");
+        case UNDER_TEST:    printf("UNDER_TEST");
+        default:            printf("UNKNOWN");
+    }
+}
+#endif
