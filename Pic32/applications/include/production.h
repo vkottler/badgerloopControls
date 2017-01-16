@@ -6,6 +6,11 @@
 #include "../../drivers/include/CAN.h"
 #include "../../PCB.h"
 
+#include "VNM.h"
+#include "VSM.h"
+#include "MCM.h"
+#include "BCM.h"
+
 //#define WCM_PRESENT     1
 
 void run(void);
@@ -13,7 +18,7 @@ void run(void);
 #if defined PRODUCTION_TESTING
 
 ROLE heartbeatMessageToRole(CAN_MESSAGE *message);
-bool initialize_peripherals(ROLE role);
+bool initialize_peripherals(void);
 bool initialize_heartbeat_order(void);
 bool CAN_send_heartbeat(void);
 

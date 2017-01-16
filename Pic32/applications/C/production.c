@@ -14,8 +14,8 @@ int i;
 ROLE *heartbeat_order;
 uint8_t heartbeat_index = 0;
 
-bool initialize_peripherals(ROLE role) {
-    switch (role) {
+bool initialize_peripherals(void) {
+    switch (getThisRole()) {
         case VNM:
             break;
         case BCM:
@@ -95,7 +95,7 @@ bool CAN_send_heartbeat(void) {
  */
 void run(void) {
 
-    if (!initialize_peripherals(role)) {
+    if (!initialize_peripherals()) {
         // something is not set up properly
     }
 

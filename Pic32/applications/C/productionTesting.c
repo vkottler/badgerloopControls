@@ -78,7 +78,7 @@ void sendTestCANmessage(void) {
 
 void testInitializePeripherals(void) {
     printf("Testing initialize_peripherals . . .");
-    if (!initialize_peripherals(getThisRole())) {
+    if (!initialize_peripherals()) {
         printf("\r\nERROR: Board's role not properly set.\r\nROLE = ");
         printRoleRawValue(getThisRole());
         printf("Available choices:");
