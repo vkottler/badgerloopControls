@@ -8,7 +8,7 @@
 
 //#define WCM_PRESENT     1
 
-void run(ROLE boardRole);
+void run(void);
 
 #if defined PRODUCTION_TESTING
 

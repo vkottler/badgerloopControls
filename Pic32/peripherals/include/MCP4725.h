@@ -13,6 +13,6 @@
 #define MCP_PD_100K      0b00000100 /* chip is shutdown, and the output is grounded with a 100k? resistor */
 #define MCP_PD_500K      0b00000110 /* chip is shutdown, and the output is grounded with a 500k? resistor */
 
-bool mcp_write_val(uint16_t value);
+bool mcp_write_volt(float);
 
 #endif

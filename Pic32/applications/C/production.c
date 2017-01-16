@@ -1,5 +1,7 @@
 #include "../include/production.h"
 
+#if defined PRODUCTION || defined PRODUCTION_TESTING
+
 CAN_MESSAGE *sending, receiving;
 
 #ifdef WCM_PRESENT
@@ -91,7 +93,7 @@ bool CAN_send_heartbeat(void) {
  *
  * VNM, BCM, MCM, VSM, UNASSIGNED, TEST, NOT_PRESENT
  */
-void run(ROLE role) {
+void run(void) {
 
     if (!initialize_peripherals(role)) {
         // something is not set up properly
@@ -167,3 +169,9 @@ void run(ROLE role) {
         state = next_state;
     }
 }
+
+#else
+void run(void) {
+    while (1) blinkRed(5, 100);
+}
+#endif

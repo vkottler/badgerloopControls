@@ -6,8 +6,18 @@ uint8_t mcp[3];
 bool mcp_write_val(uint16_t value) {
     mcp[0] = MCP_WRITE_DAC;
     mcp[1] = value >> 4;
-    mcp[2] = value << 4;
+    mcp[2] = (value % 16) << 4;
     return !I2CwriteAndRead(MCP_ADDR, mcp, 3, NULL, 0); 
+}
+/**
+ * 
+ * @param voltage takes wanted voltage from the real interval [0, 4.9]
+ * @return some convoluted 1 or 0 depending on success of I2C message
+ */
+bool mcp_write_volt(float voltage) {
+    // convert volt to resolution. Math: 4096values/4.9V = 935.918 values/Volt
+    float floatage = 1250.0f * (voltage);
+    return mcp_write_val((int) floatage);
 }
 
 /*

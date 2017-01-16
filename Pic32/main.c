@@ -10,7 +10,7 @@ int main(void) {
     initializeTimer1(0x8000, 0xffff);
     INTCONbits.MVEC = 1;
     __builtin_enable_interrupts();
-    
+#if defined PRODUCTION || defined PRODUCTION_TESTING
     setBoardRole(1, BOARD1_ROLE);
     setBoardRole(2, BOARD2_ROLE);
     setBoardRole(3, BOARD3_ROLE);
@@ -18,15 +18,19 @@ int main(void) {
     setBoardRole(5, BOARD5_ROLE);
     setBoardRole(6, BOARD6_ROLE);
     CAN_init(getThisRole());
+#endif
     
 #ifdef SERIAL_DEBUG
     initUART();
     blinkBoardLights(50, 50);
     printBoardNumber();
+#if defined PRODUCTION_TESTING || defined PRODUCTION
     printAllRolesRawValue();
     printf("CAN_MAIN: %d\tCAN_ALT: %d\r\nFIFO total size: %d messages (message size: %d)\r\n", CAN_MAIN, CAN_ALT, FIFO_SIZE, sizeof(CAN_MESSAGE));
+#endif
 #endif 
     
+#if defined PRODUCTION_TESTING || defined PRODUCTION
     if (sizeof(CAN_MESSAGE) != 16 || sizeof(MESSAGE_TYPE) != 1) {
 #ifdef SERIAL_DEBUG
         printf("ERROR: sizeof CAN_MESSAGE is %d bytes, sizeof MESSAGE_TYPE enum is %d bytes.\r\n", sizeof(CAN_MESSAGE), sizeof(MESSAGE_TYPE));
@@ -38,6 +42,7 @@ int main(void) {
             delay(1000, MILLI);
         }
     }
+#endif
 /******************************************************************************/
     
     
@@ -72,7 +77,7 @@ int main(void) {
 #if defined BOOT_CONFIG
     // NOT YET IMPLEMENTED
 #else
-    run(getBoardRole(getBoardNumber()));
+    run();
 #endif
 /******************************************************************************/
 

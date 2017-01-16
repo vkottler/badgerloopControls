@@ -8,7 +8,7 @@
 /******************************************************************************/
 #define SERIAL_DEBUG        1   // determines whether Serial will be usable
 #define TESTING             1   // this asserts that something in the TESTING section in main will be compiled
-#define PRODUCTION_TESTING  1   // special testing where some production settings need to be active
+//#define PRODUCTION_TESTING  1   // special testing where some production settings need to be active
 //#define PRODUCTION          1   // use the production build (must still uncomment TESTING)
 //#define BOOT_CONFIG         1   // let WCM set up the system
 

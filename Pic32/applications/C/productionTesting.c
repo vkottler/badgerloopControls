@@ -8,7 +8,7 @@ void productionTesting(void) {
 #endif
     while(1) {
         blinkBoardLights(3, 150);
-        delay(550);
+        delay(550, MILLI);
     }
 }
 #else

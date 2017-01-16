@@ -33,8 +33,8 @@ void charactersTest(void) {
     ssd1306_print("        asdf", 7, 0);
 }
 
-void testMCP(uint16_t writeValue) {
-    mcp_write_val(writeValue);
+void testMCP(float writeValue) {
+    mcp_write_volt(writeValue);
 }
 
 void error(void) {
@@ -46,7 +46,7 @@ void error(void) {
 
 void i2cTesting(void) {
     I2Cinit(1, 400, true);
-    testMCP(0xF0F0);
+    
     //if (!ssd1306_init()) error();
     
     //lineTest();
@@ -54,5 +54,14 @@ void i2cTesting(void) {
     //charactersTest();
     //ssd1306_drawBitmap();
     
-    while (1);
+    while (1) {
+        testMCP(4.9);
+        delay(1000, MILLI);
+        testMCP(3);
+        delay(1000, MILLI);
+        testMCP(1);
+        delay(1000, MILLI);
+        testMCP(0);
+        delay(1000, MILLI);
+    }
 }
