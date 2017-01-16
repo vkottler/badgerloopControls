@@ -15,6 +15,8 @@
 #include "../../peripherals/include/ledShield.h"
 //#include "../../peripherals/include/honeywellPressure.h"
 #include "../../peripherals/include/OLED.h"
+#include "../../peripherals/include/MCP4725.h"
+#include "../../peripherals/include/MPU9250.h"
 
 void i2cTesting(void);
 

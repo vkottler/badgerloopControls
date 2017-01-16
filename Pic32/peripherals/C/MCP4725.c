@@ -1,31 +1,17 @@
 #include "../include/MCP4725.h"
 
-static uint8_t write_msg_data[3];
+uint8_t mcp[3];
 
-void mcp_write_val(uint16_t value) {
-    value = (value > 4095) ? 4095 : value;
-    
-    write_msg_data[0] = MCP_WRITE_DAC | MCP_PD_NORMAL;
-    uint16_t tmp = value >> 4;
-    write_msg_data[1] = tmp;
-    tmp = (value << 4) & 0x00FF;
-    write_msg_data[2] = tmp;
-    
-    I2CwriteAndRead(MCP_ADDR, (buffer_t)write_msg_data, 3, NULL, 0);
+// bool I2CwriteAndRead(unsigned int addr, const buffer_t write, unsigned int wlen, const buffer_t read, unsigned int rlen);
 
-    //i2c_master_xfer(I2C2, &write_msg, 1, 0);
-    
+bool mcp_write_val(uint16_t value) {
+    mcp[0] = MCP_WRITE_DAC;
+    mcp[1] = value >> 4;
+    mcp[2] = value << 4;
+    return !I2CwriteAndRead(MCP_ADDR, mcp, 3, NULL, 0); 
 }
 
-void mcp_write_test2(void) {
-    uint8_t dac_write[3];
-    
-    dac_write[0] = WRITEDAC;
-    dac_write[1] = 0b11111111;
-    dac_write[2] = 0b11110000;
-    I2CwriteAndRead(MCP_ADDR, (buffer_t)dac_write, 3, NULL, 0);
-}
-
+/*
 void MCP4725_writeEeprom(int m_PowerMode, unsigned short value)
 {
     //Create a temporary buffer
@@ -44,3 +30,4 @@ void MCP4725_writeEeprom(int m_PowerMode, unsigned short value)
     //Write the data
     I2CwriteAndRead(MCP_ADDR, buff, 3, NULL, 0); 
 }
+*/
