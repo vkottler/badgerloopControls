@@ -29,7 +29,12 @@
 #define BOARD5_ROLE         BCM
 #define BOARD6_ROLE         NOT_PRESENT
 
+#ifndef PRODUCTION
 #define HEARTBEAT_SENDER    BCM
+#else
+#define HEARTBEAT_SENDER    WCM
+#endif
+
 #endif
 /******************************************************************************/
 

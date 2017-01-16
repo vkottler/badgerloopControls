@@ -29,38 +29,38 @@ bool initialize_peripherals(ROLE role) {
 }
 
 bool initialize_heartbeat_order(void) {
-    
+
     // Figure out how many boards are attached
-    for (i = 1; i <= NUM_BOARDS; i++) 
+    for (i = 1; i <= NUM_BOARDS; i++)
         if (getBoardRole(i) != NOT_PRESENT)
             num_endpoints++;
-    
+
     // Create space for the array to hold the order
     heartbeat_order = malloc(num_endpoints * sizeof(ROLE));
-    
+
     // We need to know if the heap is not big enough
     if (heartbeat_order == NULL) return false;
-    
+
 // if the WCM is attached it goes first
 #ifdef WCM_PRESENT
     heartbeat_order[0] = WCM;
 #else
     heartbeat_order[0] = HEARTBEAT_SENDER;
 #endif
-    
+
     // Find the active boards and put them in ascending order
     i = 1;
     heartbeat_index = 1;
     while (heartbeat_index < num_endpoints && i <= NUM_BOARDS) {
-        if (getBoardRole(i) != NOT_PRESENT) 
+        if (getBoardRole(i) != NOT_PRESENT)
             heartbeat_order[heartbeat_index++] = getBoardRole(i);
         i++;
     }
-    
+
     // This would indicate that i got too large and we didn't
     // find all of the boards
     if (heartbeat_index != num_endpoints) return false;
-    
+
     heartbeat_index = 0;
     return true;
 }
@@ -88,59 +88,60 @@ bool CAN_send_heartbeat(void) {
 
 /*
  * Roles:
- * 
+ *
  * VNM, BCM, MCM, VSM, UNASSIGNED, TEST, NOT_PRESENT
  */
 void run(ROLE role) {
-    
+
     if (!initialize_peripherals(role)) {
         // something is not set up properly
     }
-    
+
     if (!initialize_heartbeat_order()) {
         // something is not set up properly
     }
-    
+
     while (1) {
-        
+
         // get broadcasted CAN messages
         if (CAN_receive_broadcast(&receiving)) {
-            
+
             // message is a heartbeat message
+            // just send a heartbeat back if it came from HEARTBEAT_SENDER
             if (CAN_message_is_heartbeat(&receiving)) {
-                
+
                 // heartbeat arrived in expected order
                 if (receiving.from == heartbeat_order[heartbeat_index]) {
                     heartbeat_index++;
-                    
+
                     // check if we are the next node to send the heartbeat
                     if (heartbeat_order[heartbeat_index] == getThisRole()) {
                         CAN_send_heartbeat();
                         // we may need to increment again here?
                     }
                 }
-                
+
                 // heartbeat did not arrive in expected order
                 else {
-                    
+
                 }
             }
-            
+
             // message is not a heartbeat message
             else {
                 switch (receiving.message_num) {
-                    
+                  // command from WCM
                 }
             }
         }
-        
+
         // get addressed CAN messages
         if (CAN_receive_specific(&receiving)) {
             switch (receiving.message_num) {
-                
+
             }
         }
-        
+
         // act based on which state we are in
         switch (state) {
             case INIT:
@@ -162,7 +163,7 @@ void run(ROLE role) {
                 // what should we do?
                 break;
         }
-        
+
         state = next_state;
     }
 }
