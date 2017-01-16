@@ -1,6 +1,9 @@
 #include "../include/MPU9250.h"
 
+
+
 void MPUinitialize(void) {
+    I2Cinit(1, 400, 1);
     
 }
 void MPUread(void) {
