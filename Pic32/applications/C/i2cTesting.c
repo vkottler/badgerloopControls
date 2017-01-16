@@ -33,6 +33,10 @@ void charactersTest(void) {
     ssd1306_print("        asdf", 7, 0);
 }
 
+void testMCP(uint16_t writeValue) {
+    mcp_write_val(writeValue);
+}
+
 void error(void) {
     while (1) {
         blinkBoardLights(5, 100);
@@ -42,12 +46,12 @@ void error(void) {
 
 void i2cTesting(void) {
     I2Cinit(1, 400, true);
-    
-    if (!ssd1306_init()) error();
+    testMCP(0xF0F0);
+    //if (!ssd1306_init()) error();
     
     //lineTest();
     //squareTest();
-    charactersTest();
+    //charactersTest();
     //ssd1306_drawBitmap();
     
     while (1);

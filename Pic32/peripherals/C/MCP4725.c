@@ -1,5 +1,4 @@
 #include "../include/MCP4725.h"
-
 uint8_t mcp[3];
 
 // bool I2CwriteAndRead(unsigned int addr, const buffer_t write, unsigned int wlen, const buffer_t read, unsigned int rlen);
@@ -20,7 +19,7 @@ void MCP4725_writeEeprom(int m_PowerMode, unsigned short value)
     //Block until the EEPROM is ready
     /* do {
         I2CwriteAndRead(MCP_ADDR, NULL, 0, buff, 3); 
-    } while ((buff[0] & 0x80) == 0); */
+    } while ((buff[0] & 0x80) == 0); 
  
     //Load the command, power mode, and 12-bit DAC value
     buff[0] = 0x60 | ((int)m_PowerMode << 1);

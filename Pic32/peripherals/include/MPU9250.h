@@ -35,7 +35,6 @@ typedef union {
     };
     unsigned long long Raw_coord:48; 
 } COORD_VECTOR;
->>>>>>> bd7779c355f3449be2498e2d0fc30084ea65e66a
 
 // Functions
 void MPUinitialize(void);

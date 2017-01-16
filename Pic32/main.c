@@ -57,8 +57,8 @@ int main(void) {
 #endif
     // Select which test to run by uncommenting one of these
     //vacuumTest();
-    productionTesting();
-    //i2cTesting();
+    //productionTesting();
+    i2cTesting();
     //testPCBs();
     //testRetro();
     //uartTesting();
