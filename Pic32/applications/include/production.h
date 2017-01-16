@@ -4,6 +4,7 @@
 #include "../../globals.h"
 #include "../../utils.h"
 #include "../../drivers/include/CAN.h"
+#include "../../PCB.h"
 
 //#define WCM_PRESENT     1
 

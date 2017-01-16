@@ -22,12 +22,12 @@
 // Specify before building which board is doing what
 // i.e. which board number has which PCB attached
 #if defined PRODUCTION || defined PRODUCTION_TESTING
-#define BOARD1_ROLE     NOT_PRESENT
-#define BOARD2_ROLE     NOT_PRESENT
-#define BOARD3_ROLE     MCM
-#define BOARD4_ROLE     NOT_PRESENT
-#define BOARD5_ROLE     BCM
-#define BOARD6_ROLE     NOT_PRESENT
+#define BOARD1_ROLE         NOT_PRESENT
+#define BOARD2_ROLE         NOT_PRESENT
+#define BOARD3_ROLE         MCM
+#define BOARD4_ROLE         NOT_PRESENT
+#define BOARD5_ROLE         BCM
+#define BOARD6_ROLE         NOT_PRESENT
 
 #define HEARTBEAT_SENDER    BCM
 #endif

@@ -17,6 +17,7 @@ bool initialize_peripherals(ROLE role) {
         case VNM:
             break;
         case BCM:
+            BCM_init_relayIO();
             break;
         case MCM:
             break;
