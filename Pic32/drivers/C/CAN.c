@@ -15,7 +15,6 @@ volatile bool specificAvailable = false, broadcastAvailable = false;
 static volatile unsigned int numOverflows = 0;
 static unsigned int *receivePointer;
 
-
 /*
  * Chosen FIFO usage:
  * 0: Receive, Mask: 0x400
@@ -334,7 +333,7 @@ void __ISR (ALT_CAN_VECTOR, IPL1SOFT) ALT_CAN_Interrupt (void) {
 /******************************************************************************/
 /*        Compiled depending on availablity of Serial Debug                   */
 /******************************************************************************/
-#if (defined TESTING || defined PRODUCTION_TESTING) && defined SERIAL_DEBUG
+#if PRODUCTION && (defined SERIAL_DEBUG || SERIAL_DEBUG_BOARD)
 
 void CAN_print_errors(void) {
     printf("=========== CAN ERROR DUMP =================\r\n");
