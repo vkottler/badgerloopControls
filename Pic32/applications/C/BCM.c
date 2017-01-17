@@ -2,6 +2,7 @@
 
 bool BCM_init_periph(void) {
     BCM_init_relayIO();
+    return true;
 }
 
 bool BCM_broadcast_handler(CAN_MESSAGE *message) {

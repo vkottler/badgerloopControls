@@ -5,5 +5,6 @@
 #include "../../drivers/include/CAN.h"
 
 void VNM_run(void);
+bool VNM_init_periph(void);
 
 #endif

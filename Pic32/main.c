@@ -31,21 +31,27 @@ int main(void) {
 /******************************************************************************/
 #elif defined(PRODUCTION) 
     switch(getThisRole()) {
-        case VNM: VNM_run(); break;
-        case VSM: VSM_run(); break;
-        case BCM: BCM_run(); break;
-        case MCM: MCM_run(); break;
-        default:
-            // we aren't a valid module
+        case VNM: initResults = VNM_init_periph(); break;
+        case VSM: initResults = VSM_init_periph(); break;
+        case BCM: initResults = BCM_init_periph(); break;
+        case MCM: initResults = MCM_init_periph(); break;
+        default:  initResults = false;
+#if defined SERIAL_DEBUG
+            printf("\r\nERROR: Board's role not properly set.\r\nROLE = ");
+            printRoleRawValue(getThisRole());
+            printf("Available choices:");
+            printAllRolesRawValue();
+#elif defined SERIAL_DEBUG_BOARD
+            if (getThisRole() == SERIAL_DEBUG_BOARD) {
+                printf("\r\nERROR: Board's role not properly set.\r\nROLE = ");
+                printRoleRawValue(getThisRole());
+                printf("Available choices:");
+                printAllRolesRawValue();
+            }
+#endif    
     }
     
-    if (!initialize_peripherals()) {
-        printf("\r\nERROR: Board's role not properly set.\r\nROLE = ");
-        printRoleRawValue(getThisRole());
-        printf("Available choices:");
-        printAllRolesRawValue();
-        fail();
-    }
+    if (!initResults) state = FAULT;
     
     switch(getThisRole()) {
         case VNM: VNM_run();
@@ -54,7 +60,6 @@ int main(void) {
         case MCM: MCM_run();
     }
     
-    printRoleRawValue(getThisRole());
     while (1) {
         blinkBoardLights(4, 200);
         // send error CAN message

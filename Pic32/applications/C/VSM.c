@@ -1,7 +1,7 @@
 #include "../include/VSM.h"
 
 bool VSM_init_periph(void) {
-    
+    return true;
 }
 
 bool VSM_broadcast_handler(CAN_MESSAGE *message) {

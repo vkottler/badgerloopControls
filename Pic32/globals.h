@@ -1,9 +1,7 @@
 #ifndef _GLOBALS__H__
 #define _GLOBALS__H__
 
-#if defined SERIAL_DEBUG || defined SERIAL_DEBUG_BOARD
-#include <stdio.h>
-#endif
+
 
 #include <stdint.h>
 #include "drivers/include/CAN.h"
@@ -16,6 +14,9 @@
 #define TESTING             1   // this asserts that something in the TESTING section in main will be compiled
 #define PRODUCTION          1   // use the production build (must still uncomment TESTING)
 
+#if defined SERIAL_DEBUG || defined SERIAL_DEBUG_BOARD
+#include <stdio.h>
+#endif
 /******************************************************************************/
 /* * * * * * *             Physical Configuration           * * * * * * * * * */
 /******************************************************************************/
@@ -63,27 +64,33 @@ typedef enum {
     SPINDOWN
 } STATE;
 
-/*
-typedef enum { HEALTHY, MAC_NOT_FOUND, HP_NO_RESPONSE,
-               SWITCH_X_OPEN, PRESSURE_OOR, VL_NO_RESPONSE } INIT_ERROR;
-*/
+typedef enum { 
+    HEALTHY, 
+    MAC_NOT_FOUND, HP_NO_RESPONSE,   
+    SWITCH_X_OPEN, 
+    PRESSURE_OOR, 
+    VL_NO_RESPONSE
+} FAULT_TYPE;
 
-// CAN globals
+/******************************************************************************/
+/*                           GLOBAL VARIABLES                                 */
+/******************************************************************************/
 extern int SID;
 extern ROLE from_ID;
 extern volatile STATE state, next_state;
 extern uint8_t num_endpoints;
 extern CAN_MESSAGE *sending, receiving;
+extern volatile FAULT_TYPE  fault;
+/******************************************************************************/
 
-// Not currently being used
-#define TIMER_5_BIT     0x1
-#define TIMER_5_MASK    0xFFFFFFFE
-extern volatile int events;
 
-// Global functions
+/******************************************************************************/
+/*                           GLOBAL FUNCTIONS                                 */
+/******************************************************************************/
 void initialize_heartbeat(void);
 void CAN_setup(void);
 void static_inits(void);
 bool CAN_send_heartbeat(void);
+/******************************************************************************/
 
 #endif

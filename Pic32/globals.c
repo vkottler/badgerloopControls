@@ -1,17 +1,21 @@
 #include "globals.h"
 
+/******************************************************************************/
+/*                           GLOBAL VARIABLES                                 */
+/******************************************************************************/
 #ifdef WCM_PRESENT
     uint8_t num_endpoints = 1;
 #else
     uint8_t num_endpoints = 0;
 #endif
 
-volatile int events = 0;
 int SID = 0;
 ROLE from_ID = 0;
+volatile FAULT_TYPE  fault = HEALTHY;
 CAN_MESSAGE *sending, receiving;
 
 volatile STATE state = DASH_CTL, next_state = DASH_CTL;
+/******************************************************************************/
 
 // Figure out how many boards are attached
 void initialize_heartbeat(void) {

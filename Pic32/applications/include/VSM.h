@@ -5,5 +5,6 @@
 #include "../../drivers/include/CAN.h"
 
 void VSM_run(void);
+bool VSM_init_periph(void);
 
 #endif

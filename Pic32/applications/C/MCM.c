@@ -1,7 +1,7 @@
 #include "../include/MCM.h"
 
 bool MCM_init_periph(void) {
-    
+    return true;
 }
 
 bool MCM_broadcast_handler(CAN_MESSAGE *message) {

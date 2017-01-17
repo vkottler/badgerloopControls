@@ -5,5 +5,6 @@
 #include "../../drivers/include/CAN.h"
 
 void BCM_run(void);
+bool BCM_init_periph(void);
 
 #endif
