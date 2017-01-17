@@ -1,9 +1,20 @@
 #include "../include/CAN.h"
 
+/******************************************************************************/
+/*                           Global Variables                                 */
+/******************************************************************************/
+CAN_MESSAGE *sending, receiving;
 volatile bool specificAvailable = false, broadcastAvailable = false;
-volatile unsigned int numOverflows = 0;
+/******************************************************************************/
+/******************************************************************************/
 
-unsigned int *receivePointer;
+
+/******************************************************************************/
+/*                                Local Variables                             */
+/******************************************************************************/
+static volatile unsigned int numOverflows = 0;
+static unsigned int *receivePointer;
+
 
 /*
  * Chosen FIFO usage:
@@ -15,7 +26,13 @@ unsigned int *receivePointer;
  * See CAN.h to see how FIFO_SIZE gets computed
  */
 static volatile CAN_MESSAGE fifos[FIFO_SIZE];
+/******************************************************************************/
+/******************************************************************************/
 
+
+/******************************************************************************/
+/*                              Initialization                                */
+/******************************************************************************/
 /*
  * Disclaimer:
  * 
@@ -119,14 +136,12 @@ int CAN_set_mode(int mode) {
     return 0;
 }
 
-void CAN_init(ROLE role) {
-    setBoardRole(getBoardNumber(), role);
-    switch (role) {
+void CAN_init(void) {
+    switch (ourRole) {
         case VNM:   SID = VNM_SID; break;
         case BCM:   SID = BCM_SID; break;
         case MCM:   SID = MCM_SID; break;
         case VSM:   SID = VSM_SID; break;
-        case TEST:  SID = ID_FOR_KELLY; break;
         default:    SID = 0x400; break;
     }
     CAN_SFR(CONbits, CAN_MAIN).ON = 1;
@@ -136,11 +151,35 @@ void CAN_init(ROLE role) {
     CAN_set_up_interrupts();
     CAN_set_mode(NORMAL_MODE);
 }
+/******************************************************************************/
+/******************************************************************************/
 
+
+/******************************************************************************/
+/*                                Utility                                     */
+/******************************************************************************/
 int CAN_check_error(void) {
     return CAN_SFR(TREC, CAN_MAIN);
 }
 
+uint16_t ROLEtoSID(ROLE r) {
+    switch (r) {
+        case VNM: return VNM_SID;
+        case WCM: return WCM_SID;
+        case BCM: return BCM_SID;
+        case VSM: return VSM_SID;
+        case MCM: return MCM_SID;
+        case BMS: return BMS_SID;
+        default: return 0;
+    }
+}
+/******************************************************************************/
+/******************************************************************************/
+
+
+/******************************************************************************/
+/*                         Sending Messages                                   */
+/******************************************************************************/
 // FIFO 2
 //
 // Returns true/false based on whether or not it's possible to send the message currently
@@ -166,7 +205,13 @@ bool CAN_broadcast(void) {
     CAN_SFR(FIFOCON3bits, CAN_MAIN).TXREQ = 1;   // tell CAN to send message
     return true;
 }
+/******************************************************************************/
+/******************************************************************************/
 
+
+/******************************************************************************/
+/*                        Receiving Messages                                  */
+/******************************************************************************/
 // FIFO 0
 bool CAN_receive_broadcast(CAN_MESSAGE *message) {
     if (!broadcastAvailable) return false;
@@ -178,10 +223,6 @@ bool CAN_receive_broadcast(CAN_MESSAGE *message) {
     CAN_SFR(FIFOCON0SET, CAN_MAIN) = 0x2000;
     GLOBAL_RECEIVE_ENABLE = 1;
     broadcastAvailable = false;
-    if (CAN_message_is_heartbeat(message)) {
-        heartbeat_handler();
-        return false;
-    }
     return true;
 }
 
@@ -198,7 +239,13 @@ bool CAN_receive_specific(CAN_MESSAGE *message) {
     specificAvailable = false;
     return true;
 }
+/******************************************************************************/
+/******************************************************************************/
 
+
+/******************************************************************************/
+/*                          Heartbeat Related                                 */
+/******************************************************************************/
 bool CAN_message_is_heartbeat(CAN_MESSAGE *message) {
     return (message->message_num == WCM_HB || 
             message->message_num == VNM_HB ||
@@ -207,7 +254,49 @@ bool CAN_message_is_heartbeat(CAN_MESSAGE *message) {
             message->message_num == BCM_HB);
 }
 
-// TODO add ISRs
+void CAN_send_fault(FAULT_TYPE f) {
+    sending = BROADCAST_SEND_ADDR;
+    sending->SID = ALL;
+    sending->from = ourRole;
+    sending->SIZE = 2;
+    sending->message_num = FAULT;
+    sending->byte0 = f;
+    CAN_broadcast();
+}
+
+bool CAN_send_heartbeat(void) {
+    sending = BROADCAST_SEND_ADDR;
+    sending->SID = ALL;
+    sending->from = ourRole;
+    sending->SIZE = 2;
+    switch(getThisRole()) {
+        case VNM: sending->message_num = VNM_HB; break;
+        case BCM: sending->message_num = BCM_HB; break;
+        case MCM: sending->message_num = MCM_HB; break;
+        case VSM: sending->message_num = VSM_HB; break;
+        default: sending->message_num = INVALID; break;
+    }
+    sending->byte0 = state;
+#ifdef SERIAL_DEBUG
+    printf("sending ");
+    printRole(sending->from);
+    printf(" heartbeat . . .\r\n");
+#elif defined SERIAL_DEBUG_BOARD
+    if (getThisRole() == SERIAL_DEBUG_BOARD) {
+        printf("sending ");
+        printRole(sending->from);
+        printf(" heartbeat . . .\r\n");
+    }
+#endif
+    return CAN_broadcast();
+}
+/******************************************************************************/
+/******************************************************************************/
+
+
+/******************************************************************************/
+/*                                    ISRs                                    */
+/******************************************************************************/
 void __ISR (MAIN_CAN_VECTOR, IPL1SOFT) MAIN_CAN_Interrupt (void) {
     
     if (CAN_MAIN_VECTOR_BITS.ICODE > 32) {
@@ -235,7 +324,13 @@ void __ISR (MAIN_CAN_VECTOR, IPL1SOFT) MAIN_CAN_Interrupt (void) {
 void __ISR (ALT_CAN_VECTOR, IPL1SOFT) ALT_CAN_Interrupt (void) {
     ALT_CAN_FLAG = 0;
 }
+/******************************************************************************/
+/******************************************************************************/
 
+
+/******************************************************************************/
+/*        Compiled depending on availablity of Serial Debug                   */
+/******************************************************************************/
 #if (defined TESTING || defined PRODUCTION_TESTING) && defined SERIAL_DEBUG
 
 void CAN_print_errors(void) {
@@ -294,4 +389,37 @@ void CAN_message_dump(CAN_MESSAGE *message, bool outgoing) {
     }
     printf("=============================================\r\n\r\n");
 }
+
+void sendTestCANmessage(void) {
+    sending = BROADCAST_SEND_ADDR;
+    sending->SID = ALL;
+    sending->from = ourRole;
+    sending->SIZE = 8;
+    sending->message_num = TEST_MSG;
+    strcpy("hello!", sending->bytes);
+    if (!CAN_broadcast())
+        printf("ERROR: Could not send test message.\r\n");
+}
+
+void CAN_ping(ROLE role) {
+    if (role == ourRole) {
+        printf("can't ping yourself!\r\n");
+        return;
+    }
+    sending = ADDRESSED_SEND_ADDR;
+    sending->SID = ROLEtoSID(role);
+    if (!sending->SID) {
+        printf("Cannot ping ");
+        printRole(role);
+        printf(", ask Vaughn why not.\r\n");
+        return;
+    }
+    sending->from = ourRole;
+    sending->SIZE = 1;
+    sending->message_num = PING;
+    if (!CAN_send())
+        printf("ERROR: Could not send test message.\r\n");
+}
 #endif
+/******************************************************************************/
+/******************************************************************************/

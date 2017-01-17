@@ -1,10 +1,8 @@
 #ifndef _GLOBALS__H__
 #define _GLOBALS__H__
 
-
-
+#include <xc.h>
 #include <stdint.h>
-#include "drivers/include/CAN.h"
 
 /******************************************************************************/
 /* * * * * * *          Software Build Definitions          * * * * * * * * * */
@@ -13,16 +11,18 @@
 //#define SERIAL_DEBUG_BOARD  VNM
 #define TESTING             1   // this asserts that something in the TESTING section in main will be compiled
 #define PRODUCTION          1   // use the production build (must still uncomment TESTING)
+/******************************************************************************/
+/******************************************************************************/
 
 #if defined SERIAL_DEBUG || defined SERIAL_DEBUG_BOARD
 #include <stdio.h>
 #endif
+
 /******************************************************************************/
 /* * * * * * *             Physical Configuration           * * * * * * * * * */
 /******************************************************************************/
 //#define LED_SHIELD_PRESENT  1   // this asserts that the custom LED proto-shield will be present and can be used
 #define PCB_PRESENT         1
-
 
 // Specify before building which board is doing what
 // i.e. which board number has which PCB attached
@@ -42,11 +42,33 @@
 
 #endif
 /******************************************************************************/
+/******************************************************************************/
+
+
+/******************************************************************************/
+/* * * * * * *                 Board Cataloging             * * * * * * * * * */
+/******************************************************************************/
+#define MAC1    0xA7B5  // Vaughn's Personal Board
+#define MAC2    0xFFC
+#define MAC3    0x993   //#define MAC3    0x50BE   // Can't find this board??????
+#define MAC4    0x3CEE
+#define MAC5    0xD0BF
+#define MAC6    0x3EBE
+
+#define NUM_BOARDS  6
+/******************************************************************************/
+/******************************************************************************/
+
+
+/******************************************************************************/
+/* * * * * * *         GLOBALLY USED ENUMERATIONS           * * * * * * * * * */
+/******************************************************************************/
+typedef enum { NOT_PRESENT, WCM, VNM, BCM, MCM, VSM, BMS } ROLE;
 
 typedef enum { 
     READY_FOR_LAUNCH, 
     DASH_CTL,
-    FAULT,
+    FAULT_STATE,
     SAFE,
     RUNNING,
        
@@ -66,31 +88,48 @@ typedef enum {
 
 typedef enum { 
     HEALTHY, 
-    MAC_NOT_FOUND, HP_NO_RESPONSE,   
-    SWITCH_X_OPEN, 
-    PRESSURE_OOR, 
-    VL_NO_RESPONSE
+    GLOBAL_INITS_FAILED
 } FAULT_TYPE;
+/******************************************************************************/
+/******************************************************************************/
+
 
 /******************************************************************************/
 /*                           GLOBAL VARIABLES                                 */
 /******************************************************************************/
 extern int SID;
-extern ROLE from_ID;
+extern ROLE ourRole;
 extern volatile STATE state, next_state;
 extern uint8_t num_endpoints;
-extern CAN_MESSAGE *sending, receiving;
-extern volatile FAULT_TYPE  fault;
+extern volatile FAULT_TYPE fault;
 /******************************************************************************/
 
 
 /******************************************************************************/
 /*                           GLOBAL FUNCTIONS                                 */
 /******************************************************************************/
-void initialize_heartbeat(void);
-void CAN_setup(void);
-void static_inits(void);
-bool CAN_send_heartbeat(void);
+void setBoardRole(uint8_t board, ROLE role);
+ROLE getBoardRole(uint8_t board);
+ROLE getThisRole(void);
+int MACLookUp(int boardNumber);
+int getMAC(void) ;
+/******************************************************************************/
 /******************************************************************************/
 
+
+/******************************************************************************/
+/*                              PRINT UTILITIES                               */
+/******************************************************************************/
+#if defined SERIAL_DEBUG || defined SERIAL_DEBUG_BOARD
+void printState(STATE s);
+void whoami(void);
+void printRole(ROLE role);
+void printRoleRawValue(ROLE role);
+void printAllRolesRawValue(void);
+void printMAC(void);
+void printBoardNumber(void);
+void Serial_Debug_Handler(void);
+#endif
+/******************************************************************************/
+/******************************************************************************/
 #endif

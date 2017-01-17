@@ -4,6 +4,11 @@
 #include "peripherals/include/ledShield.h"
 
 // MCM
+// PIN 50 & 51 CANNOT BE USED
+// HB1 (left front): Pin 74 
+// HB2 (right front): Pin 8
+// HB3 (back left): Pin 48 
+// HB4 (back right): Pin 49
 
 // VNM
 

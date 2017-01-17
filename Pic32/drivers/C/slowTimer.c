@@ -22,6 +22,6 @@ void initializeSlowTimer(int ms) {
 }
 
 void __ISR (_TIMER_5_VECTOR, IPL1SOFT) slowTimerHandler(void) {
-    events |= TIMER_5_BIT;
+    //events |= TIMER_5_BIT;
     IFS0bits.T5IF = 0;
 }

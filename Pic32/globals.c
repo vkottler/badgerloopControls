@@ -10,122 +10,149 @@
 #endif
 
 int SID = 0;
-ROLE from_ID = 0;
-volatile FAULT_TYPE  fault = HEALTHY;
-CAN_MESSAGE *sending, receiving;
-
+ROLE ourRole = NOT_PRESENT;
+volatile FAULT_TYPE fault = HEALTHY;
 volatile STATE state = DASH_CTL, next_state = DASH_CTL;
 /******************************************************************************/
+/******************************************************************************/
 
-// Figure out how many boards are attached
-void initialize_heartbeat(void) {
-    for (i = 1; i <= NUM_BOARDS; i++)
-        if (getBoardRole(i) != NOT_PRESENT)
-            num_endpoints++;
-}
-
-void CAN_setup(void) {
-    setBoardRole(1, BOARD1_ROLE);
-    setBoardRole(2, BOARD2_ROLE);
-    setBoardRole(3, BOARD3_ROLE);
-    setBoardRole(4, BOARD4_ROLE);
-    setBoardRole(5, BOARD5_ROLE);
-    setBoardRole(6, BOARD6_ROLE);
-    initialize_heartbeat();
-    CAN_init(getThisRole());
-}
 
 /******************************************************************************/
-/*                          Static Initializations                            */
+/*                              State Related                                 */
 /******************************************************************************/
-void setup_serial(void) {
-    initUART();
-    printBoardNumber();
-#if defined PRODUCTION_TESTING || defined PRODUCTION
-    printAllRolesRawValue();
-    printf("CAN_MAIN: %d\tCAN_ALT: %d\r\nFIFO total size: %d messages (message size: %d)\r\n", CAN_MAIN, CAN_ALT, FIFO_SIZE, sizeof(CAN_MESSAGE));
+#if defined SERIAL_DEBUG || defined SERIAL_DEBUG_BOARD
+void printState(STATE s) {
+    switch (s) {
+        case READY_FOR_LAUNCH:      printf("READY_FOR_LAUNCH"); break;
+        case DASH_CTL:              printf("DASH_CTL"); break;
+        case FAULT_STATE:           printf("FAULT_STATE"); break;
+        case SAFE:                  printf("SAFE"); break;
+        case RUNNING:               printf("RUNNING"); break;
+        case EMERGENCY_BRAKE:       printf("EMERGENCY_BRAKE"); break;
+        case NORMAL_BRAKING:        printf("NORMAL_BRAKING"); break;
+        case FRONT_AXLE_BRAKING:    printf("FRONT_AXLE_BRAKING"); break;
+        case REAR_AXLE_BRAKING:     printf("REAR_AXLE_BRAKING"); break;
+        case INFLATE:               printf("INFLATE"); break;
+        case WAITING_FOR_SAFE:      printf("WAITING_FOR_SAFE"); break;
+        case PUSH_PHASE:            printf("PUSH_PHASE"); break;
+        case COAST:                 printf("COAST"); break;
+        case SPINDOWN:              printf("SPINDOWN"); break;
+        default:                    printf("UNKNOWN");
+    }
+}
+#endif
+/******************************************************************************/
+/******************************************************************************/
+
+
+/******************************************************************************/
+/*                              ROLE Related                                  */
+/******************************************************************************/
+static ROLE board_roles[] = {
+    NOT_PRESENT,                // Board 1 Default Role
+    NOT_PRESENT,                // Board 2 Default Role
+    NOT_PRESENT,                // Board 3 Default Role
+    NOT_PRESENT,                // Board 4 Default Role
+    NOT_PRESENT,                // Board 5 Default Role
+    NOT_PRESENT                 // Board 6 Default Role
+};
+
+void setBoardRole(uint8_t board, ROLE role) { board_roles[board-1] = role; }
+ROLE getBoardRole(uint8_t board) { return board_roles[board-1]; }
+ROLE getThisRole(void) { return getBoardRole(getBoardNumber()); }
+
+int getBoardNumber(void) {
+    switch(EMAC1SA0) {
+        case MAC1:  return 1;
+        case MAC2:  return 2;
+        case MAC3:  return 3;
+        case MAC4:  return 4;
+        case MAC5:  return 5;
+        case MAC6:  return 6;
+        default:    return -1;
+    }
+}
+
+#if defined SERIAL_DEBUG || defined SERIAL_DEBUG_BOARD
+void whoami(void) {
+    printf("You are:\t");
+    printRole(getThisRole());
+    printf("\r\nSID:\t%d\r\nfrom ID:%d\r\n", SID, ourRole);
+}
+
+void printRole(ROLE role) {
+    switch (role) {
+        case WCM: printf("WCM"); break;
+        case VNM: printf("VNM"); break;
+        case BCM: printf("BCM"); break;
+        case MCM: printf("MCM"); break;
+        case VSM: printf("VSM"); break;
+        case NOT_PRESENT: printf("NP"); break;
+        default: printf("UNKNOWN_ROLE");
+    }
+}
+
+void printRoleRawValue(ROLE role) {
+    printRole(role);
+    printf("\t%d\t0x%x\r\n", role, role);
+}
+
+void printAllRolesRawValue(void) {
+    int i = 0;
+    printf("\r\n=== ROLES ===\r\n");
+    printRoleRawValue(WCM);
+    printRoleRawValue(VNM);
+    printRoleRawValue(BCM);
+    printRoleRawValue(MCM);
+    printRoleRawValue(VSM);
+    printRoleRawValue(NOT_PRESENT);
+    printf("==  BOARDS ==\r\n");
+    for (i = 0; i < NUM_BOARDS; i++) {
+        printf("Board %d: ", i + 1);
+        printRoleRawValue(board_roles[i]);
+    }
+    printf("=============\r\n\r\n");
+}
+#endif
+/******************************************************************************/
+/******************************************************************************/
+
+/******************************************************************************/
+/*                           MAC Address Related                              */
+/******************************************************************************/
+int MACLookUp(int boardNumber) {
+    switch (boardNumber) {
+        case 1:     return MAC1;
+        case 2:     return MAC2;
+        case 3:     return MAC3;
+        case 4:     return MAC4;
+        default:    return -1;
+    }
+}
+
+#if defined SERIAL_DEBUG || defined SERIAL_DEBUG_BOARD
+void printMAC(void) { printf("MAC: %x %x\r\n", EMAC1SA0, EMAC1SA1); }
+void printBoardNumber(void) { printf("Board %d connected.\r\n", getBoardNumber()); }
 #endif 
-}
+int getMAC(void) { return EMAC1SA0; }
+/******************************************************************************/
+/******************************************************************************/
 
-void static_inits(void) {
-    DDPCONbits.JTAGEN = 0;
-    initLEDs();
-    initializeTimer1(0x8000, 0xffff);
-    INTCONbits.MVEC = 1;
-    __builtin_enable_interrupts();
-    
-#if defined PRODUCTION || defined PRODUCTION_TESTING
-    CAN_setup(void);
-    initLEDs();
-#endif  
-    
-#ifdef SERIAL_DEBUG
-    setup_serial();
-#elif defined SERIAL_DEBUG_BOARD
-    if (getThisRole() == SERIAL_DEBUG_BOARD) 
-        setup_serial();
+
+/******************************************************************************/
+/*                          Live Debugging Related                            */
+/******************************************************************************/
+#if defined SERIAL_DEBUG || defined SERIAL_DEBUG_BOARD
+char uartReceive[50];
+
+void Serial_Debug_Handler(void) {
+    getMessage(uartReceive, 50);
+    if (!strcmp(uartReceive, "heartbeat")) CAN_send_heartbeat();
+    else if (!strcmp(uartReceive, "test")) sendTestCANmessage();
+    else if (!strcmp(uartReceive, "whoami")) whoami();
+    else if (!strcmp(uartReceive, "testsend") || !strcmp(uartReceive, "ping")) printf("NEEDS TO BE RE-IMPLEMENTED");
+    else printf("Did not recognize: %s\r\n", uartReceive);
+}
 #endif
-
-/*
- * Check memory sizes to make sure CAN will work properly in software
- */
-#if defined PRODUCTION_TESTING || defined PRODUCTION
-    if (sizeof(CAN_MESSAGE) != 16 || sizeof(MESSAGE_TYPE) != 1) {
-#if defined SERIAL_DEBUG
-        printf("ERROR: sizeof CAN_MESSAGE is %d bytes, sizeof MESSAGE_TYPE enum is %d bytes.\r\n", sizeof(CAN_MESSAGE), sizeof(MESSAGE_TYPE));
-        printf("CAN_MESSAGE must be 16 bytes and MESSAGE_TYPE enum must be 1 byte.\r\n");
-        printf("Rebuild with compiler option -fshort-enums added.");
-#elif defined SERIAL_DEBUG_BOARD
-        if (getThisRole() == SERIAL_DEBUG_BOARD) {
-            printf("ERROR: sizeof CAN_MESSAGE is %d bytes, sizeof MESSAGE_TYPE enum is %d bytes.\r\n", sizeof(CAN_MESSAGE), sizeof(MESSAGE_TYPE));
-            printf("CAN_MESSAGE must be 16 bytes and MESSAGE_TYPE enum must be 1 byte.\r\n");
-            printf("Rebuild with compiler option -fshort-enums added.");
-        } 
-#endif
-        while (1) {
-            blinkBoardLights(4, 150);
-            delay(1000, MILLI);
-        }
-    }
-#endif
-}
-
-bool CAN_send_heartbeat(void) {
-    sending = BROADCAST_SEND_ADDR;
-    sending->SID = ALL;
-    sending->from = getThisRole();
-    sending->SIZE = 2;
-    switch(getThisRole()) {
-        case VNM: sending->message_num = VNM_HB; break;
-        case BCM: sending->message_num = BCM_HB; break;
-        case MCM: sending->message_num = MCM_HB; break;
-        case VSM: sending->message_num = VSM_HB; break;
-        default: sending->message_num = INVALID; break;
-    }
-    sending->byte1 = state;
-#ifdef SERIAL_DEBUG
-    printf("sending ");
-    printRole(sending->from);
-    printf(" heartbeat . . .\r\n");
-#elif defined SERIAL_DEBUG_BOARD
-    if (getThisRole() == SERIAL_DEBUG_BOARD) {
-        printf("sending ");
-        printRole(sending->from);
-        printf(" heartbeat . . .\r\n");
-    }
-#endif
-    return CAN_broadcast();
-}
-
-void heartbeat_handler(void) {
-    
-}
-
-void fail(void) {
-    while(1) {
-        delay(250, MILLI);
-        blinkBoardLights(5, 50);
-        delay(500, MILLI);
-    }
-}
-
+/******************************************************************************/
+/******************************************************************************/

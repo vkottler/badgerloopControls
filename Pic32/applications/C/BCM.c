@@ -24,6 +24,14 @@ void BCM_run(void) {
     }
     
     while (1) {
+        
+#if defined SERIAL_DEBUG       
+        if (messageAvailable()) Serial_Debug_Handler();
+        if (CAN_check_error()) CAN_print_errors();
+#elif defined SERIAL_DEBUG_BOARD
+        if (getThisRole() == SERIAL_DEBUG_BOARD && messageAvailable()) Serial_Debug_Handler();
+        if (getThisRole() == SERIAL_DEBUG_BOARD && CAN_check_error()) CAN_print_errors();
+#endif
 
         // get broadcasted CAN messages
         if (CAN_receive_broadcast(&receiving)) 

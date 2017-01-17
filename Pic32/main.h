@@ -2,7 +2,6 @@
 #define _MAIN__H__
 
 #include "config.h"
-#include "utils.h"
 #include "globals.h"
 #include "peripherals/include/ledShield.h"
 

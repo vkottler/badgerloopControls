@@ -1,11 +1,6 @@
 #ifndef _CAN__H__
 #define _CAN__H__
 
-#ifdef SERIAL_DEBUG
-#include <stdio.h>
-#include "../../peripherals/include/ledShield.h"
-#endif
-
 /*
  * Uses alternate set of pins (FCANIO = OFF)
  * CAN1: Pin 15 (AC1RX), Pin 14 (AC1TX)
@@ -20,8 +15,12 @@
 #include <sys/kmem.h>
 #include <string.h>
 
-#include "../../utils.h"
 #include "../../globals.h"
+
+#ifdef SERIAL_DEBUG
+#include <stdio.h>
+#include "../../peripherals/include/ledShield.h"
+#endif
 
 /******************************************************************************/
 /*                Structs, Enums and Compiler Directives                      */
@@ -29,7 +28,10 @@
 typedef enum {
     INVALID,
     WCM_HB, VNM_HB, VSM_HB, BCM_HB, MCM_HB, 
-    TEST_MSG, PING
+            
+            
+    // NOT YET ADDED GLOBALLY (i.e. in spreadsheet)
+    TEST_MSG, PING, FAULT
             
 } MESSAGE_TYPE;
 
@@ -92,6 +94,7 @@ typedef union {
 #define _CAN_SFR(reg, module)   C##module##reg    
 #define CAN_SFR(reg, module)    _CAN_SFR(reg, module)
 /******************************************************************************/
+/******************************************************************************/
 
 
 /******************************************************************************/
@@ -115,6 +118,7 @@ typedef union {
 #define ALT_CAN_FLAG        IFS1bits.CAN1IF
 #endif
 /******************************************************************************/
+/******************************************************************************/
 
 
 /******************************************************************************/
@@ -137,6 +141,7 @@ typedef union {
 #define CAN_TIMER_EN                CAN_SFR(INTbits, CAN_MAIN).CTMRIE
 #define CAN_MAIN_VECTOR_BITS        CAN_SFR(VECbits, CAN_MAIN)
 /******************************************************************************/
+/******************************************************************************/
 
 
 /******************************************************************************/
@@ -148,6 +153,7 @@ typedef union {
 #define LOOPBACK_MODE       2
 #define DISABLE_MODE        1
 #define NORMAL_MODE         0
+/******************************************************************************/
 /******************************************************************************/
 
 
@@ -163,23 +169,37 @@ typedef union {
 #define ALL                 0x400
 #define ID_FOR_KELLY        0x73
 /******************************************************************************/
+/******************************************************************************/
+
+
+/******************************************************************************/
+/*                             Global Variables                               */
+/******************************************************************************/
+extern CAN_MESSAGE *sending, receiving;
+/******************************************************************************/
+/******************************************************************************/
 
 
 /******************************************************************************/
 /*                                 Functions                                  */
 /******************************************************************************/
-void CAN_init(ROLE role);
+void CAN_init(void);
 int CAN_check_error(void);
+
 bool CAN_send(void);
 bool CAN_broadcast(void);
+
 bool CAN_receive_broadcast(CAN_MESSAGE *message);
 bool CAN_receive_specific(CAN_MESSAGE *message);
+
+void CAN_send_fault(FAULT_TYPE f);
 bool CAN_message_is_heartbeat(CAN_MESSAGE *message);
-/******************************************************************************/
+bool CAN_send_heartbeat(void);
 
 #if (defined TESTING || defined PRODUCTION_TESTING) && defined SERIAL_DEBUG
 void CAN_message_dump(CAN_MESSAGE *message, bool outgoing);
 void CAN_print_errors(void);
 #endif
-
+/******************************************************************************/
+/******************************************************************************/
 #endif
