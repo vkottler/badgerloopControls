@@ -35,11 +35,13 @@
 #define FOUR_HUNDRED        78
 #define ONE_HUNDRED         318
 
+#define I2C_BAUD            FOUR_HUNDRED                
+
 // "buffer pointer" buffer contents and buffer pointer
 // is shared by ISR and main code execution (i.e. double volatile)
 typedef volatile uint8_t * volatile buffer_t;
 
-bool I2Cinit(uint8_t moduleNum, int kHzBaud, bool intEn);
+void I2Cinit(void);
 void I2CmasterInt(void);
 bool I2CwriteAndRead(unsigned int addr, const buffer_t write, unsigned int wlen, const buffer_t read, unsigned int rlen);
 

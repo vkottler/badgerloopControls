@@ -7,56 +7,12 @@ static buffer_t toWrite = NULL, toRead = NULL;                          // share
 static volatile uint8_t address = 0;                              // 7 bit address
 static volatile unsigned int numWrite = 0, numRead = 0;                 // used by ISR to decide how many times to ____
 
-bool I2Cinit(uint8_t moduleNum, int kHzBaud, bool intEn) {
-    
-    // only two supported baud rates
-    if (kHzBaud != 100 && kHzBaud != 400) return false;
-    else kHzBaud = (kHzBaud == 100) ? ONE_HUNDRED : FOUR_HUNDRED;
-    
-    if (intEn) {
-        switch (moduleNum) {
-            case 1:
-                IPC6bits.I2C1IP = 1;        // master int priority 1
-                IEC0bits.I2C1MIE = 1;       // master int enable
-                IFS0bits.I2C1AMIF = 0;      // disable flag
-                break;
-            case 2:
-                break;
-            case 3:
-                break;
-            case 4:
-                break;
-            case 5:
-                break;
-            default: return false;
-        }
-    }
-    
-    switch (moduleNum) {
-        case 1:
-            I2C1BRG = kHzBaud;
-            I2C1CONbits.ON = 1;
-            break;
-        case 2:
-            I2C2BRG = kHzBaud;
-            I2C2CONbits.ON = 1;
-            break;
-        case 3:
-            I2C3BRG = kHzBaud;
-            I2C3CONbits.ON = 1;
-            break;
-        case 4:
-            I2C4BRG = kHzBaud;
-            I2C4CONbits.ON = 1;
-            break;
-        case 5:
-            I2C5BRG = kHzBaud;
-            I2C5CONbits.ON = 1;
-            break;
-        default: return false;
-    }
-    
-    return true;
+void I2Cinit(void) {
+    IPC6bits.I2C1IP = 1;        // master int priority 1
+    IEC0bits.I2C1MIE = 1;       // master int enable
+    IFS0bits.I2C1AMIF = 0;      // disable flag
+    I2C1BRG = I2C_BAUD;
+    I2C1CONbits.ON = 1;
 }
 
 bool I2CwriteAndRead(unsigned int addr, const buffer_t write, unsigned int wlen, const buffer_t read, unsigned int rlen) {

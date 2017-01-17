@@ -82,7 +82,7 @@ int getMAC(void) { return EMAC1SA0; }
 /******************************************************************************/
 /*                          Live Debugging Related                            */
 /******************************************************************************/
-#if defined SERIAL_DEBUG || defined SERIAL_DEBUG_BOARD
+#if (defined SERIAL_DEBUG || defined SERIAL_DEBUG_BOARD) && PRODUCTION
 char uartReceive[50];
 
 void Serial_Debug_Handler(void) {
@@ -137,7 +137,9 @@ void printStartupDiagnostics(void) {
         printf("\r\n");
     }
     printf("Boards not present:\t%d\r\n", numNotPresent);
+#ifdef HEARTBEAT_SENDER
     printf("Heartbeat Sender:\t%s\r\n", roleStr[HEARTBEAT_SENDER]);
+#endif
 #ifdef SERIAL_DEBUG_BOARD
     printf("Serial Debug Module:\t%s\r\n", roleStr[SERIAL_DEBUG_BOARD]);
 #endif

@@ -3,9 +3,35 @@
 
 #include <stdint.h>
 #include "../../drivers/include/CAN.h"
+#include "../../drivers/include/inputCapture.h"
+
+// MCM
+// PIN 50 & 51 CANNOT BE USED
+// HB1 (left front):    Pin 74 is IC2
+// HB2 (right front):   Pin  8 is IC5
+// HB3 (left rear):     Pin 48 is IC1
+// HB4 (right rear):    Pin 49 is IC4
+
+#define WHEEL_READINGS                  2
+#define RIGHT_FRONT_ENABLE_INT          _IC5E
+#define LEFT_FRONT_ENABLE_INT           _IC2E
+#define RIGHT_REAR_ENABLE_INT           _IC4E
+#define LEFT_REAR_ENABLE_INT            _IC1E
 
 bool MCM_init_periph(void);
 bool MCM_broadcast_handler(void);
 bool MCM_message_handler(void);
+
+// Main State Handlers
+void MCM_rflHandler(void);
+void MCM_dashctlHandler(void); 
+void MCM_faultHandler(void);
+void MCM_safeHandler(void);
+void MCM_runningHandler(void);
+
+// Extra State Handlers
+void MCM_pushphaseHandler(void); 
+void MCM_coastHandler(void); 
+void MCM_spindownHandler(void);
 
 #endif

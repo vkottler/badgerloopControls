@@ -6,6 +6,7 @@ uint8_t heartbeatsReceived = 0;
 /******************************************************************************/
 /*                       Function Pointer Definitions                         */
 /******************************************************************************/
+#ifdef PRODUCTION
 bool genericBoolHandler(void) {
     fault = UNINITIALIZED_HANDLER;
     next_state = FAULT_STATE;
@@ -68,6 +69,7 @@ void (*wfsHandler)(void) =          &genericHandler;
 void (*pushphaseHandler)(void) =    &genericHandler;
 void (*coastHandler)(void) =        &genericHandler;
 void (*spindownHandler)(void) =     &genericHandler;
+#endif
 /******************************************************************************/
 /******************************************************************************/
 
@@ -75,6 +77,16 @@ void (*spindownHandler)(void) =     &genericHandler;
 /******************************************************************************/
 /*                          Static Initializations                            */
 /******************************************************************************/
+void setup_serial(void) {
+    initUART();
+    delay(1000, MILLI);         // for computer to connect
+    printBoardNumber();
+#if defined PRODUCTION
+    printStartupDiagnostics();
+#endif 
+}
+
+#ifdef PRODUCTION
 void initialize_board_roles(void) {
     setBoardRole(1, BOARD1_ROLE);
     setBoardRole(2, BOARD2_ROLE);
@@ -85,21 +97,13 @@ void initialize_board_roles(void) {
     ourRole = getThisRole();    
 }
 
-void setup_serial(void) {
-    initUART();
-    delay(1000, MILLI);         // for computer to connect
-    printBoardNumber();
-#if defined PRODUCTION
-    printStartupDiagnostics();
-#endif 
-}
-
 // Figure out how many boards are attached
 void initialize_heartbeat(void) {
     int i;
     for (i = 1; i <= NUM_BOARDS; i++) {
         if (getBoardRole(i) != NOT_PRESENT) num_endpoints++;
     }
+#ifdef HEARTBEAT_SENDER
     if (ourRole == HEARTBEAT_SENDER) {
         initializeSlowTimer(HEARTBEAT_DELAY);
 #ifdef SERIAL_DEBUG
@@ -109,6 +113,7 @@ void initialize_heartbeat(void) {
             printf("We will be sending a heartbeat every %d ms.\r\n", HEARTBEAT_DELAY);
 #endif
     }
+#endif
 }
 
 void initialize_handlers(void) {
@@ -138,7 +143,14 @@ void initialize_handlers(void) {
             broadcastHandler =    &MCM_broadcast_handler;
             messageHandler =      &MCM_message_handler;
             initHandler =         &MCM_init_periph;
-            // TODO: rest of states
+            rflHandler =          &MCM_rflHandler;
+            dashctlHandler =      &MCM_dashctlHandler;
+            faultHandler =        &MCM_faultHandler;
+            safeHandler =         &MCM_safeHandler;
+            runningHandler =      &MCM_runningHandler;
+            pushphaseHandler =    &MCM_pushphaseHandler; 
+            coastHandler =        &MCM_coastHandler; 
+            spindownHandler =     &MCM_spindownHandler;
             break;
     }
 #ifdef SERIAL_DEBUG
@@ -148,7 +160,6 @@ void initialize_handlers(void) {
 #endif
 }
 
-#ifdef PRODUCTION
 void CAN_setup(void) {
     initialize_handlers();
     CAN_init();
@@ -163,7 +174,9 @@ void static_inits(void) {
     INTCONbits.MVEC = 1;
     __builtin_enable_interrupts();
     initLEDs();
+#ifdef PRODUCTION
     initialize_board_roles();
+#endif
   
 #ifdef SERIAL_DEBUG
     setup_serial();

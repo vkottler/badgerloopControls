@@ -1,5 +1,16 @@
 #include "../include/i2cTesting.h"
 
+void MPU_testing(void) {
+    COORD_VECTOR mpu_values;
+    delay(200, MILLI);
+    while (1) {
+        MPUread(&mpu_values);
+        printf("ax:%5d ay:%5d az:%5d ", mpu_values.ax, mpu_values.ay, mpu_values.az);
+        printf("gx:%5d gy:%5d gz:%5d\r\n", mpu_values.gx, mpu_values.gy, mpu_values.gz);
+        delay(250, MILLI);
+    }
+}
+
 void lineTest(void) {
     int i = 0;
     while (1) {
@@ -45,24 +56,14 @@ void error(void) {
 }
 
 void i2cTesting(void) {
-    int i2c_status = I2Cinit(1, 400, true);
-    printf("I2C Init Status = %d\n", i2c_status);
+    I2Cinit();
     
     //if (!ssd1306_init()) error();
-    
     //lineTest();
     //squareTest();
     //charactersTest();
     //ssd1306_drawBitmap();
-    MPUinitialize();
-    volatile int16_t mpu_values[6];
-    delay(200, MILLI);
     
-    while (1) {
-        MPU9250_getMotion6((mpu_values+0), (mpu_values+1), (mpu_values+2), 
-                (mpu_values+3), (mpu_values+4), (mpu_values+5));
-        
-        printf("Accel: ax = %d ay = %d az = %d\n", mpu_values[0], mpu_values[1], mpu_values[2]);
-        printf("Accel: gx = %d gy = %d gz = %d\n", mpu_values[3], mpu_values[4], mpu_values[5]);
-    }
+    if (!MPUinitialize()) error();
+    MPU_testing();
 }
