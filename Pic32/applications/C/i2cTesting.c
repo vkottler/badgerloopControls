@@ -45,7 +45,8 @@ void error(void) {
 }
 
 void i2cTesting(void) {
-    I2Cinit(1, 400, true);
+    int i2c_status = I2Cinit(1, 400, true);
+    printf("I2C Init Status = %d\n", i2c_status);
     
     //if (!ssd1306_init()) error();
     
@@ -53,15 +54,15 @@ void i2cTesting(void) {
     //squareTest();
     //charactersTest();
     //ssd1306_drawBitmap();
+    MPUinitialize();
+    volatile int16_t mpu_values[6];
+    delay(200, MILLI);
     
     while (1) {
-        testMCP(4.9);
-        delay(1000, MILLI);
-        testMCP(3);
-        delay(1000, MILLI);
-        testMCP(1);
-        delay(1000, MILLI);
-        testMCP(0);
-        delay(1000, MILLI);
+        MPU9250_getMotion6((mpu_values+0), (mpu_values+1), (mpu_values+2), 
+                (mpu_values+3), (mpu_values+4), (mpu_values+5));
+        
+        printf("Accel: ax = %d ay = %d az = %d\n", mpu_values[0], mpu_values[1], mpu_values[2]);
+        printf("Accel: gx = %d gy = %d gz = %d\n", mpu_values[3], mpu_values[4], mpu_values[5]);
     }
 }

@@ -21,6 +21,7 @@ void initialize_heartbeat(void) {
             num_endpoints++;
 }
 
+#if defined PRODUCTION || defined PRODUCTION_TESTING
 void CAN_setup(void) {
     setBoardRole(1, BOARD1_ROLE);
     setBoardRole(2, BOARD2_ROLE);
@@ -32,6 +33,7 @@ void CAN_setup(void) {
     initialize_heartbeat();
     CAN_init();
 }
+#endif
 
 void static_inits(void) {
     DDPCONbits.JTAGEN = 0;

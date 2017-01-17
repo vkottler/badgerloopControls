@@ -5,7 +5,6 @@
 #include "../../peripherals/include/ledShield.h"
 
 #include "../../globals.h"
-#include "../../utils.h"
 #include "production.h"
 
 void productionTesting(void);
