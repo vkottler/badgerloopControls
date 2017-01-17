@@ -1,29 +1,49 @@
 #include "main.h"
 
 unsigned int loopIteration = 0;
+uint8_t heartbeatsReceived = 0;
 
 /******************************************************************************/
 /*                       Function Pointer Definitions                         */
 /******************************************************************************/
 bool genericBoolHandler(void) {
     fault = UNINITIALIZED_HANDLER;
-    state = FAULT;
+    next_state = FAULT_STATE;
     return false;
 }
 
 void genericHandler(void) {
     fault = UNINITIALIZED_HANDLER;
-    state = FAULT;
+    next_state = FAULT_STATE;
 }
 
 void globalFaultHandler(void) {
-    if (loopIteration % 100 == 0) {
+    if (loopIteration % 10000 == 0) {
         CAN_send_fault();
         toggleRed();
     }
 }
 
+void defaultHeartbeatHandler(void) {
+    heartbeatsReceived++;
+    if (receiving.from == WCM || receiving.from == HEARTBEAT_SENDER) {
+        CAN_send_heartbeat();
+        if (fault != HEALTHY) CAN_send_fault(); // good idea or not?
+    }
+    else if (heartbeatsReceived == num_endpoints) {
+        toggleGreen();
+        heartbeatsReceived = 0;
+    }    
+}
+
+#ifndef WCM_PRESENT
+void debugStateHandler(void) {
+    // do nothing for now
+}
+#endif
+
 void (*serialDebugHandler)(void) =  &genericHandler;
+void (*heartbeatHandler)(void) =    &defaultHeartbeatHandler;
 
 bool (*broadcastHandler)(void) =    &genericBoolHandler;
 bool (*messageHandler)(void) =      &genericBoolHandler;
@@ -55,25 +75,46 @@ void (*spindownHandler)(void) =     &genericHandler;
 /******************************************************************************/
 /*                          Static Initializations                            */
 /******************************************************************************/
+void initialize_board_roles(void) {
+    setBoardRole(1, BOARD1_ROLE);
+    setBoardRole(2, BOARD2_ROLE);
+    setBoardRole(3, BOARD3_ROLE);
+    setBoardRole(4, BOARD4_ROLE);
+    setBoardRole(5, BOARD5_ROLE);
+    setBoardRole(6, BOARD6_ROLE);
+    ourRole = getThisRole();    
+}
+
 void setup_serial(void) {
     initUART();
+    delay(1000, MILLI);         // for computer to connect
     printBoardNumber();
 #if defined PRODUCTION
-    printAllRolesRawValue();
-    printf("CAN_MAIN: %d\tCAN_ALT: %d\r\nFIFO total size: %d messages (message size: %d)\r\n", 
-            CAN_MAIN, CAN_ALT, FIFO_SIZE, sizeof(CAN_MESSAGE));
+    printStartupDiagnostics();
 #endif 
 }
 
 // Figure out how many boards are attached
 void initialize_heartbeat(void) {
     int i;
-    for (i = 1; i <= NUM_BOARDS; i++)
-        if (getBoardRole(i) != NOT_PRESENT)
-            num_endpoints++;
+    for (i = 1; i <= NUM_BOARDS; i++) {
+        if (getBoardRole(i) != NOT_PRESENT) num_endpoints++;
+    }
+    if (ourRole == HEARTBEAT_SENDER) {
+        initializeSlowTimer(HEARTBEAT_DELAY);
+#ifdef SERIAL_DEBUG
+        printf("We will be sending a heartbeat every %d ms.\r\n", HEARTBEAT_DELAY);
+#elif defined SERIAL_DEBUG_BOARD
+        if (ourRole == SERIAL_DEBUG_BOARD) 
+            printf("We will be sending a heartbeat every %d ms.\r\n", HEARTBEAT_DELAY);
+#endif
+    }
 }
 
 void initialize_handlers(void) {
+#ifndef WCM_PRESENT
+    dashctlHandler = &debugStateHandler; 
+#endif
     switch (ourRole) {
         case VNM:
             broadcastHandler =    &VNM_broadcast_handler;
@@ -109,16 +150,9 @@ void initialize_handlers(void) {
 
 #ifdef PRODUCTION
 void CAN_setup(void) {
-    setBoardRole(1, BOARD1_ROLE);
-    setBoardRole(2, BOARD2_ROLE);
-    setBoardRole(3, BOARD3_ROLE);
-    setBoardRole(4, BOARD4_ROLE);
-    setBoardRole(5, BOARD5_ROLE);
-    setBoardRole(6, BOARD6_ROLE);
-    ourRole = getThisRole();
-    initialize_heartbeat();
     initialize_handlers();
     CAN_init();
+    initialize_heartbeat();
 }
 #endif
 
@@ -129,17 +163,17 @@ void static_inits(void) {
     INTCONbits.MVEC = 1;
     __builtin_enable_interrupts();
     initLEDs();
-    
-    
-#ifdef PRODUCTION
-    CAN_setup();
-#endif  
-    
+    initialize_board_roles();
+  
 #ifdef SERIAL_DEBUG
     setup_serial();
 #elif defined SERIAL_DEBUG_BOARD
     if (getThisRole() == SERIAL_DEBUG_BOARD) 
         setup_serial();
+#endif
+    
+#ifdef PRODUCTION
+    CAN_setup();
 #endif
     
 /*
@@ -152,7 +186,7 @@ void static_inits(void) {
         printf("CAN_MESSAGE must be 16 bytes and MESSAGE_TYPE enum must be 1 byte.\r\n");
         printf("Rebuild with compiler option -fshort-enums added.");
 #elif defined SERIAL_DEBUG_BOARD
-        if (getThisRole() == SERIAL_DEBUG_BOARD) {
+        if (CHECK_BOARD) {
             printf("ERROR: sizeof CAN_MESSAGE is %d bytes, sizeof MESSAGE_TYPE enum is %d bytes.\r\n", sizeof(CAN_MESSAGE), sizeof(MESSAGE_TYPE));
             printf("CAN_MESSAGE must be 16 bytes and MESSAGE_TYPE enum must be 1 byte.\r\n");
             printf("Rebuild with compiler option -fshort-enums added.");
@@ -207,27 +241,23 @@ int main(void) {
         
         // handle broadcasts
         if (CAN_receive_broadcast()) {
-                if (CAN_message_is_heartbeat(&receiving)) {
-                    if (receiving.from == WCM || receiving.from == HEARTBEAT_SENDER) CAN_send_heartbeat();
-                    else broadcastHandler();
-                }
+            if (CAN_message_is_heartbeat(&receiving)) heartbeatHandler();
+            else broadcastHandler();
         }
         
         // handle incoming messages
         if (CAN_receive_specific()) messageHandler();
         
         // relay any bus-level problems to the system
-        if (CAN_check_error()) {
-            fault = CAN_BUS_ERROR;
-            CAN_send_fault();
-        }
+        if (CAN_check_error()) fault = CAN_BUS_ERROR;
+        else fault = HEALTHY;
         
 #if defined SERIAL_DEBUG       
         if (messageAvailable()) serialDebugHandler();
-        if (CAN_check_error()) CAN_print_errors();
+        if (CAN_check_error() && loopIteration % 64000 == 0) CAN_print_errors();
 #elif defined SERIAL_DEBUG_BOARD
-        if (getThisRole() == SERIAL_DEBUG_BOARD && messageAvailable()) serialDebugHandler();
-        if (getThisRole() == SERIAL_DEBUG_BOARD && CAN_check_error()) CAN_print_errors();
+        if (CHECK_BOARD && messageAvailable()) serialDebugHandler();
+        if (CHECK_BOARD && CAN_check_error() && loopIteration % 64000 == 0) CAN_print_errors();
 #endif
         
         switch (state) {
@@ -261,6 +291,14 @@ int main(void) {
         prev_state = state;
         state = next_state;
         loopIteration++;
+        
+#ifndef WCM_PRESENT
+        if (sendHeartbeat) {
+            CAN_send_heartbeat();
+            heartbeatsReceived++;
+            sendHeartbeat = false;
+        }
+#endif
     }
 #endif
 /******************************************************************************/

@@ -13,6 +13,7 @@ volatile bool specificAvailable = false, broadcastAvailable = false;
 /*                                Local Variables                             */
 /******************************************************************************/
 static volatile unsigned int numOverflows = 0;
+static volatile unsigned int timeOfLastMessage = 0;
 static unsigned int *receivePointer;
 
 /*
@@ -184,8 +185,10 @@ uint16_t ROLEtoSID(ROLE r) {
 // Returns true/false based on whether or not it's possible to send the message currently
 bool CAN_send(void) {
     if (!CAN_SFR(FIFOINT2bits, CAN_MAIN).TXNFULLIF) return false;   // wait until FIFO is not full
-#if defined PRODUCTION_TESTING && defined SERIAL_DEBUG
-    CAN_message_dump(ADDRESSED_SEND_ADDR, true);
+#if defined SERIAL_DEBUG_BOARD && defined CAN_DUMP_IN
+    if (CHECK_BOARD) CAN_message_dump(sending, true);
+#elif defined SERIAL_DEBUG && defined CAN_DUMP_IN
+    CAN_message_dump(sending, true);
 #endif
     CAN_SFR(FIFOCON2SET, CAN_MAIN) = 0x2000;     // increment pointer for fifo
     CAN_SFR(FIFOCON2bits, CAN_MAIN).TXREQ = 1;   // tell CAN to send message
@@ -197,8 +200,10 @@ bool CAN_send(void) {
 // Returns true/false based on whether or not it's possible to send the message currently
 bool CAN_broadcast(void) {
     if (!CAN_SFR(FIFOINT3bits, CAN_MAIN).TXNFULLIF) return false;
-#if defined PRODUCTION_TESTING && defined SERIAL_DEBUG
-    //CAN_message_dump(BROADCAST_SEND_ADDR, true);
+#if defined SERIAL_DEBUG_BOARD && defined CAN_DUMP_IN
+    if (CHECK_BOARD) CAN_message_dump(sending, true);
+#elif defined SERIAL_DEBUG && defined CAN_DUMP_IN
+    CAN_message_dump(sending, true);
 #endif
     CAN_SFR(FIFOCON3SET, CAN_MAIN) = 0x2000;     // increment pointer for fifo
     CAN_SFR(FIFOCON3bits, CAN_MAIN).TXREQ = 1;   // tell CAN to send message
@@ -219,6 +224,11 @@ bool CAN_receive_broadcast(void) {
     receiving.raw[1] = receivePointer[1];
     receiving.raw[2] = receivePointer[2];
     receiving.raw[3] = receivePointer[3];
+#if defined SERIAL_DEBUG_BOARD && defined CAN_DUMP_IN
+    if (CHECK_BOARD) CAN_message_dump(&receiving, false);
+#elif defined SERIAL_DEBUG && defined CAN_DUMP_IN
+    CAN_message_dump(&receiving, false);
+#endif
     CAN_SFR(FIFOCON0SET, CAN_MAIN) = 0x2000;
     GLOBAL_RECEIVE_ENABLE = 1;
     broadcastAvailable = false;
@@ -233,6 +243,11 @@ bool CAN_receive_specific(void) {
     receiving.raw[1] = receivePointer[1];
     receiving.raw[2] = receivePointer[2];
     receiving.raw[3] = receivePointer[3];
+#if defined SERIAL_DEBUG_BOARD && defined CAN_DUMP_IN
+    if (CHECK_BOARD) CAN_message_dump(&receiving, false);
+#elif defined SERIAL_DEBUG && defined CAN_DUMP_IN
+    CAN_message_dump(&receiving, false);
+#endif
     CAN_SFR(FIFOCON1SET, CAN_MAIN) = 0x2000;
     ADDRESSED_RECEIVE_ENABLE = 1;
     specificAvailable = false;
@@ -271,25 +286,8 @@ bool CAN_send_heartbeat(void) {
     sending->SID = ALL;
     sending->from = ourRole;
     sending->SIZE = 2;
-    switch(getThisRole()) {
-        case VNM: sending->message_num = VNM_HB; break;
-        case BCM: sending->message_num = BCM_HB; break;
-        case MCM: sending->message_num = MCM_HB; break;
-        case VSM: sending->message_num = VSM_HB; break;
-        default: sending->message_num = INVALID; break;
-    }
+    sending->message_num = ourRole;
     sending->byte0 = state;
-#ifdef SERIAL_DEBUG
-    printf("sending ");
-    printRole(sending->from);
-    printf(" heartbeat . . .\r\n");
-#elif defined SERIAL_DEBUG_BOARD
-    if (getThisRole() == SERIAL_DEBUG_BOARD) {
-        printf("sending ");
-        printRole(sending->from);
-        printf(" heartbeat . . .\r\n");
-    }
-#endif
     return CAN_broadcast();
 }
 /******************************************************************************/
@@ -299,7 +297,7 @@ bool CAN_send_heartbeat(void) {
 /******************************************************************************/
 /*                                    ISRs                                    */
 /******************************************************************************/
-void __ISR (MAIN_CAN_VECTOR, IPL1SOFT) MAIN_CAN_Interrupt (void) {
+void __ISR (MAIN_CAN_VECTOR, IPL1SOFT) MAIN_CAN_Interrupt(void) {
     
     if (CAN_MAIN_VECTOR_BITS.ICODE > 32) {
         if (CAN_MAIN_VECTOR_BITS.ICODE == 0x46) {
@@ -333,63 +331,42 @@ void __ISR (ALT_CAN_VECTOR, IPL1SOFT) ALT_CAN_Interrupt (void) {
 /******************************************************************************/
 /*        Compiled depending on availablity of Serial Debug                   */
 /******************************************************************************/
-#if PRODUCTION && (defined SERIAL_DEBUG || SERIAL_DEBUG_BOARD)
+#if PRODUCTION && (defined SERIAL_DEBUG || defined SERIAL_DEBUG_BOARD)
 
 void CAN_print_errors(void) {
-    printf("=========== CAN ERROR DUMP =================\r\n");
-    if (CAN_SFR(TRECbits, CAN_MAIN).TXBO) printf("Transmitter in Error State Bus OFF\r\n");
-    else if (CAN_SFR(TRECbits, CAN_MAIN).TXBP) printf("Transmitter in Error State Bus Passive\r\n");
-    else if (CAN_SFR(TRECbits, CAN_MAIN).TXWARN) printf("Transmitter in Error State Warning\r\n");
-    if (CAN_SFR(TRECbits, CAN_MAIN).RXBP) printf("Receiver in Error State Bus Passive\r\n");
-    else if (CAN_SFR(TRECbits, CAN_MAIN).RXWARN) printf("Receiver in Error State Warning\r\n");
-    printf("TX error count:%d\tRX error count:\t%d", CAN_SFR(TRECbits, CAN_MAIN).TERRCNT, CAN_SFR(TRECbits, CAN_MAIN).RERRCNT);
-    printf("=============================================\r\n");
-}
-
-void CAN_print_message_type(CAN_MESSAGE *message) {
-    switch (message->message_num) {
-        case INVALID: printf("INVALID"); break;
-        case WCM_HB: printf("WCM_HB"); break;
-        case VNM_HB: printf("VNM_HB"); break;
-        case VSM_HB: printf("VSM_HB"); break;
-        case BCM_HB: printf("BCM_HB"); break;
-        case MCM_HB: printf("MCM_HB"); break;
-        case TEST_MSG: printf("TEST_MSG"); break;
-        case PING: printf("PING"); break;
-        default: printf("!! UNKNOWN !!");
-    }
-    printf(" (%d)\r\n", message->message_num);
+    printf("CAN ERROR: ");
+    if (CAN_SFR(TRECbits, CAN_MAIN).TXBO) printf("TXBO ");
+    else if (CAN_SFR(TRECbits, CAN_MAIN).TXBP) printf("TXBP ");
+    else if (CAN_SFR(TRECbits, CAN_MAIN).TXWARN) printf("TXW ");
+    if (CAN_SFR(TRECbits, CAN_MAIN).RXBP) printf("RXBP ");
+    else if (CAN_SFR(TRECbits, CAN_MAIN).RXWARN) printf("RXW ");
+    printf("(TX:%3d RX:%3d)", CAN_SFR(TRECbits, CAN_MAIN).TERRCNT, CAN_SFR(TRECbits, CAN_MAIN).RERRCNT);
+    printf("\r\n");
 }
 
 void CAN_message_dump(CAN_MESSAGE *message, bool outgoing) {
     int i;
-    printf("\r\n=========== CAN MESSAGE DUMP ================\r\n");
-    if (outgoing) printf("--------------- SENDING ---------------------\r\n");
-    else          printf("--------------- RECEIVING -------------------\r\n");
-    printf("SID:\t0x%x\tsender:\t", message->SID);
-    printRole(message->from);
+    if (outgoing && (message->SID & ALL))   printf("=========== OUTGOING BROADCAST ==============\r\n");
+    else if (outgoing)                      printf("============ OUTGOING MESSAGE ===============\r\n");
+    else if (message->SID & ALL)            printf("=========== INCOMING BROADCAST ==============\r\n");
+    else                                    printf("============ INCOMING MESSAGE ===============\r\n");                                    
+    printf("SID:\t0x%x\tsender:\t%s\t", message->SID, roleStr[message->from]);
+#ifdef CAP_TIME
+    if (!outgoing) printf("%d sec\r\n", (message->TS +65535*numOverflows) / 1000);
+    else printf("\r\n");
+#else
     printf("\r\n");
-    if (!outgoing) {
-        switch (message->FILHIT) {
-            case 0: printf("Filter hit:\tBROADCAST\r\n"); break;
-            case 1: printf("Filter hit:\tADDRESSED\r\n"); break;
-        }
-        printf("Timestamp:\t%d (seconds since start)\r\n", (message->TS +65535*numOverflows) / 1000);
+#endif
+    printf("Message:\t%s\t", messageStr[message->message_num]);
+    printf("(%u)\r\n", message->SIZE - 1);
+    if (CAN_message_is_heartbeat(message)) printf("State:\t%s\t\r\n", stateStr[message->byte0]);
+    else if (message->message_num == FAULT) {
+        printf("Fault String:\t%s", faultStr[message->byte0]);
+        printf("prev: %s\tcurr: %s\tnext: %s\r\n", 
+                stateStr[message->byte1], stateStr[message->byte2], stateStr[message->byte3]);
     }
-    printf("Size:\t%u\r\n", message->SIZE);
-    
-    printf("Message Type:\t");
-    CAN_print_message_type(message);
-    if (CAN_message_is_heartbeat(message)) {
-        printf("State:\t\t");
-        printState(message->byte0);
-        printf("\r\n");
-    }
-    else {
-        for (i = 1; i < message->SIZE; i++)
-            printf("Byte %d:\t\t%u\t(%c)\r\n", i - 1, message->bytes[i], message->bytes[i]);
-    }
-    printf("=============================================\r\n\r\n");
+    else for (i = 1; i < message->SIZE; i++) printf("[%d]", message->bytes[i]);
+    printf("=============================================\r\n");
 }
 
 void sendTestCANmessage(void) {
@@ -405,22 +382,19 @@ void sendTestCANmessage(void) {
 
 void CAN_ping(ROLE role) {
     if (role == ourRole) {
-        printf("can't ping yourself!\r\n");
+        printf("can't ping yourself! (you are %s)\r\n", roleStr[ourRole]);
         return;
     }
     sending = ADDRESSED_SEND_ADDR;
     sending->SID = ROLEtoSID(role);
     if (!sending->SID) {
-        printf("Cannot ping ");
-        printRole(role);
-        printf(", ask Vaughn why not.\r\n");
+        printf("Cannot ping %s, ask Vaughn why not.\r\n", roleStr[role]);
         return;
     }
     sending->from = ourRole;
     sending->SIZE = 1;
     sending->message_num = PING;
-    if (!CAN_send())
-        printf("ERROR: Could not send test message.\r\n");
+    if (!CAN_send()) printf("ERROR: Could not send test message.\r\n");
 }
 #endif
 /******************************************************************************/

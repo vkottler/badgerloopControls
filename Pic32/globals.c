@@ -8,39 +8,15 @@
 #else
     uint8_t num_endpoints = 0;
 #endif
+    
+#ifndef WCM_PRESENT
+    volatile bool sendHeartbeat = false;
+#endif
 
 int SID = 0;
 ROLE ourRole = NOT_PRESENT;
 volatile FAULT_TYPE fault = HEALTHY;
 volatile STATE state = DASH_CTL, next_state = DASH_CTL, prev_state = DASH_CTL;
-/******************************************************************************/
-/******************************************************************************/
-
-
-/******************************************************************************/
-/*                              State Related                                 */
-/******************************************************************************/
-#if defined SERIAL_DEBUG || defined SERIAL_DEBUG_BOARD
-void printState(STATE s) {
-    switch (s) {
-        case READY_FOR_LAUNCH:      printf("READY_FOR_LAUNCH"); break;
-        case DASH_CTL:              printf("DASH_CTL"); break;
-        case FAULT_STATE:           printf("FAULT_STATE"); break;
-        case SAFE:                  printf("SAFE"); break;
-        case RUNNING:               printf("RUNNING"); break;
-        case EMERGENCY_BRAKE:       printf("EMERGENCY_BRAKE"); break;
-        case NORMAL_BRAKING:        printf("NORMAL_BRAKING"); break;
-        case FRONT_AXLE_BRAKING:    printf("FRONT_AXLE_BRAKING"); break;
-        case REAR_AXLE_BRAKING:     printf("REAR_AXLE_BRAKING"); break;
-        case INFLATE:               printf("INFLATE"); break;
-        case WAITING_FOR_SAFE:      printf("WAITING_FOR_SAFE"); break;
-        case PUSH_PHASE:            printf("PUSH_PHASE"); break;
-        case COAST:                 printf("COAST"); break;
-        case SPINDOWN:              printf("SPINDOWN"); break;
-        default:                    printf("UNKNOWN");
-    }
-}
-#endif
 /******************************************************************************/
 /******************************************************************************/
 
@@ -75,43 +51,7 @@ int getBoardNumber(void) {
 
 #if defined SERIAL_DEBUG || defined SERIAL_DEBUG_BOARD
 void whoami(void) {
-    printf("You are:\t");
-    printRole(getThisRole());
-    printf("\r\nSID:\t%d\r\nfrom ID:%d\r\n", SID, ourRole);
-}
-
-void printRole(ROLE role) {
-    switch (role) {
-        case WCM: printf("WCM"); break;
-        case VNM: printf("VNM"); break;
-        case BCM: printf("BCM"); break;
-        case MCM: printf("MCM"); break;
-        case VSM: printf("VSM"); break;
-        case NOT_PRESENT: printf("NP"); break;
-        default: printf("UNKNOWN_ROLE");
-    }
-}
-
-void printRoleRawValue(ROLE role) {
-    printRole(role);
-    printf("\t%d\t0x%x\r\n", role, role);
-}
-
-void printAllRolesRawValue(void) {
-    int i = 0;
-    printf("\r\n=== ROLES ===\r\n");
-    printRoleRawValue(WCM);
-    printRoleRawValue(VNM);
-    printRoleRawValue(BCM);
-    printRoleRawValue(MCM);
-    printRoleRawValue(VSM);
-    printRoleRawValue(NOT_PRESENT);
-    printf("==  BOARDS ==\r\n");
-    for (i = 0; i < NUM_BOARDS; i++) {
-        printf("Board %d: ", i + 1);
-        printRoleRawValue(board_roles[i]);
-    }
-    printf("=============\r\n\r\n");
+    printf("You are: %s, SID: %d, from ID: %d\r\n", roleStr[ourRole], SID, ourRole);
 }
 #endif
 /******************************************************************************/
@@ -146,12 +86,68 @@ int getMAC(void) { return EMAC1SA0; }
 char uartReceive[50];
 
 void Serial_Debug_Handler(void) {
+    int i;
+    bool validInput = false;
     getMessage(uartReceive, 50);
     if (!strcmp(uartReceive, "heartbeat")) CAN_send_heartbeat();
     else if (!strcmp(uartReceive, "test")) sendTestCANmessage();
     else if (!strcmp(uartReceive, "whoami")) whoami();
-    else if (!strcmp(uartReceive, "testsend") || !strcmp(uartReceive, "ping")) printf("NEEDS TO BE RE-IMPLEMENTED");
+    else if (!strcmp(uartReceive, "testsend") || !strcmp(uartReceive, "ping")) {
+        while (!validInput) {
+            while (!messageAvailable());
+            getMessage(uartReceive, 50);
+            for (i = 0; i < NUM_BOARDS; i++) {
+                if (!strcmp(uartReceive, roleStr[i])) {
+                    printf("pinging %s\r\n", uartReceive);
+                    validInput = true;
+                    CAN_ping(i);
+                }
+            }
+            if (!validInput) printf("%s is not a module\r\n", uartReceive);
+        }
+        
+    }
     else printf("Did not recognize: %s\r\n", uartReceive);
+}
+
+
+void printStartupDiagnostics(void) {
+    int i, j, numNotPresent = 0, numBoardsForThisRole = 0;
+    printf("================ STARTUP DIAGNOSTICS ============\r\n");
+    printf("======== ROLES ========");
+    for (i = 0; i < NUM_ROLES; i++) {
+        if (i > 1) printf("%s\t(%d)\t", roleStr[i], i);
+        else if (i == 1) {
+#if defined WCM_PRESENT
+            printf("%s\t(%d) PRESENT", roleStr[i], i);
+#else
+            printf("%s\t(%d)\tNOT PRESENT", roleStr[i], i);
+#endif  
+        }
+        numBoardsForThisRole = 0;
+        for (j = 0; j < NUM_BOARDS; j++) {
+            if (getBoardRole(j+1) == i) {
+                if (i == 0) numNotPresent++;
+                else {
+                    if (numBoardsForThisRole++ != 0) printf(", ");
+                    printf("Board %d", j+1);
+                }
+            }
+        }
+        printf("\r\n");
+    }
+    printf("Boards not present:\t%d\r\n", numNotPresent);
+    printf("Heartbeat Sender:\t%s\r\n", roleStr[HEARTBEAT_SENDER]);
+#ifdef SERIAL_DEBUG_BOARD
+    printf("Serial Debug Module:\t%s\r\n", roleStr[SERIAL_DEBUG_BOARD]);
+#endif
+    printf("=======================\r\n"); 
+    printf("CAN_MAIN: %d\tCAN_ALT: %d\r\nFIFO total size: %d messages (message size: %d bytes)\r\n", 
+        CAN_MAIN, CAN_ALT, FIFO_SIZE, sizeof(CAN_MESSAGE));
+    printf("# CAN Messages:\t%d\r\n", NUM_CAN_MESSAGES);
+    printf("# States:\t%d\r\n", NUM_STATES);
+    printf("# Fault Types:\t%d\r\n", NUM_FAULT_TYPES);
+    printf("=================================================\r\n");
 }
 #endif
 /******************************************************************************/

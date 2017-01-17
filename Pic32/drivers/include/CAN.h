@@ -17,118 +17,15 @@
 
 #include "../../globals.h"
 
-#ifdef SERIAL_DEBUG
+#if defined SERIAL_DEBUG || defined SERIAL_DEBUG_BOARD
 #include <stdio.h>
 #include "../../peripherals/include/ledShield.h"
 #endif
 
-/******************************************************************************/
-/*                Structs, Enums and Compiler Directives                      */
-/******************************************************************************/
-typedef union {
-    struct {
-        
-        // SID
-        union {
-            struct {
-                unsigned SID:11;
-                unsigned FILHIT:5;
-                unsigned TS:16;
-            };
-            struct {
-                unsigned :6; 
-                unsigned from:3;
-                unsigned priority:1;
-                unsigned all:1;
-                unsigned :21;
-            };
-            uint32_t SIDword;
-        };
-        
-        // SIZE word
-        unsigned SIZE:4;
-        unsigned RBO:1;
-        unsigned :3;
-        unsigned RB1:1;
-        unsigned RTR:1;
-        unsigned EID:18;
-        unsigned IDE:1;
-        unsigned SRR:1;
-        unsigned :2;
-        
-        // data word 1
-        MESSAGE_TYPE message_num:8; 
-        uint8_t byte0;
-        uint8_t byte1; 
-        uint8_t byte2;
-        
-        // data word 0
-        uint8_t byte3; uint8_t byte4;
-        uint8_t byte5; uint8_t byte6;
-    };
-    struct {
-        unsigned :32; unsigned :32;
-        uint32_t dataw0; uint32_t dataw1;
-    };
-    struct {
-        unsigned :32; unsigned :32;
-        uint8_t bytes[8];
-    };
-    unsigned int raw[4];
-} CAN_MESSAGE;
 
 // http://stackoverflow.com/questions/13923425/c-preprocessor-concatenation-with-variable
 #define _CAN_SFR(reg, module)   C##module##reg    
 #define CAN_SFR(reg, module)    _CAN_SFR(reg, module)
-/******************************************************************************/
-/******************************************************************************/
-
-
-/******************************************************************************/
-/*                           Pre-build Settings                               */
-/******************************************************************************/
-#define BAUD_250K           1
-//#define BAUD_1M             1 // For interfacing with Kelly Controller
-#define CAP_TIME            1
-#define CAN_MAIN            2
-#define CAN_ALT             1
-
-#if CAN_MAIN == 1
-#define MAIN_CAN_VECTOR     _CAN_1_VECTOR
-#define ALT_CAN_VECTOR      _CAN_2_VECTOR
-#define MAIN_CAN_FLAG       IFS1bits.CAN1IF
-#define ALT_CAN_FLAG        IFS1bits.CAN2IF
-#else
-#define MAIN_CAN_VECTOR     _CAN_2_VECTOR
-#define ALT_CAN_VECTOR      _CAN_1_VECTOR
-#define MAIN_CAN_FLAG       IFS1bits.CAN2IF
-#define ALT_CAN_FLAG        IFS1bits.CAN1IF
-#endif
-/******************************************************************************/
-/******************************************************************************/
-
-
-/******************************************************************************/
-/*                             FIFO Setup                                     */
-/******************************************************************************/
-#define fifo_0_size                 8
-#define fifo_1_size                 8
-#define fifo_2_size                 8
-#define fifo_3_size                 8
-#define FIFO_SIZE                   fifo_0_size + fifo_1_size + fifo_2_size + fifo_3_size
-#define GLOBAL_RECEIVE_ENABLE       CAN_SFR(FIFOINT0bits, CAN_MAIN).RXNEMPTYIE
-#define ADDRESSED_RECEIVE_ENABLE    CAN_SFR(FIFOINT1bits, CAN_MAIN).RXNEMPTYIE
-#define GLOBAL_RECEIVE_FLAG         CAN_SFR(FIFOINT0bits, CAN_MAIN).RXNEMPTYIF
-#define ADDRESSED_RECEIVE_FLAG      CAN_SFR(FIFOINT1bits, CAN_MAIN).RXNEMPTYIF
-#define BROADCAST_REC_ADDR          PA_TO_KVA1(CAN_SFR(FIFOUA0, CAN_MAIN))
-#define ADDRESSED_REC_ADDR          PA_TO_KVA1(CAN_SFR(FIFOUA1, CAN_MAIN))
-#define ADDRESSED_SEND_ADDR         PA_TO_KVA1(CAN_SFR(FIFOUA2, CAN_MAIN))
-#define BROADCAST_SEND_ADDR         PA_TO_KVA1(CAN_SFR(FIFOUA3, CAN_MAIN))
-#define CAN_TIMER_FLAG              CAN_SFR(INTbits, CAN_MAIN).CTMRIF
-#define CAN_TIMER_EN                CAN_SFR(INTbits, CAN_MAIN).CTMRIE
-#define CAN_MAIN_VECTOR_BITS        CAN_SFR(VECbits, CAN_MAIN)
-/******************************************************************************/
-/******************************************************************************/
 
 
 /******************************************************************************/
@@ -183,7 +80,7 @@ void CAN_send_fault(void);
 bool CAN_message_is_heartbeat(CAN_MESSAGE *message);
 bool CAN_send_heartbeat(void);
 
-#if (defined TESTING || defined PRODUCTION_TESTING) && defined SERIAL_DEBUG
+#if defined SERIAL_DEBUG || defined SERIAL_DEBUG_BOARD
 void CAN_message_dump(CAN_MESSAGE *message, bool outgoing);
 void CAN_print_errors(void);
 #endif

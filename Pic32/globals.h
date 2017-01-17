@@ -3,6 +3,7 @@
 
 #include <xc.h>
 #include <stdint.h>
+#include <stdbool.h>
 #include "build_config.h"
 #include "enums.h"
 
@@ -33,6 +34,9 @@ extern ROLE ourRole;
 extern volatile STATE state, next_state, prev_state;
 extern uint8_t num_endpoints;
 extern volatile FAULT_TYPE fault;
+#ifndef WCM_PRESENT
+    extern volatile bool sendHeartbeat;
+#endif
 /******************************************************************************/
 
 
@@ -52,14 +56,11 @@ int getMAC(void) ;
 /*                              PRINT UTILITIES                               */
 /******************************************************************************/
 #if defined SERIAL_DEBUG || defined SERIAL_DEBUG_BOARD
-void printState(STATE s);
 void whoami(void);
-void printRole(ROLE role);
-void printRoleRawValue(ROLE role);
-void printAllRolesRawValue(void);
 void printMAC(void);
 void printBoardNumber(void);
 void Serial_Debug_Handler(void);
+void printStartupDiagnostics(void);
 #endif
 /******************************************************************************/
 /******************************************************************************/

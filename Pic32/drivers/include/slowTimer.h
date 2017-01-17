@@ -5,9 +5,9 @@
 #include <sys/attribs.h>
 
 #include "../../globals.h"
+#include "CAN.h"
 
 void initializeSlowTimer(int ms);
-void setSlowTimerPeriod(int ms);
 void slowTimerHandler(void);        // ISR
 
 #endif
