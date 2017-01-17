@@ -1,65 +1,21 @@
 #include "main.h"
 
 int main(void) {
-    
-/******************************************************************************/
-/*                          Static Initializations                            */
-/******************************************************************************/
-    DDPCONbits.JTAGEN = 0;
-    initLEDs();
-    initializeTimer1(0x8000, 0xffff);
-    INTCONbits.MVEC = 1;
-    __builtin_enable_interrupts();
-#if defined PRODUCTION || defined PRODUCTION_TESTING
-    setBoardRole(1, BOARD1_ROLE);
-    setBoardRole(2, BOARD2_ROLE);
-    setBoardRole(3, BOARD3_ROLE);
-    setBoardRole(4, BOARD4_ROLE);
-    setBoardRole(5, BOARD5_ROLE);
-    setBoardRole(6, BOARD6_ROLE);
-    CAN_init(getThisRole());
-#endif
-    
-#ifdef SERIAL_DEBUG
-    initUART();
-    blinkBoardLights(50, 50);
-    printBoardNumber();
-#if defined PRODUCTION_TESTING || defined PRODUCTION
-    printAllRolesRawValue();
-    printf("CAN_MAIN: %d\tCAN_ALT: %d\r\nFIFO total size: %d messages (message size: %d)\r\n", CAN_MAIN, CAN_ALT, FIFO_SIZE, sizeof(CAN_MESSAGE));
-#endif
-#endif 
-    
-#if defined PRODUCTION_TESTING || defined PRODUCTION
-    if (sizeof(CAN_MESSAGE) != 16 || sizeof(MESSAGE_TYPE) != 1) {
-#ifdef SERIAL_DEBUG
-        printf("ERROR: sizeof CAN_MESSAGE is %d bytes, sizeof MESSAGE_TYPE enum is %d bytes.\r\n", sizeof(CAN_MESSAGE), sizeof(MESSAGE_TYPE));
-        printf("CAN_MESSAGE must be 16 bytes and MESSAGE_TYPE enum must be 1 byte.\r\n");
-        printf("Rebuild with compiler option -fshort-enums added.");
-#endif
-        while (1) {
-            blinkBoardLights(4, 150);
-            delay(1000, MILLI);
-        }
-    }
-#endif
-/******************************************************************************/
-    
-    
-/******************************************************************************/
-/*                            Test Code Execution                             */
-/******************************************************************************/
-#ifdef TESTING
-    initLEDs();
+    bool initResults = false;
+    static_inits();
     blinkBoardLights(4, 150);
     
-// only wait for button if LED shield is attached
 #if defined SERIAL_DEBUG && defined LED_SHIELD_PRESENT
     printf("Press Button (LED Shield) to continue.\r\n");
     waitForButton();
 #elif defined SERIAL_DEBUG
     printf("No physical I/O present, continuing.\r\n");
 #endif
+    
+/******************************************************************************/
+/*                          Test Code Execution                               */
+/******************************************************************************/   
+#if defined TESTING && !defined PRODUCTION
     // Select which test to run by uncommenting one of these
     //vacuumTest();
     //productionTesting();
@@ -74,13 +30,35 @@ int main(void) {
 /*                      Production Code Execution                             */
 /******************************************************************************/
 #elif defined(PRODUCTION) 
-#if defined BOOT_CONFIG
-    // NOT YET IMPLEMENTED
-#else
-    run();
-#endif
-/******************************************************************************/
-
+    switch(getThisRole()) {
+        case VNM: VNM_run(); break;
+        case VSM: VSM_run(); break;
+        case BCM: BCM_run(); break;
+        case MCM: MCM_run(); break;
+        default:
+            // we aren't a valid module
+    }
+    
+    if (!initialize_peripherals()) {
+        printf("\r\nERROR: Board's role not properly set.\r\nROLE = ");
+        printRoleRawValue(getThisRole());
+        printf("Available choices:");
+        printAllRolesRawValue();
+        fail();
+    }
+    
+    switch(getThisRole()) {
+        case VNM: VNM_run();
+        case VSM: VSM_run();
+        case BCM: BCM_run();
+        case MCM: MCM_run();
+    }
+    
+    printRoleRawValue(getThisRole());
+    while (1) {
+        blinkBoardLights(4, 200);
+        // send error CAN message
+    }
 #endif
     return 0;
 }

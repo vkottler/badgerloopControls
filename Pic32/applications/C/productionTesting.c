@@ -1,42 +1,7 @@
 #include "../include/productionTesting.h"
 
-// this is needed so that if we undefine PRODUCTION_TESTING nothing breaks
-#if !defined PRODUCTION_TESTING || !(defined LED_SHIELD_PRESENT || defined PCB_PRESENT) || !defined SERIAL_DEBUG
-void productionTesting(void) {
-#ifdef SERIAL_DEBUG
-    printf("PRODUCTION_TESTING and LED_SHIELD_PRESENT or PCB_PRESENT must be defined globally. Rebuild.\r\n");
-#endif
-    while(1) {
-        blinkBoardLights(3, 150);
-        delay(550, MILLI);
-    }
-}
-#else
-
 int i;
 char uartReceive[50];
-
-void fail(void) {
-    while(1) {
-        delay(250, MILLI);
-        blinkBoardLights(5, 50);
-        delay(500, MILLI);
-    }
-}
-
-void whoami(void) {
-    printf("You are:\t");
-    printRole(getThisRole());
-    printf("\r\nSID:\t%d\r\nfrom ID:%d\r\n", SID, from_ID);
-}
-
-bool testRun(void) {
-    
-}
-
-bool testHeartbeatMessageToRole(void) {
-    
-}
 
 void test_send_specific(void) {
     sending = ADDRESSED_SEND_ADDR;
@@ -76,19 +41,6 @@ void sendTestCANmessage(void) {
         printf("ERROR: Could not send test message.\r\n");
 }
 
-void testInitializePeripherals(void) {
-    printf("Testing initialize_peripherals . . .");
-    if (!initialize_peripherals()) {
-        printf("\r\nERROR: Board's role not properly set.\r\nROLE = ");
-        printRoleRawValue(getThisRole());
-        printf("Available choices:");
-        printAllRolesRawValue();
-        fail();
-    }
-    printf(" Passed! This module:\t");
-    printRoleRawValue(getThisRole());
-}
-
 void testInitializeHeartbeatOrder(void) {
     printf("Testing initialize heartbeat order . . .");
     if (!initialize_heartbeat_order()) {
@@ -124,22 +76,6 @@ void productionTesting(void) {
             else printf("Did not recognize: %s\r\n", uartReceive);
         }
         
-        if (CAN_receive_broadcast(&receiving)) {
-            CAN_message_dump(&receiving, false);
-            if (CAN_message_is_heartbeat(&receiving) && 
-               (receiving.from == HEARTBEAT_SENDER || 
-                receiving.from == heartbeat_order[heartbeat_index])) {
-                if (heartbeat_order[++heartbeat_index] == getThisRole())
-                    CAN_send_heartbeat();
-                if (heartbeat_index == num_endpoints) 
-                    heartbeat_index = 0;
-            }
-        }
-        
-        if (CAN_receive_specific(&receiving)) {
-            CAN_message_dump(&receiving, false);
-        }
-        
         if (CAN_check_error()) CAN_print_errors();
         
         blinkGreen(2, 250);
@@ -148,5 +84,3 @@ void productionTesting(void) {
             CAN_send_heartbeat();
     }   
 }
-
-#endif

@@ -178,6 +178,11 @@ bool CAN_receive_broadcast(CAN_MESSAGE *message) {
     CAN_SFR(FIFOCON0SET, CAN_MAIN) = 0x2000;
     GLOBAL_RECEIVE_ENABLE = 1;
     broadcastAvailable = false;
+    if (CAN_message_is_heartbeat(message)) {
+        heartbeat_handler();
+        return false;
+    }
+    return true;
 }
 
 // FIFO 1
@@ -191,6 +196,7 @@ bool CAN_receive_specific(CAN_MESSAGE *message) {
     CAN_SFR(FIFOCON1SET, CAN_MAIN) = 0x2000;
     ADDRESSED_RECEIVE_ENABLE = 1;
     specificAvailable = false;
+    return true;
 }
 
 bool CAN_message_is_heartbeat(CAN_MESSAGE *message) {

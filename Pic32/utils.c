@@ -47,7 +47,7 @@ int MACLookUp(int boardNumber) {
     }
 }
 
-#ifdef SERIAL_DEBUG
+#if defined SERIAL_DEBUG || defined SERIAL_DEBUG_BOARD
 void printRole(ROLE role) {
     switch (role) {
         case WCM: printf("WCM"); break;
@@ -98,14 +98,27 @@ void printBoardNumber(void) {
 
 void printState(STATE s) {
     switch (s) {
-        case INIT:          printf("INIT"); break;
-        case IDLE:          printf("IDLE"); break;
-        case MANUAL:        printf("MANUAL"); break;
-        case AUTO:          printf("AUTO"); break;
-        case BRAKE:         printf("BRAKE"); break;
-        case SHUTDOWN:      printf("SHUTDOWN"); break;
-        case UNDER_TEST:    printf("UNDER_TEST"); break;
-        default:            printf("UNKNOWN");
+        case READY_FOR_LAUNCH:      printf("READY_FOR_LAUNCH"); break;
+        case DASH_CTL:              printf("DASH_CTL"); break;
+        case FAULT:                 printf("FAULT"); break;
+        case SAFE:                  printf("SAFE"); break;
+        case RUNNING:               printf("RUNNING"); break;
+        case EMERGENCY_BRAKE:       printf("EMERGENCY_BRAKE"); break;
+        case NORMAL_BRAKING:        printf("NORMAL_BRAKING"); break;
+        case FRONT_AXLE_BRAKING:    printf("FRONT_AXLE_BRAKING"); break;
+        case REAR_AXLE_BRAKING:     printf("REAR_AXLE_BRAKING"); break;
+        case INFLATE:               printf("INFLATE"); break;
+        case WAITING_FOR_SAFE:      printf("WAITING_FOR_SAFE"); break;
+        case PUSH_PHASE:            printf("PUSH_PHASE"); break;
+        case COAST:                 printf("COAST"); break;
+        case SPINDOWN:              printf("SPINDOWN"); break;
+        default:                    printf("UNKNOWN");
     }
+}
+
+void whoami(void) {
+    printf("You are:\t");
+    printRole(getThisRole());
+    printf("\r\nSID:\t%d\r\nfrom ID:%d\r\n", SID, from_ID);
 }
 #endif
