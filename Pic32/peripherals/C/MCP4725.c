@@ -15,9 +15,12 @@ bool mcp_write_val(uint16_t value) {
  * @return some convoluted 1 or 0 depending on success of I2C message
  */
 bool mcp_write_volt(float voltage) {
-    // convert volt to resolution. Math: 4096values/4.9V = 935.918 values/Volt
-    float floatage = 1250.0f * (voltage);
-    return mcp_write_val((int) floatage);
+    // convert volt to resolution. Math: 4096values/4.9V = 835.918 values/Volt
+    uint32_t value = 836 * voltage;
+    if (value > 0x0FFF) {
+        return mcp_write_val(0x0FFF);
+    }
+    return mcp_write_val(voltage);
 }
 
 /*

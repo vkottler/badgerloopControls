@@ -4,8 +4,8 @@
 /* * * * * * *          Software Build Definitions          * * * * * * * * * */
 /******************************************************************************/
 //#define SERIAL_DEBUG        1   // determines whether Serial will be usable
-//#define TESTING             1   // this asserts that something in the TESTING section in main will be compiled
-#define PRODUCTION          1   // use the production build (must still uncomment TESTING)
+#define TESTING             1   // this asserts that something in the TESTING section in main will be compiled
+//#define PRODUCTION          1   // use the production build (must still uncomment TESTING)
 
 #ifdef PRODUCTION
 //#define WCM_PRESENT         1
