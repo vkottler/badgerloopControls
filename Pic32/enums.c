@@ -25,7 +25,11 @@ const char *faultStr[] = {
 
 const char *messageStr[] = {
     "INVALID",
-    "WCM_HB", "VNM_HB", "VSM_HB", "BCM_HB", "MCM_HB", 
+    "WCM_HB", "VNM_HB", "BCM_HB", "MCM_HB", "VSM_HB",
+    "VNM_POS", "VNM_VEL", "VNM_ACC", "VNM_ATT",     
+    "VSM_TEMP1", "VSM_TEMP2", "VSM_EDATA",    
+    "BCM_BRAKE_STATE", "BCM_BRAKE_SPEED1", "BCM_BRAKE_SPEED2", 
+    "MCM_KELLY_STATE", "MCM_CMDV", "MCM_HB_SPEED1", "MCM_HB_SPEED2",
             
     // NOT YET ADDED GLOBALLY (i.e. in spreadsheet)
     "TEST_MSG", "PING", "FAULT"    

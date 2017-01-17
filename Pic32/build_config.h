@@ -3,16 +3,15 @@
 /******************************************************************************/
 /* * * * * * *          Software Build Definitions          * * * * * * * * * */
 /******************************************************************************/
-#define SERIAL_DEBUG        1   // determines whether Serial will be usable
+//#define SERIAL_DEBUG        1   // determines whether Serial will be usable
 //#define TESTING             1   // this asserts that something in the TESTING section in main will be compiled
 #define PRODUCTION          1   // use the production build (must still uncomment TESTING)
 
 #ifdef PRODUCTION
 //#define WCM_PRESENT         1
-//#define SERIAL_DEBUG_BOARD  VSM
+#define SERIAL_DEBUG_BOARD  VNM
 #ifdef SERIAL_DEBUG_BOARD
 #define CHECK_BOARD         ourRole == SERIAL_DEBUG_BOARD
-#define HEARTBEAT_DELAY     1000 // in ms
 #endif
 #endif
 
@@ -36,14 +35,18 @@
 #define BOARD1_ROLE         NOT_PRESENT
 #define BOARD2_ROLE         NOT_PRESENT
 #define BOARD3_ROLE         NOT_PRESENT
-#define BOARD4_ROLE         NOT_PRESENT
+#define BOARD4_ROLE         MCM
 #define BOARD5_ROLE         NOT_PRESENT
-#define BOARD6_ROLE         NOT_PRESENT
+#define BOARD6_ROLE         VNM
 
 #ifndef WCM_PRESENT
-//#define HEARTBEAT_SENDER    VNM
+#define HEARTBEAT_SENDER    MCM
 #else
 #define HEARTBEAT_SENDER    WCM
+#endif
+
+#ifdef HEARTBEAT_SENDER
+#define HEARTBEAT_DELAY     1000 // in ms
 #endif
 
 #endif
@@ -57,8 +60,8 @@
 #define BAUD_250K           1
 //#define BAUD_1M             1 // For interfacing with Kelly Controller
 #define CAP_TIME            1
-#define CAN_MAIN            2
-#define CAN_ALT             1
+#define CAN_MAIN            1
+#define CAN_ALT             2
 
 #if CAN_MAIN == 1
 #define MAIN_CAN_VECTOR     _CAN_1_VECTOR

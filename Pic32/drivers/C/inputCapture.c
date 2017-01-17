@@ -31,9 +31,12 @@ volatile bool IC3ready = false;
 volatile bool IC4ready = false;
 volatile bool IC5ready = false;
 
-float getFrequency(unsigned int delta) {
-    float temp = (float) delta;
-    return temp / TIMER_FREQ;
+unsigned int getFrequency(unsigned int delta) {
+    return TIMER_FREQ / delta;
+}
+
+unsigned int getRPM(unsigned int delta) {
+    return getFrequency(delta) * 60;
 }
 
 void startTimer(void) {

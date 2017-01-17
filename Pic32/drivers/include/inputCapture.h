@@ -54,13 +54,15 @@
 
 void startTimer(void);
 void inputCapInit(int module, uint8_t events_per_int);
+unsigned int getRPM(unsigned int delta);
+unsigned int getFrequency(unsigned int delta);
 
 void IC1Interrupt(void);
 void IC2Interrupt(void);
 void IC3Interrupt(void);
 void IC4Interrupt(void);
 void IC5Interrupt(void);
-TM3Interrupt(void);
+void TM3Interrupt(void);
 
 extern volatile bool IC1ready;
 extern volatile bool IC2ready;

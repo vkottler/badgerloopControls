@@ -365,7 +365,10 @@ void CAN_message_dump(CAN_MESSAGE *message, bool outgoing) {
         printf("prev: %s\tcurr: %s\tnext: %s\r\n", 
                 stateStr[message->byte1], stateStr[message->byte2], stateStr[message->byte3]);
     }
-    else for (i = 1; i < message->SIZE; i++) printf("[%d]", message->bytes[i]);
+    else {
+        for (i = 1; i < message->SIZE; i++) printf("[0x%2x] ", message->bytes[i]);
+        printf("\r\n");
+    }
     printf("=============================================\r\n");
 }
 

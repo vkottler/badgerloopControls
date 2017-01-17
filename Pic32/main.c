@@ -1,6 +1,5 @@
 #include "main.h"
 
-unsigned int loopIteration = 0;
 uint8_t heartbeatsReceived = 0;
 
 /******************************************************************************/
@@ -25,10 +24,12 @@ void globalFaultHandler(void) {
     }
 }
 
+#ifdef HEARTBEAT_SENDER
 void defaultHeartbeatHandler(void) {
     heartbeatsReceived++;
     if (receiving.from == WCM || receiving.from == HEARTBEAT_SENDER) {
         CAN_send_heartbeat();
+        heartbeatsReceived++;
         if (fault != HEALTHY) CAN_send_fault(); // good idea or not?
     }
     else if (heartbeatsReceived == num_endpoints) {
@@ -36,6 +37,7 @@ void defaultHeartbeatHandler(void) {
         heartbeatsReceived = 0;
     }    
 }
+#endif
 
 #ifndef WCM_PRESENT
 void debugStateHandler(void) {
@@ -44,7 +46,11 @@ void debugStateHandler(void) {
 #endif
 
 void (*serialDebugHandler)(void) =  &genericHandler;
+#ifdef HEARTBEAT_SENDER
 void (*heartbeatHandler)(void) =    &defaultHeartbeatHandler;
+#else
+void (*heartbeatHandler)(void) =    &genericHandler;
+#endif
 
 bool (*broadcastHandler)(void) =    &genericBoolHandler;
 bool (*messageHandler)(void) =      &genericBoolHandler;
@@ -262,8 +268,14 @@ int main(void) {
         if (CAN_receive_specific()) messageHandler();
         
         // relay any bus-level problems to the system
-        if (CAN_check_error()) fault = CAN_BUS_ERROR;
-        else fault = HEALTHY;
+        if (CAN_check_error()) {
+            fault = CAN_BUS_ERROR;
+            RED_LED = 1;
+        }
+        else {
+            fault = HEALTHY;
+            RED_LED = 0;
+        }
         
 #if defined SERIAL_DEBUG       
         if (messageAvailable()) serialDebugHandler();
@@ -305,10 +317,16 @@ int main(void) {
         state = next_state;
         loopIteration++;
         
-#ifndef WCM_PRESENT
+#if !defined WCM_PRESENT || (defined HEARTBEAT_SENDER && HEARTBEAT_SENDER != WCM)
         if (sendHeartbeat) {
-            CAN_send_heartbeat();
-            heartbeatsReceived++;
+            if (!CAN_send_heartbeat()) {
+                fault = CAN_BUS_ERROR;
+                RED_LED = 1;
+            }
+            else {
+                heartbeatsReceived++;
+                RED_LED = 0;
+            }
             sendHeartbeat = false;
         }
 #endif

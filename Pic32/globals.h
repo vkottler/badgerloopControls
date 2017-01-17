@@ -37,6 +37,7 @@ extern volatile FAULT_TYPE fault;
 #ifndef WCM_PRESENT
     extern volatile bool sendHeartbeat;
 #endif
+extern unsigned int loopIteration;
 /******************************************************************************/
 
 
