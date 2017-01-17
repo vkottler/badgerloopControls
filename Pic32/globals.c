@@ -12,7 +12,7 @@
 int SID = 0;
 ROLE ourRole = NOT_PRESENT;
 volatile FAULT_TYPE fault = HEALTHY;
-volatile STATE state = DASH_CTL, next_state = DASH_CTL;
+volatile STATE state = DASH_CTL, next_state = DASH_CTL, prev_state = DASH_CTL;
 /******************************************************************************/
 /******************************************************************************/
 

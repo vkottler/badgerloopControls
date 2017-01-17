@@ -4,7 +4,8 @@
 #include <stdint.h>
 #include "../../drivers/include/CAN.h"
 
-void BCM_run(void);
 bool BCM_init_periph(void);
+bool BCM_broadcast_handler(void);
+bool BCM_message_handler(void);
 
 #endif

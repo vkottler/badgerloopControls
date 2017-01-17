@@ -213,13 +213,13 @@ bool CAN_broadcast(void) {
 /*                        Receiving Messages                                  */
 /******************************************************************************/
 // FIFO 0
-bool CAN_receive_broadcast(CAN_MESSAGE *message) {
+bool CAN_receive_broadcast(void) {
     if (!broadcastAvailable) return false;
     receivePointer = BROADCAST_REC_ADDR;
-    message->raw[0] = receivePointer[0];
-    message->raw[1] = receivePointer[1];
-    message->raw[2] = receivePointer[2];
-    message->raw[3] = receivePointer[3];
+    receiving.raw[0] = receivePointer[0];
+    receiving.raw[1] = receivePointer[1];
+    receiving.raw[2] = receivePointer[2];
+    receiving.raw[3] = receivePointer[3];
     CAN_SFR(FIFOCON0SET, CAN_MAIN) = 0x2000;
     GLOBAL_RECEIVE_ENABLE = 1;
     broadcastAvailable = false;
@@ -227,13 +227,13 @@ bool CAN_receive_broadcast(CAN_MESSAGE *message) {
 }
 
 // FIFO 1
-bool CAN_receive_specific(CAN_MESSAGE *message) {
+bool CAN_receive_specific(void) {
     if (!specificAvailable) return false;
     receivePointer = ADDRESSED_REC_ADDR;
-    message->raw[0] = receivePointer[0];
-    message->raw[1] = receivePointer[1];
-    message->raw[2] = receivePointer[2];
-    message->raw[3] = receivePointer[3];
+    receiving.raw[0] = receivePointer[0];
+    receiving.raw[1] = receivePointer[1];
+    receiving.raw[2] = receivePointer[2];
+    receiving.raw[3] = receivePointer[3];
     CAN_SFR(FIFOCON1SET, CAN_MAIN) = 0x2000;
     ADDRESSED_RECEIVE_ENABLE = 1;
     specificAvailable = false;
@@ -254,13 +254,16 @@ bool CAN_message_is_heartbeat(CAN_MESSAGE *message) {
             message->message_num == BCM_HB);
 }
 
-void CAN_send_fault(FAULT_TYPE f) {
+void CAN_send_fault(void) {
     sending = BROADCAST_SEND_ADDR;
     sending->SID = ALL;
     sending->from = ourRole;
-    sending->SIZE = 2;
+    sending->SIZE = 5;
     sending->message_num = FAULT;
-    sending->byte0 = f;
+    sending->byte0 = fault;
+    sending->byte1 = prev_state;
+    sending->byte2 = state;
+    sending->byte3 = next_state;
     CAN_broadcast();
 }
 

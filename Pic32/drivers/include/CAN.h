@@ -189,10 +189,10 @@ int CAN_check_error(void);
 bool CAN_send(void);
 bool CAN_broadcast(void);
 
-bool CAN_receive_broadcast(CAN_MESSAGE *message);
-bool CAN_receive_specific(CAN_MESSAGE *message);
+bool CAN_receive_broadcast(void);
+bool CAN_receive_specific(void);
 
-void CAN_send_fault(FAULT_TYPE f);
+void CAN_send_fault(void);
 bool CAN_message_is_heartbeat(CAN_MESSAGE *message);
 bool CAN_send_heartbeat(void);
 

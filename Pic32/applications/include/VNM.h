@@ -4,7 +4,8 @@
 #include <stdint.h>
 #include "../../drivers/include/CAN.h"
 
-void VNM_run(void);
 bool VNM_init_periph(void);
+bool VNM_broadcast_handler(void);
+bool VNM_message_handler(void);
 
 #endif

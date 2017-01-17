@@ -88,7 +88,12 @@ typedef enum {
 
 typedef enum { 
     HEALTHY, 
-    GLOBAL_INITS_FAILED
+    GLOBAL_INITS_FAILED,
+    LOCAL_INIT_FAILED,
+    ILLEGAL_STATE,
+    ILLEGAL_ROLE,
+    UNINITIALIZED_HANDLER,
+    CAN_BUS_ERROR
 } FAULT_TYPE;
 /******************************************************************************/
 /******************************************************************************/
@@ -99,7 +104,7 @@ typedef enum {
 /******************************************************************************/
 extern int SID;
 extern ROLE ourRole;
-extern volatile STATE state, next_state;
+extern volatile STATE state, next_state, prev_state;
 extern uint8_t num_endpoints;
 extern volatile FAULT_TYPE fault;
 /******************************************************************************/

@@ -4,7 +4,8 @@
 #include <stdint.h>
 #include "../../drivers/include/CAN.h"
 
-void VSM_run(void);
 bool VSM_init_periph(void);
+bool VSM_broadcast_handler(void);
+bool VSM_message_handler(void);
 
 #endif
