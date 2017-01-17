@@ -35,6 +35,25 @@ typedef enum {
     UNINITIALIZED_HANDLER,
     CAN_BUS_ERROR
 } FAULT_TYPE;
+
+typedef enum {
+    INVALID,
+    WCM_HB, VNM_HB, VSM_HB, BCM_HB, MCM_HB, 
+            
+    // NOT YET ADDED GLOBALLY (i.e. in spreadsheet)
+    TEST_MSG, PING, FAULT
+} MESSAGE_TYPE;
+/******************************************************************************/
+/******************************************************************************/
+
+
+/******************************************************************************/
+/* * * * * * *             STRING REPRESENTATIONS           * * * * * * * * * */
+/******************************************************************************/
+extern const char *roleStr;
+extern const char *stateStr;
+extern const char *faultStr;
+extern const char *messageStr;
 /******************************************************************************/
 /******************************************************************************/
 #endif

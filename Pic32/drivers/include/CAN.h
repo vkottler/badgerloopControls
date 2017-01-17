@@ -25,16 +25,6 @@
 /******************************************************************************/
 /*                Structs, Enums and Compiler Directives                      */
 /******************************************************************************/
-typedef enum {
-    INVALID,
-    WCM_HB, VNM_HB, VSM_HB, BCM_HB, MCM_HB, 
-            
-            
-    // NOT YET ADDED GLOBALLY (i.e. in spreadsheet)
-    TEST_MSG, PING, FAULT
-            
-} MESSAGE_TYPE;
-
 typedef union {
     struct {
         
@@ -46,12 +36,7 @@ typedef union {
                 unsigned TS:16;
             };
             struct {
-                unsigned VNM_bit:1; 
-                unsigned VSM_bit:1;
-                unsigned BCM_bit:1; 
-                unsigned MCM_bit:1;
-                unsigned WCM_bit:1; 
-                unsigned BMS_bit:1;
+                unsigned :6; 
                 unsigned from:3;
                 unsigned priority:1;
                 unsigned all:1;
@@ -72,8 +57,10 @@ typedef union {
         unsigned :2;
         
         // data word 1
-        MESSAGE_TYPE message_num:8; uint8_t byte0;
-        uint8_t byte1; uint8_t byte2;
+        MESSAGE_TYPE message_num:8; 
+        uint8_t byte0;
+        uint8_t byte1; 
+        uint8_t byte2;
         
         // data word 0
         uint8_t byte3; uint8_t byte4;
