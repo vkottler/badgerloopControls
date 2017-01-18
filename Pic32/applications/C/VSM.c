@@ -5,13 +5,9 @@ bool VSM_init_periph(void) {
 }
 
 bool VSM_broadcast_handler(void) {
-    switch (receiving.message_num) {
-             
-    }    
+    return true;  
 }
 
 bool VSM_message_handler(void) {
-    switch (receiving.message_num) {
-             
-    }    
+    return true;
 }

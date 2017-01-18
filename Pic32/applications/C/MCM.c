@@ -98,25 +98,23 @@ bool MCM_init_periph(void) {
 }
 
 bool MCM_broadcast_handler(void) {
-    switch (receiving.message_num) {
-             
-    }
+    return true;
 }
 
 bool MCM_message_handler(void) {
-    switch (receiving.message_num) {
-
-    }
+    return true;
 }
 
 void MCM_rflHandler(void) {
     compute_wheel_rpms();
-    if (loopIteration % SEND_SPEED_DELAY == 0) send_wheel_rpms();
+    //if (loopIteration % SEND_SPEED_DELAY == 0) send_wheel_rpms();
+    
 }
 
 void MCM_dashctlHandler(void) {
     compute_wheel_rpms();
-    if (loopIteration % SEND_SPEED_DELAY == 0) send_wheel_rpms();
+    //if (loopIteration % SEND_SPEED_DELAY == 0) send_wheel_rpms();
+    
 }
 
 void MCM_faultHandler(void) {
@@ -125,12 +123,14 @@ void MCM_faultHandler(void) {
 
 void MCM_safeHandler(void) {
     compute_wheel_rpms();
-    if (loopIteration % SEND_SPEED_DELAY == 0) send_wheel_rpms();
+    //if (loopIteration % SEND_SPEED_DELAY == 0) send_wheel_rpms();
+    
 }
 
 void MCM_runningHandler(void) {
     compute_wheel_rpms();
-    if (loopIteration % SEND_SPEED_DELAY == 0) send_wheel_rpms();
+    //if (loopIteration % SEND_SPEED_DELAY == 0) send_wheel_rpms();
+    
 }
 
 void MCM_pushphaseHandler(void) {
@@ -139,12 +139,12 @@ void MCM_pushphaseHandler(void) {
 
 void MCM_coastHandler(void) {
     compute_wheel_rpms();
-    if (loopIteration % SEND_SPEED_DELAY == 0) send_wheel_rpms();
+    //if (loopIteration % SEND_SPEED_DELAY == 0) send_wheel_rpms();
     
 }
 
 void MCM_spindownHandler(void) {
     compute_wheel_rpms();
-    if (loopIteration % SEND_SPEED_DELAY == 0) send_wheel_rpms();
+    //if (loopIteration % SEND_SPEED_DELAY == 0) send_wheel_rpms();
     
 }

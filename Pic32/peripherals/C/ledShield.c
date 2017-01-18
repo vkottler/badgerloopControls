@@ -19,6 +19,11 @@ void initLEDs(void) {
     RED_LED_DIR = OUTPUT;
     RED_LED = 0;
     GREEN_LED = 0;
+if (BOARD1_ROLE == BCM || BOARD2_ROLE == BCM || BOARD3_ROLE == BCM ||
+    BOARD4_ROLE == BCM || BOARD5_ROLE == BCM || BOARD6_ROLE == BCM){
+    BCM_LED1_DIR = OUTPUT;    
+    BCM_LED2_DIR = OUTPUT; 
+}
 #else // if we don't have a PCB or an LED shield use the board LEDs
     TRISAbits.TRISA3 = OUTPUT;      // Also Board LED1
     TRISCbits.TRISC1 = OUTPUT;      // Board LED2
@@ -71,20 +76,28 @@ void toggleRed(void) { RED_LED = ~RED_LED; }
 void toggleGreen(void) { GREEN_LED = ~GREEN_LED; }
 void redOn(void) { RED_LED = 1; }
 void greenOn(void) { GREEN_LED = 1; }
+void toggleFaultLED(void) { 
+    if (ourRole == BCM) BCM_LED1 = ~BCM_LED1;
+    else RED_LED = ~RED_LED;
+}
+void toggleSuccessLED(void) { 
+    if (ourRole == BCM) BCM_LED2 = ~BCM_LED2;
+    else GREEN_LED = ~GREEN_LED;
+}
 
 void blinkRed(int times, int time) {
     int i = 0;
     for (i = 0; i < times; i++) {
-        RED_LED = 1; delay(time, MILLI);
-        RED_LED = 0; delay(time, MILLI);
+        toggleFaultLED(); delay(time, MILLI);
+        toggleFaultLED(); delay(time, MILLI);
     }
 }
 
 void blinkGreen(int times, int time) {
     int i = 0;
     for (i = 0; i < times; i++) {
-        GREEN_LED = 1; delay(time, MILLI);
-        GREEN_LED = 0; delay(time, MILLI);
+        toggleSuccessLED(); delay(time, MILLI);
+        toggleSuccessLED(); delay(time, MILLI);
     }
 }
 #endif
@@ -98,15 +111,28 @@ void blinkBoardLights(int times, int time) {
         BOARD_LED1 = 0, BOARD_LED2 = 1;
         delay(time, MILLI);
 #else
-        RED_LED = 1; GREEN_LED = 0; 
-        delay(time, MILLI);
-        RED_LED = 0; GREEN_LED = 1; 
-        delay(time, MILLI);
+        if (ourRole == BCM) {
+            BCM_LED1 = 1; BCM_LED2 = 0; 
+            delay(time, MILLI);
+            BCM_LED1 = 0; BCM_LED2 = 1; 
+            delay(time, MILLI);
+        }
+        else {
+            RED_LED = 1; GREEN_LED = 0; 
+            delay(time, MILLI);
+            RED_LED = 0; GREEN_LED = 1; 
+            delay(time, MILLI); 
+        }
 #endif
     }
 #ifndef PCB_PRESENT
     BOARD_LED1 = 0, BOARD_LED2 = 0;
 #else
-    RED_LED = 0; GREEN_LED = 0;
+    if (ourRole == BCM) {
+        BCM_LED1 = 0; BCM_LED2 = 0;
+    }
+    else {
+        RED_LED = 0; GREEN_LED = 0;
+    }
 #endif
 }

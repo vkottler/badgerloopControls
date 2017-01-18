@@ -4,6 +4,7 @@
 #include <stdint.h>
 #include "../../drivers/include/CAN.h"
 #include "../../drivers/include/inputCapture.h"
+#include "../../peripherals/include/ledShield.h"
 
 // BCM
 // WARNING: Max32 pin 51 and 43 are the same Pic32 processor pin!!

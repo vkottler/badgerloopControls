@@ -30,6 +30,10 @@ int readButton(void);
 #define RED_LED             LATAbits.LATA10
 #define GREEN_LED_DIR       TRISFbits.TRISF1
 #define RED_LED_DIR         TRISAbits.TRISA10
+#define BCM_LED1_DIR        TRISBbits.TRISB11
+#define BCM_LED2_DIR        TRISBbits.TRISB13
+#define BCM_LED1            LATBbits.LATB11
+#define BCM_LED2            LATBbits.LATB13
 
 void toggleRed(void);
 void toggleGreen(void);
@@ -37,6 +41,8 @@ void redOn(void);
 void greenOn(void);
 void blinkRed(int times, int time);
 void blinkGreen(int times, int time);
+void toggleFaultLED(void);
+void toggleSuccessLED(void);
 
 #else
 #define BOARD_LED1  LATAbits.LATA3

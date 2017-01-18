@@ -15,17 +15,16 @@ bool BCM_init_periph(void) {
     RD1_IN5 = 0;
     RD1_IN6 = 0;
     RD1_IN7 = 0;
+
     return true;
 }
 
 bool BCM_broadcast_handler(void) {
-    switch (receiving.message_num) {
-             
-    }    
+    
+    return true;
 }
 
 bool BCM_message_handler(void) {
-    switch (receiving.message_num) {
-             
-    }    
+
+    return true;
 }

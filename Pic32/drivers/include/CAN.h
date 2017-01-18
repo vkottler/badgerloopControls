@@ -26,6 +26,7 @@
 // http://stackoverflow.com/questions/13923425/c-preprocessor-concatenation-with-variable
 #define _CAN_SFR(reg, module)   C##module##reg    
 #define CAN_SFR(reg, module)    _CAN_SFR(reg, module)
+#define BUS_OFF                 CAN_SFR(TRECbits, CAN_MAIN).TXBO
 
 
 /******************************************************************************/

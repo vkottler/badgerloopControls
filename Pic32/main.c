@@ -5,43 +5,45 @@ uint8_t heartbeatsReceived = 0;
 /******************************************************************************/
 /*                       Function Pointer Definitions                         */
 /******************************************************************************/
+void globalFaultHandler(void) {
+#ifdef SERIAL_DEBUG
+        printf("Entered Fault Handler: %s\r\n", faultStr[fault]);
+#elif defined SERIAL_DEBUG_BOARD
+        if (CHECK_BOARD) printf("Entered Fault Handler: %s\r\nReturning to previous state: %s\r\n", faultStr[fault], stateStr[prev_state]);
+#endif
+    blinkRed(2, 100);
+    next_state = prev_state;
+}
+
 #ifdef PRODUCTION
 bool genericBoolHandler(void) {
-    fault = UNINITIALIZED_HANDLER;
-    next_state = FAULT_STATE;
+    //fault = UNINITIALIZED_HANDLER;
+    //next_state = FAULT_STATE;
     return false;
 }
 
 void genericHandler(void) {
-    fault = UNINITIALIZED_HANDLER;
-    next_state = FAULT_STATE;
+    //fault = UNINITIALIZED_HANDLER;
+    //next_state = FAULT_STATE;
 }
 
-void globalFaultHandler(void) {
-    if (loopIteration % 10000 == 0) {
-        CAN_send_fault();
-        toggleRed();
-    }
-}
+
 
 #ifdef HEARTBEAT_SENDER
 void defaultHeartbeatHandler(void) {
     heartbeatsReceived++;
     if (receiving.from == WCM || receiving.from == HEARTBEAT_SENDER) {
-        CAN_send_heartbeat();
-        heartbeatsReceived++;
-        if (fault != HEALTHY) CAN_send_fault(); // good idea or not?
+        printf("attempting to send heartbeat . . .\r\n");
+        if (CAN_send_heartbeat()) heartbeatsReceived++;
+        else {
+            next_state = FAULT_STATE;
+            fault = CAN_BUS_ERROR;
+        }
     }
-    else if (heartbeatsReceived == num_endpoints) {
-        toggleGreen();
+    if (heartbeatsReceived == num_endpoints) {
+        blinkGreen(3, 100);
         heartbeatsReceived = 0;
     }    
-}
-#endif
-
-#ifndef WCM_PRESENT
-void debugStateHandler(void) {
-    // do nothing for now
 }
 #endif
 
@@ -110,22 +112,12 @@ void initialize_heartbeat(void) {
         if (getBoardRole(i) != NOT_PRESENT) num_endpoints++;
     }
 #ifdef HEARTBEAT_SENDER
-    if (ourRole == HEARTBEAT_SENDER) {
-        initializeSlowTimer(HEARTBEAT_DELAY);
-#ifdef SERIAL_DEBUG
-        printf("We will be sending a heartbeat every %d ms.\r\n", HEARTBEAT_DELAY);
-#elif defined SERIAL_DEBUG_BOARD
-        if (ourRole == SERIAL_DEBUG_BOARD) 
-            printf("We will be sending a heartbeat every %d ms.\r\n", HEARTBEAT_DELAY);
-#endif
-    }
+    if (ourRole == HEARTBEAT_SENDER) initializeSlowTimer(HEARTBEAT_DELAY);
 #endif
 }
 
 void initialize_handlers(void) {
-#ifndef WCM_PRESENT
-    dashctlHandler = &debugStateHandler; 
-#endif
+
     switch (ourRole) {
         case VNM:
             broadcastHandler =    &VNM_broadcast_handler;
@@ -162,7 +154,7 @@ void initialize_handlers(void) {
 #ifdef SERIAL_DEBUG
     serialDebugHandler = &Serial_Debug_Handler;
 #elif defined SERIAL_DEBUG_BOARD
-    if (ourRole == SERIAL_DEBUG_BOARD) serialDebugHandler = &Serial_Debug_Handler;
+    if (CHECK_BOARD) serialDebugHandler = &Serial_Debug_Handler;
 #endif
 }
 
@@ -175,24 +167,19 @@ void CAN_setup(void) {
 
 void static_inits(void) {
     DDPCONbits.JTAGEN = 0;
-    initLEDs();
     initializeTimer1(0x8000, 0xffff);
     INTCONbits.MVEC = 1;
     __builtin_enable_interrupts();
-    initLEDs();
 #ifdef PRODUCTION
     initialize_board_roles();
+    CAN_setup();
 #endif
+    initLEDs();
   
 #ifdef SERIAL_DEBUG
     setup_serial();
 #elif defined SERIAL_DEBUG_BOARD
-    if (getThisRole() == SERIAL_DEBUG_BOARD) 
-        setup_serial();
-#endif
-    
-#ifdef PRODUCTION
-    CAN_setup();
+    if (CHECK_BOARD) setup_serial();
 #endif
     
 /*
@@ -218,6 +205,19 @@ void static_inits(void) {
 }
 /******************************************************************************/
 /******************************************************************************/
+void check_bus_integrity(void) {
+    // relay any bus-level problems to the system
+    if (CAN_check_error()) {
+        fault = CAN_BUS_ERROR;
+        next_state = FAULT_STATE;
+#if defined SERIAL_DEBUG 
+        if (loopIteration % 64000 == 0) CAN_print_errors();
+#elif defined SERIAL_DEBUG_BOARD
+        if (CHECK_BOARD&& loopIteration % 64000 == 0) CAN_print_errors();
+#endif
+    }
+    else fault = HEALTHY;  
+}
 
 
 int main(void) {
@@ -252,7 +252,7 @@ int main(void) {
 #elif defined PRODUCTION
     
     if (!initHandler()) {
-        state = FAULT;
+        next_state = FAULT_STATE;
         fault = LOCAL_INIT_FAILED;
     }
     
@@ -267,23 +267,7 @@ int main(void) {
         // handle incoming messages
         if (CAN_receive_specific()) messageHandler();
         
-        // relay any bus-level problems to the system
-        if (CAN_check_error()) {
-            fault = CAN_BUS_ERROR;
-            RED_LED = 1;
-        }
-        else {
-            fault = HEALTHY;
-            RED_LED = 0;
-        }
-        
-#if defined SERIAL_DEBUG       
-        if (messageAvailable()) serialDebugHandler();
-        if (CAN_check_error() && loopIteration % 64000 == 0) CAN_print_errors();
-#elif defined SERIAL_DEBUG_BOARD
-        if (CHECK_BOARD && messageAvailable()) serialDebugHandler();
-        if (CHECK_BOARD && CAN_check_error() && loopIteration % 64000 == 0) CAN_print_errors();
-#endif
+        check_bus_integrity();
         
         switch (state) {
             
@@ -315,20 +299,23 @@ int main(void) {
         
         prev_state = state;
         state = next_state;
-        loopIteration++;
+        if (loopIteration++ % 100 == 0) blinkGreen(1, 250);
         
-#if !defined WCM_PRESENT || (defined HEARTBEAT_SENDER && HEARTBEAT_SENDER != WCM)
+#if !defined WCM_PRESENT && defined HEARTBEAT_SENDER
         if (sendHeartbeat) {
             if (!CAN_send_heartbeat()) {
                 fault = CAN_BUS_ERROR;
-                RED_LED = 1;
+                next_state = FAULT_STATE;
             }
-            else {
-                heartbeatsReceived++;
-                RED_LED = 0;
-            }
+            else heartbeatsReceived++;
             sendHeartbeat = false;
         }
+#endif
+        
+#if defined SERIAL_DEBUG      
+    if (messageAvailable()) serialDebugHandler();
+#elif defined SERIAL_DEBUG_BOARD
+    if (CHECK_BOARD && messageAvailable()) serialDebugHandler();
 #endif
     }
 #endif
