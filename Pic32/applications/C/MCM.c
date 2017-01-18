@@ -76,6 +76,9 @@ void compute_wheel_rpms(void) {
     }
 }
 
+
+/******************************************************************************/
+/******************************************************************************/
 bool MCM_init_periph(void) {
     I2Cinit();
     inputCapInit(2, WHEEL_READINGS);
@@ -109,33 +112,41 @@ bool MCM_message_handler(void) {
     }
     return true;
 }
+/******************************************************************************/
+/******************************************************************************/
 
+
+/******************************************************************************/
+/******************************************************************************/
+void MCM_data_process_handler(void) {
+    if (loopIteration % 5 == 0) compute_wheel_rpms();
+    if (loopIteration % 64000 == 0) send_wheel_rpms();
+}
+/******************************************************************************/
+/******************************************************************************/
+
+
+/******************************************************************************/
+/******************************************************************************/
 void MCM_rflHandler(void) {
-    compute_wheel_rpms();
-    //if (loopIteration % SEND_SPEED_DELAY == 0) send_wheel_rpms();
+    
     
 }
 
 void MCM_dashctlHandler(void) {
-    compute_wheel_rpms();
-    //if (loopIteration % SEND_SPEED_DELAY == 0) send_wheel_rpms();
+    
     
 }
 
 void MCM_faultHandler(void) {
     redOn();
-    next_state = prev_state;
 }
 
 void MCM_safeHandler(void) {
-    compute_wheel_rpms();
-    //if (loopIteration % SEND_SPEED_DELAY == 0) send_wheel_rpms();
-    
+    greenOn();
 }
 
 void MCM_runningHandler(void) {
-    compute_wheel_rpms();
-    //if (loopIteration % SEND_SPEED_DELAY == 0) send_wheel_rpms();
     
 }
 
@@ -144,13 +155,11 @@ void MCM_pushphaseHandler(void) {
 }
 
 void MCM_coastHandler(void) {
-    compute_wheel_rpms();
-    //if (loopIteration % SEND_SPEED_DELAY == 0) send_wheel_rpms();
     
 }
 
 void MCM_spindownHandler(void) {
-    compute_wheel_rpms();
-    //if (loopIteration % SEND_SPEED_DELAY == 0) send_wheel_rpms();
     
 }
+/******************************************************************************/
+/******************************************************************************/

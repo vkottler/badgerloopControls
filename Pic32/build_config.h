@@ -37,6 +37,12 @@
 #define BOARD5_ROLE         NOT_PRESENT
 #define BOARD6_ROLE         VNM
 
+/*
+ * Production:
+ * Board 5:     VSM 
+ *
+ */
+
 #ifndef WCM_PRESENT
 #define HEARTBEAT_SENDER    BCM
 #else

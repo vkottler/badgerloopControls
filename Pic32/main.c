@@ -60,6 +60,8 @@ bool (*broadcastHandler)(void) =    &genericBoolHandler;
 bool (*messageHandler)(void) =      &genericBoolHandler;
 bool (*initHandler)(void) =         &genericBoolHandler;
 
+void (*dataProcessHandler)(void) =  &genericHandler;
+
 // Global State Handlers
 void (*rflHandler)(void) =          &genericHandler;
 void (*dashctlHandler)(void) =      &tempPlaceholder;
@@ -116,56 +118,64 @@ void initialize_handlers(void) {
             broadcastHandler =    &VNM_broadcast_handler;
             messageHandler =      &VNM_message_handler;
             initHandler =         &VNM_init_periph;
-            /*
-            rflHandler =          TODO;
-            dashctlHandler =      TODO;
-            faultHandler =        TODO;
-            safeHandler =         TODO;
-            runningHandler =      TODO;
-            pushphaseHandler =    TODO; 
-            coastHandler =        TODO; 
-            spindownHandler =     TODO;
-            */
+            
+            dataProcessHandler =  &VNM_data_process_handler;
+            
+            // Main States
+            rflHandler =          &VNM_rflHandler;
+            dashctlHandler =      &VNM_dashctlHandler;
+            faultHandler =        &VNM_faultHandler;
+            safeHandler =         &VNM_safeHandler;
+            runningHandler =      &VNM_runningHandler;
             break;
+            
         case VSM:
             broadcastHandler =    &VSM_broadcast_handler;
             messageHandler =      &VSM_message_handler;
             initHandler =         &VSM_init_periph;
-            /*
-            rflHandler =          TODO;
-            dashctlHandler =      TODO;
-            faultHandler =        TODO;
-            safeHandler =         TODO;
-            runningHandler =      TODO;
-            pushphaseHandler =    TODO; 
-            coastHandler =        TODO; 
-            spindownHandler =     TODO;
-            */
+            
+            dataProcessHandler =  &VSM_data_process_handler;
+            
+            // Main States
+            rflHandler =          &VSM_rflHandler;
+            dashctlHandler =      &VSM_dashctlHandler;
+            faultHandler =        &VSM_faultHandler;
+            safeHandler =         &VSM_safeHandler;
+            runningHandler =      &VSM_runningHandler;
             break;
+            
         case BCM:
             broadcastHandler =    &BCM_broadcast_handler;
             messageHandler =      &BCM_message_handler;
             initHandler =         &BCM_init_periph;
-            /*
-            rflHandler =          TODO;
-            dashctlHandler =      TODO;
-            faultHandler =        TODO;
-            safeHandler =         TODO;
-            runningHandler =      TODO;
-            pushphaseHandler =    TODO; 
-            coastHandler =        TODO; 
-            spindownHandler =     TODO;
-            */
+            
+            dataProcessHandler =  &BCM_data_process_handler;
+            
+            // Main States
+            rflHandler =          &BCM_rflHandler;
+            dashctlHandler =      &BCM_dashctlHandler;
+            faultHandler =        &BCM_faultHandler;
+            safeHandler =         &BCM_safeHandler;
+            runningHandler =      &BCM_runningHandler;
+            
+            // Module Specific
+            // TODO
             break;
+            
         case MCM:
             broadcastHandler =    &MCM_broadcast_handler;
             messageHandler =      &MCM_message_handler;
             initHandler =         &MCM_init_periph;
+            
+            dataProcessHandler =  &MCM_data_process_handler;
+            
             rflHandler =          &MCM_rflHandler;
             dashctlHandler =      &MCM_dashctlHandler;
             faultHandler =        &MCM_faultHandler;
             safeHandler =         &MCM_safeHandler;
             runningHandler =      &MCM_runningHandler;
+            
+            // Module Specific
             pushphaseHandler =    &MCM_pushphaseHandler; 
             coastHandler =        &MCM_coastHandler; 
             spindownHandler =     &MCM_spindownHandler;
@@ -283,6 +293,7 @@ int main(void) {
         }
         
         check_bus_integrity();
+        dataProcessHandler();
         
         switch (state) {
             

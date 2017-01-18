@@ -41,4 +41,15 @@ bool BCM_init_periph(void);
 bool BCM_broadcast_handler(void);
 bool BCM_message_handler(void);
 
+void BCM_data_process_handler(void);
+
+// Main State Handlers
+void BCM_rflHandler(void);
+void BCM_dashctlHandler(void); 
+void BCM_faultHandler(void);
+void BCM_safeHandler(void);
+void BCM_runningHandler(void);
+
+// Extra States
+
 #endif

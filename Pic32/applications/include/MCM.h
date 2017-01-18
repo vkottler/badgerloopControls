@@ -25,6 +25,8 @@ bool MCM_init_periph(void);
 bool MCM_broadcast_handler(void);
 bool MCM_message_handler(void);
 
+void MCM_data_process_handler(void);
+
 // Main State Handlers
 void MCM_rflHandler(void);
 void MCM_dashctlHandler(void); 
