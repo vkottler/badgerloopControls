@@ -5,8 +5,9 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <stdbool.h>
-#include "build_config.h"
 #include "enums.h"
+
+#define CHECK_BOARD         ourRole == SERIAL_DEBUG_BOARD
 
 /******************************************************************************/
 /* * * * * * *                 Board Cataloging             * * * * * * * * * */
@@ -31,10 +32,9 @@ extern ROLE ourRole;
 extern volatile STATE state, next_state, prev_state;
 extern uint8_t num_endpoints, heartbeatsReceived;
 extern volatile FAULT_TYPE fault;
-#ifndef WCM_PRESENT
-    extern volatile bool sendHeartbeat;
-#endif
 extern unsigned long long loopIteration;
+
+extern volatile bool sendHeartbeat;
 /******************************************************************************/
 
 
@@ -46,18 +46,11 @@ ROLE getBoardRole(uint8_t board);
 ROLE getThisRole(void);
 int MACLookUp(int boardNumber);
 int getMAC(void) ;
-/******************************************************************************/
-/******************************************************************************/
 
-
-/******************************************************************************/
-/*                              PRINT UTILITIES                               */
-/******************************************************************************/
-void whoami(void);
-void printMAC(void);
-void printBoardNumber(void);
-void Serial_Debug_Handler(void);
-void printStartupDiagnostics(void);
+void defaultHeartbeatHandler(void);
+void globalFaultHandler(void);
+bool volatileBoolHandler(void);
+void volatileHandler(void);
 /******************************************************************************/
 /******************************************************************************/
 #endif

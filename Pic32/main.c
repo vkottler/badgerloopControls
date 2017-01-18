@@ -1,87 +1,40 @@
 #include "main.h"
 
-
-
 /******************************************************************************/
 /*                       Function Pointer Definitions                         */
 /******************************************************************************/
-void globalFaultHandler(void) {
-#ifdef SERIAL_DEBUG
-        printf("Entered Fault Handler: %s\r\nReturning to previous state: %s\r\n", faultStr[fault], stateStr[prev_state]);
-        if (fault == CAN_BUS_ERROR) CAN_print_errors();
-#elif defined SERIAL_DEBUG_BOARD
-        if (CHECK_BOARD) {
-            printf("Entered Fault Handler: %s\r\nReturning to previous state: %s\r\n", faultStr[fault], stateStr[prev_state]);
-            if (fault == CAN_BUS_ERROR) CAN_print_errors();
-        }
-#endif
-    redOn();
-    next_state = prev_state;
-}
 
-#ifdef PRODUCTION
-bool genericBoolHandler(void) {
-    fault = UNINITIALIZED_HANDLER;
-    next_state = FAULT_STATE;
-    if (loopIteration % 64000 == 0) CAN_send_fault();
-    return false;
-}
 
-void genericHandler(void) {
-    fault = UNINITIALIZED_HANDLER;
-    next_state = FAULT_STATE;
-    if (loopIteration % 64000 == 0) CAN_send_fault();
-}
 
-void tempPlaceholder(void) {
-    
-}
-
-void defaultHeartbeatHandler(void) {
-    heartbeatsReceived++;
-    if (receiving.from == WCM) {
-        heartbeatsReceived = 1;
-        if (CAN_send_heartbeat(false)) heartbeatsReceived++;
-        else {
-            next_state = FAULT_STATE;
-            fault = CAN_BUS_ERROR;
-        }
-    }
-    if (heartbeatsReceived == num_endpoints) {
-        blinkBoardLights(2, 100);
-        heartbeatsReceived = 0;
-    }    
-}
 
 void (*serialDebugHandler)(void) =  &Serial_Debug_Handler;
 void (*heartbeatHandler)(void) =    &defaultHeartbeatHandler;
 
-bool (*broadcastHandler)(void) =    &genericBoolHandler;
-bool (*messageHandler)(void) =      &genericBoolHandler;
-bool (*initHandler)(void) =         &genericBoolHandler;
+bool (*broadcastHandler)(void) =    &volatileBoolHandler;
+bool (*messageHandler)(void) =      &volatileBoolHandler;
+bool (*initHandler)(void) =         &volatileBoolHandler;
 
-void (*dataProcessHandler)(void) =  &genericHandler;
+void (*dataProcessHandler)(void) =  &volatileHandler;
 
 // Global State Handlers
-void (*rflHandler)(void) =          &genericHandler;
-void (*dashctlHandler)(void) =      &tempPlaceholder;
+void (*rflHandler)(void) =          &volatileHandler;
+void (*dashctlHandler)(void) =      &volatileHandler;
 void (*faultHandler)(void) =        &globalFaultHandler;
-void (*safeHandler)(void) =         &genericHandler;
-void (*runningHandler)(void) =      &genericHandler;
+void (*safeHandler)(void) =         &volatileHandler;
+void (*runningHandler)(void) =      &volatileHandler;
 
 // Braking handlers
-void (*ebrakeHandler)(void) =       &genericHandler;
-void (*nbrakeHandler)(void) =       &genericHandler;
-void (*fabHandler)(void) =          &genericHandler;
-void (*rabHandler)(void) =          &genericHandler;
-void (*inflateHandler)(void) =      &genericHandler;
-void (*wfsHandler)(void) =          &genericHandler;
+void (*ebrakeHandler)(void) =       &volatileHandler;
+void (*nbrakeHandler)(void) =       &volatileHandler;
+void (*fabHandler)(void) =          &volatileHandler;
+void (*rabHandler)(void) =          &volatileHandler;
+void (*inflateHandler)(void) =      &volatileHandler;
+void (*wfsHandler)(void) =          &volatileHandler;
 
 // Wheel control handlers
-void (*pushphaseHandler)(void) =    &genericHandler;
-void (*coastHandler)(void) =        &genericHandler;
-void (*spindownHandler)(void) =     &genericHandler;
-#endif
+void (*pushphaseHandler)(void) =    &volatileHandler;
+void (*coastHandler)(void) =        &volatileHandler;
+void (*spindownHandler)(void) =     &volatileHandler;
 /******************************************************************************/
 /******************************************************************************/
 
@@ -89,7 +42,6 @@ void (*spindownHandler)(void) =     &genericHandler;
 /******************************************************************************/
 /*                          Static Initializations                            */
 /******************************************************************************/
-#ifdef PRODUCTION
 void initialize_board_roles(void) {
     setBoardRole(1, BOARD1_ROLE);
     setBoardRole(2, BOARD2_ROLE);
@@ -97,7 +49,8 @@ void initialize_board_roles(void) {
     setBoardRole(4, BOARD4_ROLE);
     setBoardRole(5, BOARD5_ROLE);
     setBoardRole(6, BOARD6_ROLE);
-    ourRole = getThisRole();    
+    ourRole = getThisRole();
+    if (CHECK_BOARD) debuggingOn = true;
 }
 
 // Figure out how many boards are attached
@@ -106,9 +59,7 @@ void initialize_heartbeat(void) {
     for (i = 1; i <= NUM_BOARDS; i++) {
         if (getBoardRole(i) != NOT_PRESENT) num_endpoints++;
     }
-#ifdef HEARTBEAT_SENDER
     if (ourRole == HEARTBEAT_SENDER) initializeSlowTimer(HEARTBEAT_DELAY);
-#endif
 }
 
 void initialize_handlers(void) {
@@ -180,16 +131,11 @@ void initialize_handlers(void) {
             coastHandler =        &MCM_coastHandler; 
             spindownHandler =     &MCM_spindownHandler;
             break;
-    }
-#if defined SERIAL_DEBUG
-    printBoardNumber();
-    printStartupDiagnostics();
-#elif defined SERIAL_DEBUG_BOARD
-    if (CHECK_BOARD) {
+    } 
+    if (CHECK_BOARD || debuggingOn) {
         printBoardNumber();
         printStartupDiagnostics();
     }
-#endif
 }
 
 void CAN_setup(void) {
@@ -197,7 +143,6 @@ void CAN_setup(void) {
     CAN_init();
     initialize_heartbeat();
 }
-#endif
 
 void static_inits(void) {
     DDPCONbits.JTAGEN = 0;
@@ -205,29 +150,19 @@ void static_inits(void) {
     initUART();
     INTCONbits.MVEC = 1;
     __builtin_enable_interrupts();
-#ifdef PRODUCTION
     initialize_board_roles();
-    CAN_setup();
-#endif
     initLEDs();
+    CAN_setup();
     
-#if defined PRODUCTION
     if (sizeof(CAN_MESSAGE) != 16 || sizeof(MESSAGE_TYPE) != 1) {
-#if defined SERIAL_DEBUG
-        printf("ERROR: sizeof CAN_MESSAGE is %d bytes, sizeof MESSAGE_TYPE enum is %d bytes.\r\n", sizeof(CAN_MESSAGE), sizeof(MESSAGE_TYPE));
-        printf("CAN_MESSAGE must be 16 bytes and MESSAGE_TYPE enum must be 1 byte.\r\n");
-        printf("Rebuild with compiler option -fshort-enums added.");
-#elif defined SERIAL_DEBUG_BOARD
-        if (CHECK_BOARD) {
+        if (CHECK_BOARD || debuggingOn) {
             printf("ERROR: sizeof CAN_MESSAGE is %d bytes, sizeof MESSAGE_TYPE enum is %d bytes.\r\n", sizeof(CAN_MESSAGE), sizeof(MESSAGE_TYPE));
             printf("CAN_MESSAGE must be 16 bytes and MESSAGE_TYPE enum must be 1 byte.\r\n");
             printf("Rebuild with compiler option -fshort-enums added.");
         } 
-#endif
         state = FAULT_STATE;
         fault = GLOBAL_INITS_FAILED;
     }
-#endif
 }
 /******************************************************************************/
 /******************************************************************************/
@@ -243,32 +178,6 @@ int main(void) {
 
     static_inits();
     blinkBoardLights(4, 150);
-    
-#if defined SERIAL_DEBUG && defined LED_SHIELD_PRESENT
-    printf("Press Button (LED Shield) to continue.\r\n");
-    waitForButton();
-#elif defined SERIAL_DEBUG
-    printf("No physical I/O present, continuing.\r\n");
-#endif
-    
-/******************************************************************************/
-/*                          Test Code Execution                               */
-/******************************************************************************/   
-#if defined TESTING && !defined PRODUCTION
-    // Select which test to run by uncommenting one of these
-    //vacuumTest();
-    //productionTesting();
-    i2cTesting();
-    //testPCBs();
-    //testRetro();
-    //uartTesting();
-/******************************************************************************/
-    
-    
-/******************************************************************************/
-/*                      Production Code Execution                             */
-/******************************************************************************/
-#elif defined PRODUCTION
     
     if (!initHandler()) {
         next_state = FAULT_STATE;
@@ -325,43 +234,15 @@ int main(void) {
         
         prev_state = state;
         state = next_state;
+        
+        // this is useful for knowing how fast we are operating
         loopIteration++;
+        
         if (fault == HEALTHY) { greenOn(); redOff(); }
-        else { greenOff(); redOn(); }
-        
-#if !defined WCM_PRESENT
-        if (sendHeartbeat) {
-            if (!CAN_send_heartbeat()) {
-                fault = CAN_BUS_ERROR;
-                next_state = FAULT_STATE;
-            }
-            else heartbeatsReceived++;
-            sendHeartbeat = false;
-        }
-#endif
-        
-    if (messageAvailable()) serialDebugHandler();
-        
-    }
-#endif
-/******************************************************************************/
-/******************************************************************************/
+        else {                  greenOff(); redOn(); }
 
-    
-/******************************************************************************/
-/*                         SHOULD NEVER ENTER HERE                            */
-/******************************************************************************/
-    while (1) {
-#ifdef SERIAL_DEBUG
-        printf("Check to see what you were trying to run.\r\n");
-#elif defined SERIAL_DEBUG_BOARD && defined PRODUCTION
-        if (ourRole == SERIAL_DEBUG_BOARD)
-            printf("Check to see what you were trying to run.\r\n");
-#endif
-        blinkBoardLights(2, 200);
-        delay(500, MILLI);
+    if (debuggingOn && messageAvailable()) serialDebugHandler();
     }
-    return 0;
 }
 /******************************************************************************/
 /******************************************************************************/

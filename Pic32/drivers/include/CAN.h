@@ -16,6 +16,7 @@
 #include <string.h>
 
 #include "../../globals.h"
+#include "../../config.h"
 
 #include <stdio.h>
 #include "../../peripherals/include/ledShield.h"

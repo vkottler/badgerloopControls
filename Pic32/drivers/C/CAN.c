@@ -341,20 +341,18 @@ void CAN_print_errors(void) {
 
 void CAN_message_dump(CAN_MESSAGE *message, bool outgoing) {
     int i;
-    if (outgoing && (message->SID & ALL))   printf("============= OUTGOING BROADCAST ================\r\n");
-    else if (outgoing)                      printf("============== OUTGOING MESSAGE =================\r\n");
-    else if (message->SID & ALL)            printf("============= INCOMING BROADCAST ================\r\n");
-    else                                    printf("============== INCOMING MESSAGE =================\r\n");                                    
-    printf("SID:\t0x%x\tsender:\t%s\t", message->SID, roleStr[message->from]);
+    if (outgoing && (message->SID & ALL))   printf("BO: ");
+    else if (outgoing)                      printf("MO: ");
+    else if (message->SID & ALL)            printf("BI: ");
+    else                                    printf("MI: ");                                    
+    printf("0x%3x from %3s\t", message->SID, roleStr[message->from]);
 #ifdef CAP_TIME
-    if (!outgoing) printf("%d sec\r\n", (message->TS +65535*numOverflows) / 1000);
-    else printf("\r\n");
-#else
-    printf("\r\n");
+    if (!outgoing) printf("(%5d sec) ", (message->TS +65535*numOverflows) / 1000);
+    else           printf("            ");
 #endif
-    printf("Message:\t%s\t", messageStr[message->message_num]);
-    printf("(%u)\r\n", message->SIZE - 1);
-    if (CAN_message_is_heartbeat(message)) printf("State:\t%s\t\r\n", stateStr[message->byte0]);
+    printf("MSG (%u): %s ", message->SIZE - 1, messageStr[message->message_num]);
+    if (CAN_message_is_heartbeat(message)) 
+        printf("[%s][%s][%s]", stateStr[message->byte0], stateStr[message->byte1], stateStr[message->byte2]);
     else if (message->message_num == FAULT) {
         printf("Fault String:\t%s", faultStr[message->byte0]);
         printf("prev: %s\tcurr: %s\tnext: %s\r\n", 

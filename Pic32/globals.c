@@ -3,22 +3,16 @@
 /******************************************************************************/
 /*                           GLOBAL VARIABLES                                 */
 /******************************************************************************/
-#ifdef WCM_PRESENT
-    uint8_t num_endpoints = 1;
-#else
-    uint8_t num_endpoints = 0;
-#endif
-    
-#ifndef WCM_PRESENT
-    volatile bool sendHeartbeat = false;
-#endif
-
 int SID = 0;
 ROLE ourRole = NOT_PRESENT;
 volatile FAULT_TYPE fault = HEALTHY;
 volatile STATE state = DASH_CTL, next_state = DASH_CTL, prev_state = DASH_CTL;
 unsigned long long loopIteration = 0;
 uint8_t heartbeatsReceived = 0;
+
+// Partially only for during testing
+uint8_t num_endpoints = 0;
+volatile bool sendHeartbeat = false;
 /******************************************************************************/
 /******************************************************************************/
 
@@ -38,20 +32,6 @@ static ROLE board_roles[] = {
 void setBoardRole(uint8_t board, ROLE role) { board_roles[board-1] = role; }
 ROLE getBoardRole(uint8_t board) { return board_roles[board-1]; }
 ROLE getThisRole(void) { return getBoardRole(getBoardNumber()); }
-
-int getBoardNumber(void) {
-    switch(EMAC1SA0) {
-        case MAC1:  return 1;
-        case MAC2:  return 2;
-        case MAC3:  return 3;
-        case MAC4:  return 4;
-        case MAC5:  return 5;
-        case MAC6:  return 6;
-        default:    return -1;
-    }
-}
-
-
 /******************************************************************************/
 /******************************************************************************/
 
@@ -68,89 +48,60 @@ int MACLookUp(int boardNumber) {
     }
 }
 
-void printMAC(void) { printf("MAC: %x %x\r\n", EMAC1SA0, EMAC1SA1); }
-void printBoardNumber(void) { printf("Board %d connected.\r\n", getBoardNumber()); }
 int getMAC(void) { return EMAC1SA0; }
+
+int getBoardNumber(void) {
+    switch(EMAC1SA0) {
+        case MAC1:  return 1;
+        case MAC2:  return 2;
+        case MAC3:  return 3;
+        case MAC4:  return 4;
+        case MAC5:  return 5;
+        case MAC6:  return 6;
+        default:    return -1;
+    }
+}
 /******************************************************************************/
 /******************************************************************************/
 
 
 /******************************************************************************/
-/*                          Live Debugging Related                            */
+/*                         Globally Used Handlers                             */
 /******************************************************************************/
-void whoami(void) { printf("You are: %s, SID: %d, from ID: %d\r\n", roleStr[ourRole], SID, ourRole); }
-
-void printStates(void) {
-    printf("Previous State: %s\r\nCurrent State: %s\r\nNext State: %s\r\n", stateStr[prev_state], stateStr[state], stateStr[next_state]);
+void defaultHeartbeatHandler(void) {
+    heartbeatsReceived++;
+    if (receiving.from == WCM) {
+        heartbeatsReceived = 1;
+        if (CAN_send_heartbeat(false)) heartbeatsReceived++;
+        else {
+            next_state = FAULT_STATE;
+            fault = CAN_BUS_ERROR;
+        }
+    }
+    if (heartbeatsReceived == num_endpoints) {
+        blinkBoardLights(2, 100);
+        heartbeatsReceived = 0;
+    }    
 }
 
-char uartReceive[50];
-
-void Serial_Debug_Handler(void) {
-    int i;
-    bool validInput = false;
-    getMessage(uartReceive, 50);
-    if (!strcmp(uartReceive, "heartbeat")) CAN_send_heartbeat(true);
-    else if (!strcmp(uartReceive, "whoami")) whoami();
-    else if (!strcmp(uartReceive, "bushealth")) CAN_print_errors();
-    else if (!strcmp(uartReceive, "state")) printStates(); 
-    else if (!strcmp(uartReceive, "ping")) {
-        while (!validInput) {
-            while (!messageAvailable());
-            getMessage(uartReceive, 50);
-            for (i = 0; i < NUM_BOARDS; i++) {
-                if (!strcmp(uartReceive, roleStr[i])) {
-                    printf("pinging %s\r\n", uartReceive);
-                    validInput = true;
-                    CAN_ping(i, true);
-                }
-            }
-            if (!validInput) printf("%s is not a module\r\n", uartReceive);
-        }
-        
+void globalFaultHandler(void) {
+    if (CHECK_BOARD || debuggingOn) {
+        printf("Entered Fault Handler: %s\r\nReturning to previous state: %s\r\n", faultStr[fault], stateStr[prev_state]);
+        if (fault == CAN_BUS_ERROR) CAN_print_errors();
     }
-    else printf("Did not recognize: %s\r\n", uartReceive);
+    redOn();
+    next_state = prev_state;
 }
 
-void printStartupDiagnostics(void) {
-    int i, j, numNotPresent = 0, numBoardsForThisRole = 0;
-    printf("================ STARTUP DIAGNOSTICS ============\r\n");
-    printf("======== ROLES ========");
-    for (i = 0; i < NUM_ROLES; i++) {
-        if (i > 1) printf("%s\t(%d)\t", roleStr[i], i);
-        else if (i == 1) {
-#if defined WCM_PRESENT
-            printf("%s\t(%d) PRESENT", roleStr[i], i);
-#else
-            printf("%s\t(%d)\tNOT PRESENT", roleStr[i], i);
-#endif  
-        }
-        numBoardsForThisRole = 0;
-        for (j = 0; j < NUM_BOARDS; j++) {
-            if (getBoardRole(j+1) == i) {
-                if (i == 0) numNotPresent++;
-                else {
-                    if (numBoardsForThisRole++ != 0) printf(", ");
-                    printf("Board %d", j+1);
-                }
-            }
-        }
-        printf("\r\n");
-    }
-    printf("Boards not present:\t%d\r\n", numNotPresent);
-#ifdef HEARTBEAT_SENDER
-    printf("Heartbeat Sender:\t%s\r\n", roleStr[HEARTBEAT_SENDER]);
-#endif
-#ifdef SERIAL_DEBUG_BOARD
-    printf("Serial Debug Module:\t%s\r\n", roleStr[SERIAL_DEBUG_BOARD]);
-#endif
-    printf("=======================\r\n"); 
-    printf("CAN_MAIN: %d\tCAN_ALT: %d\r\nFIFO total size: %d messages (message size: %d bytes)\r\n", 
-        CAN_MAIN, CAN_ALT, FIFO_SIZE, sizeof(CAN_MESSAGE));
-    printf("# CAN Messages:\t%d\r\n", NUM_CAN_MESSAGES);
-    printf("# States:\t%d\r\n", NUM_STATES);
-    printf("# Fault Types:\t%d\r\n", NUM_FAULT_TYPES);
-    printf("=================================================\r\n");
+bool volatileBoolHandler(void) {
+    fault = UNINITIALIZED_HANDLER;
+    next_state = FAULT_STATE;
+    return false;
+}
+
+void volatileHandler(void) {
+    fault = UNINITIALIZED_HANDLER;
+    next_state = FAULT_STATE;
 }
 /******************************************************************************/
 /******************************************************************************/

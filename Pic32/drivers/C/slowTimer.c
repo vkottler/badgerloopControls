@@ -22,8 +22,6 @@ void initializeSlowTimer(int ms) {
 }
 
 void __ISR (_TIMER_5_VECTOR, IPL1SOFT) slowTimerHandler(void) {
-#ifndef WCM_PRESENT
     sendHeartbeat = true;
-#endif
     IFS0bits.T5IF = 0;
 }

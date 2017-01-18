@@ -1,31 +1,70 @@
 #ifndef _CONFIG__H__
 #define _CONFIG__H__
 
-// our oscillator configurations
-#pragma config FNOSC    = PRIPLL                        // Oscillator Selection
-#pragma config POSCMOD  = XT //HS                       // Primary Oscillator
-#pragma config FPLLIDIV = DIV_2                         // PLL input divider
-#pragma config FPLLMUL  = MUL_16 //MUL_16               // PLL multiplier
-#pragma config FPLLODIV = DIV_1                         // PLL output divider
-#pragma config FPBDIV   = DIV_1                         // Peripheral bus clock divider
-#pragma config FSOSCEN  = OFF                           // Secondary Oscillator Enable
+/******************************************************************************/
+/* * * * * * *             Physical Configuration           * * * * * * * * * */
+/******************************************************************************/
+//#define LED_SHIELD_PRESENT  1   // this asserts that the custom LED proto-shield will be present and can be used
+#define PCB_PRESENT         1
+#define WCM_PRESENT         1
 
-// Clock control settings
-#pragma config IESO     = OFF   //ON                    // Internal/External Switch-over
-#pragma config FCKSM    = CSDCMD                        // Clock Switching & Fail Safe Clock Monitor
-#pragma config OSCIOFNC = OFF                           // CLKO Enable
+// Specify before building which board is doing what
+// i.e. which board number has which PCB attached
+#define BOARD1_ROLE         NOT_PRESENT
+#define BOARD2_ROLE         MCM
+#define BOARD3_ROLE         NOT_PRESENT
+#define BOARD4_ROLE         NOT_PRESENT
+#define BOARD5_ROLE         NOT_PRESENT
+#define BOARD6_ROLE         VNM
 
-// Code Protection settings
-#pragma config CP       = OFF                           // Code Protect
-#pragma config BWP      = OFF                           // Boot Flash Write Protect
-#pragma config PWP      = OFF                           // Program Flash Write Protect
+#define SERIAL_DEBUG_BOARD  MCM
+        
+#ifndef WCM_PRESENT
+#define HEARTBEAT_SENDER    BCM
+#else
+#define HEARTBEAT_SENDER    WCM
+#endif
 
-#pragma config FWDTEN = OFF
+#define HEARTBEAT_DELAY     1000 // in ms
+/******************************************************************************/
+/******************************************************************************/
 
-// for USB
-#pragma config UPLLEN = ON          // USB clock uses PLL
-#pragma config UPLLIDIV = DIV_2     // Divide 8 MHz input by 2, mult by 12 for 48 MHz
 
-#pragma config FCANIO = OFF         // use alternate set of CAN pins
+/******************************************************************************/
+/*                                CAN Settings                                */
+/******************************************************************************/
+#define BAUD_250K           1
+//#define BAUD_1M             1 // For interfacing with Kelly Controller
+#define CAP_TIME            1
+#define CAN_MAIN            2
+#define CAN_ALT             1
 
+#if CAN_MAIN == 1
+#define MAIN_CAN_VECTOR     _CAN_1_VECTOR
+#define ALT_CAN_VECTOR      _CAN_2_VECTOR
+#define MAIN_CAN_FLAG       IFS1bits.CAN1IF
+#define ALT_CAN_FLAG        IFS1bits.CAN2IF
+#else
+#define MAIN_CAN_VECTOR     _CAN_2_VECTOR
+#define ALT_CAN_VECTOR      _CAN_1_VECTOR
+#define MAIN_CAN_FLAG       IFS1bits.CAN2IF
+#define ALT_CAN_FLAG        IFS1bits.CAN1IF
+#endif
+
+#define fifo_0_size                 16
+#define fifo_1_size                 16
+#define fifo_2_size                 16
+#define fifo_3_size                 16
+#define FIFO_SIZE                   fifo_0_size + fifo_1_size + fifo_2_size + fifo_3_size
+#define GLOBAL_RECEIVE_FLAG         CAN_SFR(FIFOINT0bits, CAN_MAIN).RXNEMPTYIF
+#define ADDRESSED_RECEIVE_FLAG      CAN_SFR(FIFOINT1bits, CAN_MAIN).RXNEMPTYIF
+#define BROADCAST_REC_ADDR          PA_TO_KVA1(CAN_SFR(FIFOUA0, CAN_MAIN))
+#define ADDRESSED_REC_ADDR          PA_TO_KVA1(CAN_SFR(FIFOUA1, CAN_MAIN))
+#define ADDRESSED_SEND_ADDR         PA_TO_KVA1(CAN_SFR(FIFOUA2, CAN_MAIN))
+#define BROADCAST_SEND_ADDR         PA_TO_KVA1(CAN_SFR(FIFOUA3, CAN_MAIN))
+#define CAN_TIMER_FLAG              CAN_SFR(INTbits, CAN_MAIN).CTMRIF
+#define CAN_TIMER_EN                CAN_SFR(INTbits, CAN_MAIN).CTMRIE
+#define CAN_MAIN_VECTOR_BITS        CAN_SFR(VECbits, CAN_MAIN)
+/******************************************************************************/
+/******************************************************************************/
 #endif
