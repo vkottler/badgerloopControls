@@ -123,7 +123,8 @@ void MCM_dashctlHandler(void) {
 }
 
 void MCM_faultHandler(void) {
-    
+    redOn();
+    next_state = prev_state;
 }
 
 void MCM_safeHandler(void) {
