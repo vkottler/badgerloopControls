@@ -14,5 +14,6 @@
 #define MCP_PD_500K      0b00000110 /* chip is shutdown, and the output is grounded with a 500k? resistor */
 
 bool mcp_write_volt(float);
+bool mcp_write_eeprom(float);
 
 #endif
