@@ -88,7 +88,7 @@ void (*spindownHandler)(void) =     &genericHandler;
 void setup_serial(void) {
     initUART();
     delay(1000, MILLI);         // for computer to connect
-    printBoardNumber();
+    printf("Board Number: %d", getBoardNumber());
 #if defined PRODUCTION
     printStartupDiagnostics();
 #endif 

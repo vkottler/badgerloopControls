@@ -48,6 +48,18 @@ void testMCP(float writeValue) {
     mcp_write_volt(writeValue);
 }
 
+void serialTestMCP() {
+    char message[255];
+    printf("MCP DAC test starting!");
+    printf("Request a voltage or type 'end' to end test");
+    while(!messageAvailable());
+    getMessage(message, 255);
+    if (strcmp(message, "end") == 0) {
+        return;
+    }
+    mcp_write_volt(atoi(message));
+}
+
 void error(void) {
     while (1) {
         blinkBoardLights(5, 100);

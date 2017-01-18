@@ -10,7 +10,6 @@
 #include "applications/include/vacuumTesting.h"
 #include "applications/include/i2cTesting.h"
 #include "applications/include/uartTesting.h"
-#include "applications/include/pcbTesting.h"
 #elif defined PRODUCTION
 #include "applications/include/production.h"
 #include "applications/include/VNM.h"
