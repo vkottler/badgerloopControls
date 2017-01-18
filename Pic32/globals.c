@@ -17,7 +17,7 @@ int SID = 0;
 ROLE ourRole = NOT_PRESENT;
 volatile FAULT_TYPE fault = HEALTHY;
 volatile STATE state = DASH_CTL, next_state = DASH_CTL, prev_state = DASH_CTL;
-unsigned int loopIteration = 0;
+unsigned long long loopIteration = 0;
 uint8_t heartbeatsReceived = 0;
 /******************************************************************************/
 /******************************************************************************/

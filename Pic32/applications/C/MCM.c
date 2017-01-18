@@ -108,7 +108,10 @@ bool MCM_broadcast_handler(void) {
 bool MCM_message_handler(void) {
     switch (receiving.message_num) {
         case PING_TO: CAN_ping(receiving.from, false); break;
-        case DASH_MCM_SPINWHEELS: mcp_write_val((receiving.byte0 << 8) | receiving.byte1 & 0xff); break;
+        case DASH_MCM_SPINWHEELS: 
+            send_wheel_rpms();
+            mcp_write_val((receiving.byte0 << 8) | receiving.byte1 & 0xff);
+            break;
     }
     return true;
 }
@@ -120,7 +123,7 @@ bool MCM_message_handler(void) {
 /******************************************************************************/
 void MCM_data_process_handler(void) {
     if (loopIteration % 5 == 0) compute_wheel_rpms();
-    if (loopIteration % 64000 == 0) send_wheel_rpms();
+    //if (loopIteration % 64000 == 0) send_wheel_rpms();
 }
 /******************************************************************************/
 /******************************************************************************/
