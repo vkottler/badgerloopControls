@@ -17,11 +17,8 @@
 
 #include "../../globals.h"
 
-#if defined SERIAL_DEBUG || defined SERIAL_DEBUG_BOARD
 #include <stdio.h>
 #include "../../peripherals/include/ledShield.h"
-#endif
-
 
 // http://stackoverflow.com/questions/13923425/c-preprocessor-concatenation-with-variable
 #define _CAN_SFR(reg, module)   C##module##reg    
@@ -79,12 +76,13 @@ bool CAN_receive_specific(void);
 
 void CAN_send_fault(void);
 bool CAN_message_is_heartbeat(CAN_MESSAGE *message);
-bool CAN_send_heartbeat(void);
+bool CAN_send_heartbeat(bool fake);
 
-#if defined SERIAL_DEBUG || defined SERIAL_DEBUG_BOARD
 void CAN_message_dump(CAN_MESSAGE *message, bool outgoing);
 void CAN_print_errors(void);
-#endif
+void CAN_ping(ROLE role, bool initiator);
+void CAN_message_dump(CAN_MESSAGE *message, bool outgoing);
+void CAN_print_errors(void);
 /******************************************************************************/
 /******************************************************************************/
 #endif

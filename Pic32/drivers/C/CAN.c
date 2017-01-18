@@ -4,7 +4,6 @@
 /*                           Global Variables                                 */
 /******************************************************************************/
 CAN_MESSAGE *sending, receiving;
-volatile bool specificAvailable = false, broadcastAvailable = false;
 /******************************************************************************/
 /******************************************************************************/
 
@@ -58,7 +57,7 @@ void CAN_fifo_init(void) {
     CAN_SFR(FIFOCON3bits, CAN_MAIN).TXEN = 1;
     CAN_SFR(FIFOCON3bits, CAN_MAIN).TXPRI = 1;                  // heartbeat higher priority
 
-    CAN_SFR(RXM0bits, CAN_MAIN).SID = ALL;                    // mask 0: only compare ALL bit
+    CAN_SFR(RXM0bits, CAN_MAIN).SID = ALL;                      // mask 0: only compare ALL bit
     CAN_SFR(RXM0bits, CAN_MAIN).MIDE = 1;
     CAN_SFR(RXM1bits, CAN_MAIN).SID = SID;                      // mask 1: only compare SIDs bit
     CAN_SFR(RXM1bits, CAN_MAIN).MIDE = 1;
@@ -86,17 +85,19 @@ void CAN_set_up_interrupts(void) {
 #ifdef CAP_TIME
     CAN_TIMER_EN = 1;
 #endif
-    GLOBAL_RECEIVE_ENABLE = 1;                  // interrupt when not empty
-    GLOBAL_RECEIVE_FLAG = 0;
-    ADDRESSED_RECEIVE_ENABLE = 1;               // interrupt when not empty
-    ADDRESSED_RECEIVE_FLAG = 0;           
+    
+    // Disable Interrupts for now
+    //CAN_SFR(FIFOINT0bits, CAN_MAIN).RXFULLIE = 1;
+    //CAN_SFR(FIFOINT1bits, CAN_MAIN).RXFULLIE = 1;
+    //GLOBAL_RECEIVE_ENABLE = 1;                  // interrupt when not empty
+    //ADDRESSED_RECEIVE_ENABLE = 1;               // interrupt when not empty        
     
     // enable interrupts globally
     IEC1bits.CAN1IE = 1;
     IEC1bits.CAN2IE = 1;
-    IPC11bits.CAN1IP = 1;
+    IPC11bits.CAN1IP = 3;
     IPC11bits.CAN1IS = 0;
-    IPC11bits.CAN2IP = 1;
+    IPC11bits.CAN2IP = 3;
     IPC11bits.CAN2IS = 0;
     MAIN_CAN_FLAG = 0;
     ALT_CAN_FLAG = 0;
@@ -218,7 +219,7 @@ bool CAN_broadcast(void) {
 /******************************************************************************/
 // FIFO 0
 bool CAN_receive_broadcast(void) {
-    if (!broadcastAvailable) return false;
+    if (!GLOBAL_RECEIVE_FLAG) return false;
     receivePointer = BROADCAST_REC_ADDR;
     receiving.raw[0] = receivePointer[0];
     receiving.raw[1] = receivePointer[1];
@@ -230,14 +231,12 @@ bool CAN_receive_broadcast(void) {
     CAN_message_dump(&receiving, false);
 #endif
     CAN_SFR(FIFOCON0SET, CAN_MAIN) = 0x2000;
-    GLOBAL_RECEIVE_ENABLE = 1;
-    broadcastAvailable = false;
     return true;
 }
 
 // FIFO 1
 bool CAN_receive_specific(void) {
-    if (!specificAvailable) return false;
+    if (!ADDRESSED_RECEIVE_FLAG) return false;
     receivePointer = ADDRESSED_REC_ADDR;
     receiving.raw[0] = receivePointer[0];
     receiving.raw[1] = receivePointer[1];
@@ -249,8 +248,6 @@ bool CAN_receive_specific(void) {
     CAN_message_dump(&receiving, false);
 #endif
     CAN_SFR(FIFOCON1SET, CAN_MAIN) = 0x2000;
-    ADDRESSED_RECEIVE_ENABLE = 1;
-    specificAvailable = false;
     return true;
 }
 /******************************************************************************/
@@ -281,13 +278,14 @@ void CAN_send_fault(void) {
     CAN_broadcast();
 }
 
-bool CAN_send_heartbeat(void) {
+bool CAN_send_heartbeat(bool fake) {
     sending = BROADCAST_SEND_ADDR;
     sending->SID = ALL;
-    sending->from = ourRole;
+    sending->from = fake ? WCM : ourRole;
     sending->SIZE = 2;
-    sending->message_num = ourRole;
+    sending->message_num = fake ? WCM : ourRole;
     sending->byte0 = state;
+    if (fake) heartbeatsReceived = 2; // since we bypassed WCM
     return CAN_broadcast();
 }
 /******************************************************************************/
@@ -307,14 +305,12 @@ void __ISR (MAIN_CAN_VECTOR, IPL1SOFT) MAIN_CAN_Interrupt(void) {
     }
     else {
         if (CAN_MAIN_VECTOR_BITS.ICODE == 0) {
-            GLOBAL_RECEIVE_ENABLE = 0;
-            GLOBAL_RECEIVE_FLAG = 0;
-            broadcastAvailable = true;
+            //CAN_receive_broadcast();
+            fault = CAN_INTERRUPT_ERROR;
         }
         else if (CAN_MAIN_VECTOR_BITS.ICODE == 1) {
-            ADDRESSED_RECEIVE_ENABLE = 0;
-            ADDRESSED_RECEIVE_FLAG = 0;
-            specificAvailable = true;
+            //CAN_receive_specific();
+            fault = CAN_INTERRUPT_ERROR;
         }
         CAN_SFR(INTbits, CAN_MAIN).RBIF = 0;
     }
@@ -331,10 +327,9 @@ void __ISR (ALT_CAN_VECTOR, IPL1SOFT) ALT_CAN_Interrupt (void) {
 /******************************************************************************/
 /*        Compiled depending on availablity of Serial Debug                   */
 /******************************************************************************/
-#if PRODUCTION && (defined SERIAL_DEBUG || defined SERIAL_DEBUG_BOARD)
-
 void CAN_print_errors(void) {
-    printf("CAN ERROR: ");
+    if (CAN_SFR(TREC, CAN_MAIN)) printf("CAN ERROR: ");
+    else printf("No errors ");
     if (CAN_SFR(TRECbits, CAN_MAIN).TXBO) printf("TXBO ");
     else if (CAN_SFR(TRECbits, CAN_MAIN).TXBP) printf("TXBP ");
     else if (CAN_SFR(TRECbits, CAN_MAIN).TXWARN) printf("TXW ");
@@ -346,10 +341,10 @@ void CAN_print_errors(void) {
 
 void CAN_message_dump(CAN_MESSAGE *message, bool outgoing) {
     int i;
-    if (outgoing && (message->SID & ALL))   printf("=========== OUTGOING BROADCAST ==============\r\n");
-    else if (outgoing)                      printf("============ OUTGOING MESSAGE ===============\r\n");
-    else if (message->SID & ALL)            printf("=========== INCOMING BROADCAST ==============\r\n");
-    else                                    printf("============ INCOMING MESSAGE ===============\r\n");                                    
+    if (outgoing && (message->SID & ALL))   printf("============= OUTGOING BROADCAST ================\r\n");
+    else if (outgoing)                      printf("============== OUTGOING MESSAGE =================\r\n");
+    else if (message->SID & ALL)            printf("============= INCOMING BROADCAST ================\r\n");
+    else                                    printf("============== INCOMING MESSAGE =================\r\n");                                    
     printf("SID:\t0x%x\tsender:\t%s\t", message->SID, roleStr[message->from]);
 #ifdef CAP_TIME
     if (!outgoing) printf("%d sec\r\n", (message->TS +65535*numOverflows) / 1000);
@@ -369,21 +364,10 @@ void CAN_message_dump(CAN_MESSAGE *message, bool outgoing) {
         for (i = 1; i < message->SIZE; i++) printf("[0x%2x] ", message->bytes[i]);
         printf("\r\n");
     }
-    printf("=============================================\r\n");
+    printf("=================================================\r\n");
 }
 
-void sendTestCANmessage(void) {
-    sending = BROADCAST_SEND_ADDR;
-    sending->SID = ALL;
-    sending->from = ourRole;
-    sending->SIZE = 8;
-    sending->message_num = TEST_MSG;
-    strcpy("hello!", sending->bytes);
-    if (!CAN_broadcast())
-        printf("ERROR: Could not send test message.\r\n");
-}
-
-void CAN_ping(ROLE role) {
+void CAN_ping(ROLE role, bool initiator) {
     if (role == ourRole) {
         printf("can't ping yourself! (you are %s)\r\n", roleStr[ourRole]);
         return;
@@ -395,10 +379,10 @@ void CAN_ping(ROLE role) {
         return;
     }
     sending->from = ourRole;
-    sending->SIZE = 1;
-    sending->message_num = PING;
-    if (!CAN_send()) printf("ERROR: Could not send test message.\r\n");
+    sending->SIZE = 8;
+    sending->message_num = initiator ?  PING_TO : PING_BACK;
+    strcpy(&sending->bytes[1], initiator ?  "hello!" : "gotmsg");
+    if (!CAN_send()) printf("ERROR: Could not send ping.\r\n");
 }
-#endif
 /******************************************************************************/
 /******************************************************************************/

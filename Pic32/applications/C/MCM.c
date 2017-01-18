@@ -98,10 +98,15 @@ bool MCM_init_periph(void) {
 }
 
 bool MCM_broadcast_handler(void) {
+    if (receiving.from == WCM) CAN_ping(WCM, false);
     return true;
 }
 
 bool MCM_message_handler(void) {
+    switch (receiving.message_num) {
+        case PING_TO: CAN_ping(receiving.from, false); break;
+        case DASH_MCM_SPINWHEELS: mcp_write_val((receiving.byte0 << 8) | receiving.byte1 & 0xff); break;
+    }
     return true;
 }
 

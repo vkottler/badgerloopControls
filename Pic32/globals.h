@@ -3,13 +3,10 @@
 
 #include <xc.h>
 #include <stdint.h>
+#include <stdio.h>
 #include <stdbool.h>
 #include "build_config.h"
 #include "enums.h"
-
-#if defined SERIAL_DEBUG || defined SERIAL_DEBUG_BOARD
-#include <stdio.h>
-#endif
 
 /******************************************************************************/
 /* * * * * * *                 Board Cataloging             * * * * * * * * * */
@@ -32,7 +29,7 @@
 extern int SID;
 extern ROLE ourRole;
 extern volatile STATE state, next_state, prev_state;
-extern uint8_t num_endpoints;
+extern uint8_t num_endpoints, heartbeatsReceived;
 extern volatile FAULT_TYPE fault;
 #ifndef WCM_PRESENT
     extern volatile bool sendHeartbeat;
@@ -56,13 +53,11 @@ int getMAC(void) ;
 /******************************************************************************/
 /*                              PRINT UTILITIES                               */
 /******************************************************************************/
-#if defined SERIAL_DEBUG || defined SERIAL_DEBUG_BOARD
 void whoami(void);
 void printMAC(void);
 void printBoardNumber(void);
 void Serial_Debug_Handler(void);
 void printStartupDiagnostics(void);
-#endif
 /******************************************************************************/
 /******************************************************************************/
 #endif

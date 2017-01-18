@@ -18,6 +18,7 @@ ROLE ourRole = NOT_PRESENT;
 volatile FAULT_TYPE fault = HEALTHY;
 volatile STATE state = DASH_CTL, next_state = DASH_CTL, prev_state = DASH_CTL;
 unsigned int loopIteration = 0;
+uint8_t heartbeatsReceived = 0;
 /******************************************************************************/
 /******************************************************************************/
 
@@ -50,11 +51,7 @@ int getBoardNumber(void) {
     }
 }
 
-#if defined SERIAL_DEBUG || defined SERIAL_DEBUG_BOARD
-void whoami(void) {
-    printf("You are: %s, SID: %d, from ID: %d\r\n", roleStr[ourRole], SID, ourRole);
-}
-#endif
+
 /******************************************************************************/
 /******************************************************************************/
 
@@ -71,10 +68,8 @@ int MACLookUp(int boardNumber) {
     }
 }
 
-#if defined SERIAL_DEBUG || defined SERIAL_DEBUG_BOARD
 void printMAC(void) { printf("MAC: %x %x\r\n", EMAC1SA0, EMAC1SA1); }
 void printBoardNumber(void) { printf("Board %d connected.\r\n", getBoardNumber()); }
-#endif 
 int getMAC(void) { return EMAC1SA0; }
 /******************************************************************************/
 /******************************************************************************/
@@ -83,17 +78,23 @@ int getMAC(void) { return EMAC1SA0; }
 /******************************************************************************/
 /*                          Live Debugging Related                            */
 /******************************************************************************/
-#if (defined SERIAL_DEBUG || defined SERIAL_DEBUG_BOARD) && PRODUCTION
+void whoami(void) { printf("You are: %s, SID: %d, from ID: %d\r\n", roleStr[ourRole], SID, ourRole); }
+
+void printStates(void) {
+    printf("Previous State: %s\r\nCurrent State: %s\r\nNext State: %s\r\n", stateStr[prev_state], stateStr[state], stateStr[next_state]);
+}
+
 char uartReceive[50];
 
 void Serial_Debug_Handler(void) {
     int i;
     bool validInput = false;
     getMessage(uartReceive, 50);
-    if (!strcmp(uartReceive, "heartbeat")) CAN_send_heartbeat();
-    else if (!strcmp(uartReceive, "test")) sendTestCANmessage();
+    if (!strcmp(uartReceive, "heartbeat")) CAN_send_heartbeat(true);
     else if (!strcmp(uartReceive, "whoami")) whoami();
-    else if (!strcmp(uartReceive, "testsend") || !strcmp(uartReceive, "ping")) {
+    else if (!strcmp(uartReceive, "bushealth")) CAN_print_errors();
+    else if (!strcmp(uartReceive, "state")) printStates(); 
+    else if (!strcmp(uartReceive, "ping")) {
         while (!validInput) {
             while (!messageAvailable());
             getMessage(uartReceive, 50);
@@ -101,7 +102,7 @@ void Serial_Debug_Handler(void) {
                 if (!strcmp(uartReceive, roleStr[i])) {
                     printf("pinging %s\r\n", uartReceive);
                     validInput = true;
-                    CAN_ping(i);
+                    CAN_ping(i, true);
                 }
             }
             if (!validInput) printf("%s is not a module\r\n", uartReceive);
@@ -110,7 +111,6 @@ void Serial_Debug_Handler(void) {
     }
     else printf("Did not recognize: %s\r\n", uartReceive);
 }
-
 
 void printStartupDiagnostics(void) {
     int i, j, numNotPresent = 0, numBoardsForThisRole = 0;
@@ -152,6 +152,5 @@ void printStartupDiagnostics(void) {
     printf("# Fault Types:\t%d\r\n", NUM_FAULT_TYPES);
     printf("=================================================\r\n");
 }
-#endif
 /******************************************************************************/
 /******************************************************************************/

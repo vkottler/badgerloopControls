@@ -35,14 +35,12 @@ int readButton(void);
 #define BCM_LED1            LATBbits.LATB11
 #define BCM_LED2            LATBbits.LATB13
 
-void toggleRed(void);
-void toggleGreen(void);
 void redOn(void);
 void greenOn(void);
+void redOff(void);
+void greenOff(void);
 void blinkRed(int times, int time);
 void blinkGreen(int times, int time);
-void toggleFaultLED(void);
-void toggleSuccessLED(void);
 
 #else
 #define BOARD_LED1  LATAbits.LATA3

@@ -72,32 +72,36 @@ void waitForButton(void) {
 #endif
 
 #ifdef PCB_PRESENT
-void toggleRed(void) { RED_LED = ~RED_LED; }
-void toggleGreen(void) { GREEN_LED = ~GREEN_LED; }
-void redOn(void) { RED_LED = 1; }
-void greenOn(void) { GREEN_LED = 1; }
-void toggleFaultLED(void) { 
-    if (ourRole == BCM) BCM_LED1 = ~BCM_LED1;
-    else RED_LED = ~RED_LED;
+void redOn(void) { 
+    if (ourRole == BCM) BCM_LED1 = 1;
+    else RED_LED = 1;
 }
-void toggleSuccessLED(void) { 
-    if (ourRole == BCM) BCM_LED2 = ~BCM_LED2;
-    else GREEN_LED = ~GREEN_LED;
+void greenOn(void) {
+    if (ourRole == BCM) BCM_LED2 = 1;
+    else GREEN_LED = 1;
+}
+void redOff(void) { 
+    if (ourRole == BCM) BCM_LED1 = 0;
+    else RED_LED = 0;
+}
+void greenOff(void) {
+    if (ourRole == BCM) BCM_LED2 = 0;
+    else GREEN_LED = 0;
 }
 
 void blinkRed(int times, int time) {
     int i = 0;
     for (i = 0; i < times; i++) {
-        toggleFaultLED(); delay(time, MILLI);
-        toggleFaultLED(); delay(time, MILLI);
+        redOn(); delay(time, MILLI);
+        redOff(); delay(time, MILLI);
     }
 }
 
 void blinkGreen(int times, int time) {
     int i = 0;
     for (i = 0; i < times; i++) {
-        toggleSuccessLED(); delay(time, MILLI);
-        toggleSuccessLED(); delay(time, MILLI);
+        greenOn();  delay(time, MILLI);
+        greenOff(); delay(time, MILLI);
     }
 }
 #endif
@@ -111,28 +115,11 @@ void blinkBoardLights(int times, int time) {
         BOARD_LED1 = 0, BOARD_LED2 = 1;
         delay(time, MILLI);
 #else
-        if (ourRole == BCM) {
-            BCM_LED1 = 1; BCM_LED2 = 0; 
-            delay(time, MILLI);
-            BCM_LED1 = 0; BCM_LED2 = 1; 
-            delay(time, MILLI);
-        }
-        else {
-            RED_LED = 1; GREEN_LED = 0; 
-            delay(time, MILLI);
-            RED_LED = 0; GREEN_LED = 1; 
-            delay(time, MILLI); 
-        }
+        redOn(); greenOff(); 
+        delay(time, MILLI);
+        greenOn(); redOff();  
+        delay(time, MILLI);
 #endif
     }
-#ifndef PCB_PRESENT
-    BOARD_LED1 = 0, BOARD_LED2 = 0;
-#else
-    if (ourRole == BCM) {
-        BCM_LED1 = 0; BCM_LED2 = 0;
-    }
-    else {
-        RED_LED = 0; GREEN_LED = 0;
-    }
-#endif
+    redOff(); greenOff();
 }

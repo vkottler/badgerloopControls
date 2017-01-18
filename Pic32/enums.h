@@ -15,7 +15,7 @@ typedef enum { NOT_PRESENT, WCM, VNM, BCM, MCM, VSM, BMS } ROLE;
 // array in enums.c, as well as increment the defined number
 // for this type
 //
-typedef enum { 
+typedef volatile enum { 
     READY_FOR_LAUNCH, 
     DASH_CTL,
     FAULT_STATE,
@@ -50,7 +50,8 @@ typedef enum {
     ILLEGAL_STATE,
     ILLEGAL_ROLE,
     UNINITIALIZED_HANDLER,
-    CAN_BUS_ERROR
+    CAN_BUS_ERROR,
+    CAN_INTERRUPT_ERROR
 } FAULT_TYPE;
 
 #define NUM_FAULT_TYPES         7
@@ -76,19 +77,21 @@ typedef enum {
     VNM_STRIPLOST,
             
     // OUT FROM DASH MESSAGE TYPES
-    DASH_LAUNCH, DASH_ESTOP, DASH_RSTOP, DASH_SAFE,
-    DASH_VNM_ENTERSTATE, DASH_VNM_POSINDEXRESET,
-    DASH_VSM_ENTERSTATE, DASH_BCM_ENTERSTATE,  
-    DASH_BCM_AIRACTUATE, DASH_BCM_BRAKEACTUATE,
-    DASH_BCM_ABS_STATE, DASH_MCM_ENTERSTATE,
-    DASH_MCM_SPINWHEELS1, DASH_MCM_SPINWHEELS2,
+    ENTER_STATE, 
+            
+    DASH_VNM_POSINDEXRESET,  
+            
+    DASH_BCM_AIRACTUATE, DASH_BCM_BRAKEACTUATE, DASH_BCM_ABS_STATE,
+            
+    DASH_MCM_SPINWHEELS,
+            
     DASH_VSM_CONTRACTOR,
             
     // NOT YET ADDED GLOBALLY (i.e. in spreadsheet)
-    TEST_MSG, PING, FAULT
+    PING_TO, PING_BACK, FAULT
 } MESSAGE_TYPE;
 
-#define NUM_CAN_MESSAGES        9
+#define NUM_CAN_MESSAGES        29
 /******************************************************************************/
 /******************************************************************************/
 

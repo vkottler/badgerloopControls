@@ -20,6 +20,8 @@
 #pragma config BWP      = OFF                           // Boot Flash Write Protect
 #pragma config PWP      = OFF                           // Program Flash Write Protect
 
+#pragma config FWDTEN = OFF
+
 // for USB
 #pragma config UPLLEN = ON          // USB clock uses PLL
 #pragma config UPLLIDIV = DIV_2     // Divide 8 MHz input by 2, mult by 12 for 48 MHz
