@@ -108,7 +108,7 @@ void initialize_handlers(void) {
             spindownHandler =     &MCM_spindownHandler;
             break;
     } 
-    if (CHECK_BOARD || debuggingOn) {
+    if (debuggingOn) {
         printBoardNumber();
         printStartupDiagnostics();
     }
@@ -131,7 +131,7 @@ void static_inits(void) {
     CAN_setup();
     
     if (sizeof(CAN_MESSAGE) != 16 || sizeof(MESSAGE_TYPE) != 1) {
-        if (CHECK_BOARD || debuggingOn) {
+        if (debuggingOn) {
             printf("ERROR: sizeof CAN_MESSAGE is %d bytes, sizeof MESSAGE_TYPE enum is %d bytes.\r\n", sizeof(CAN_MESSAGE), sizeof(MESSAGE_TYPE));
             printf("CAN_MESSAGE must be 16 bytes and MESSAGE_TYPE enum must be 1 byte.\r\n");
             printf("Rebuild with compiler option -fshort-enums added.");

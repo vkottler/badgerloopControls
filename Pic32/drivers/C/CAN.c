@@ -178,11 +178,7 @@ uint16_t ROLEtoSID(ROLE r) {
 // Returns true/false based on whether or not it's possible to send the message currently
 bool CAN_send(void) {
     if (!CAN_SFR(FIFOINT2bits, CAN_MAIN).TXNFULLIF) return false;   // wait until FIFO is not full
-#if defined SERIAL_DEBUG_BOARD && defined CAN_DUMP_IN
-    if (CHECK_BOARD) CAN_message_dump(sending, true);
-#elif defined SERIAL_DEBUG && defined CAN_DUMP_IN
-    CAN_message_dump(sending, true);
-#endif
+    if (debuggingOn) CAN_message_dump(sending, true);
     CAN_SFR(FIFOCON2SET, CAN_MAIN) = 0x2000;     // increment pointer for fifo
     CAN_SFR(FIFOCON2bits, CAN_MAIN).TXREQ = 1;   // tell CAN to send message
     return true;
@@ -193,11 +189,7 @@ bool CAN_send(void) {
 // Returns true/false based on whether or not it's possible to send the message currently
 bool CAN_broadcast(void) {
     if (!CAN_SFR(FIFOINT3bits, CAN_MAIN).TXNFULLIF) return false;
-#if defined SERIAL_DEBUG_BOARD && defined CAN_DUMP_IN
-    if (CHECK_BOARD) CAN_message_dump(sending, true);
-#elif defined SERIAL_DEBUG && defined CAN_DUMP_IN
-    CAN_message_dump(sending, true);
-#endif
+    if (debuggingOn) CAN_message_dump(sending, true);
     CAN_SFR(FIFOCON3SET, CAN_MAIN) = 0x2000;     // increment pointer for fifo
     CAN_SFR(FIFOCON3bits, CAN_MAIN).TXREQ = 1;   // tell CAN to send message
     return true;
@@ -217,11 +209,7 @@ bool CAN_receive_broadcast(void) {
     receiving.raw[1] = receivePointer[1];
     receiving.raw[2] = receivePointer[2];
     receiving.raw[3] = receivePointer[3];
-#if defined SERIAL_DEBUG_BOARD && defined CAN_DUMP_IN
-    if (CHECK_BOARD) CAN_message_dump(&receiving, false);
-#elif defined SERIAL_DEBUG && defined CAN_DUMP_IN
-    CAN_message_dump(&receiving, false);
-#endif
+    if (debuggingOn) CAN_message_dump(&receiving, false);
     CAN_SFR(FIFOCON0SET, CAN_MAIN) = 0x2000;
     return true;
 }
@@ -234,11 +222,7 @@ bool CAN_receive_specific(void) {
     receiving.raw[1] = receivePointer[1];
     receiving.raw[2] = receivePointer[2];
     receiving.raw[3] = receivePointer[3];
-#if defined SERIAL_DEBUG_BOARD && defined CAN_DUMP_IN
-    if (CHECK_BOARD) CAN_message_dump(&receiving, false);
-#elif defined SERIAL_DEBUG && defined CAN_DUMP_IN
-    CAN_message_dump(&receiving, false);
-#endif
+    if (debuggingOn) CAN_message_dump(&receiving, false);
     CAN_SFR(FIFOCON1SET, CAN_MAIN) = 0x2000;
     return true;
 }
@@ -337,24 +321,17 @@ void CAN_message_dump(CAN_MESSAGE *message, bool outgoing) {
     else if (outgoing)                      printf("MO: ");
     else if (message->SID & ALL)            printf("BI: ");
     else                                    printf("MI: ");                                    
-    printf("0x%3x from %3s\t", message->SID, roleStr[message->from]);
+    printf("0x%3x from %3s ", message->SID, roleStr[message->from]);
 #ifdef CAP_TIME
     if (!outgoing) printf("(%5d sec) ", (message->TS +65535*numOverflows) / 1000);
     else           printf("            ");
 #endif
     printf("MSG (%u): %s ", message->SIZE - 1, messageStr[message->message_num]);
-    if (CAN_message_is_heartbeat(message)) 
-        printf("[%s][%s][%s]", stateStr[message->byte0], stateStr[message->byte1], stateStr[message->byte2]);
-    else if (message->message_num == FAULT) {
-        printf("Fault String:\t%s", faultStr[message->byte0]);
-        printf("prev: %s\tcurr: %s\tnext: %s\r\n", 
-                stateStr[message->byte1], stateStr[message->byte2], stateStr[message->byte3]);
-    }
-    else {
-        for (i = 1; i < message->SIZE; i++) printf("[0x%2x] ", message->bytes[i]);
-        printf("\r\n");
-    }
-    printf("=================================================\r\n");
+    if (message->message_num == FAULT) printf(" !!%s!! ", faultStr[message->byte0]);
+    if (CAN_message_is_heartbeat(message) || message->message_num == FAULT) 
+        printf("[%s][%s][%s]", stateStr[message->byte1], stateStr[message->byte2], stateStr[message->byte3]);
+    else for (i = 1; i < message->SIZE; i++) printf("[0x%2x] ", message->bytes[i]);
+    printf("\r\n");
 }
 
 void CAN_ping(ROLE role, bool initiator) {

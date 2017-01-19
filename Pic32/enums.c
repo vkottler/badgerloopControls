@@ -44,5 +44,5 @@ const char *messageStr[] = {
     "DASH_VSM_CONTRACTOR",    
 
     // NOT YET ADDED GLOBALLY (i.e. in spreadsheet)
-    "PING_TO", "PING_BACK", "FAULT"   
+    "PING_TO  ", "PING_BACK", "FAULT"   
 };

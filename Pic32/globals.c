@@ -3,13 +3,13 @@
 /******************************************************************************/
 /*                           GLOBAL VARIABLES                                 */
 /******************************************************************************/
+bool debuggingOn = false, dumpOut = false, dumpIn = false;
 int SID = 0;
 ROLE ourRole = NOT_PRESENT;
 volatile FAULT_TYPE fault = HEALTHY;
 volatile STATE state = DASH_CTL, next_state = DASH_CTL, prev_state = DASH_CTL;
 unsigned long long loopIteration = 0;
 uint8_t heartbeatsReceived = 0;
-bool debugginOn = false, dumpOut = false, dumpIn = false;
 CAN_MESSAGE *sending, receiving;
 
 // Partially only for during testing

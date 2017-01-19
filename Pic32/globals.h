@@ -28,7 +28,7 @@
 /******************************************************************************/
 /*                           GLOBAL VARIABLES                                 */
 /******************************************************************************/
-extern bool debugginOn, dumpOut, dumpIn;
+extern bool debuggingOn, dumpOut, dumpIn;
 extern int SID;
 extern ROLE ourRole;
 extern volatile STATE state, next_state, prev_state;
