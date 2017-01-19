@@ -8,8 +8,6 @@
 #include "enums.h"
 #include "config.h"
 
-#define CHECK_BOARD         ourRole == SERIAL_DEBUG_BOARD
-
 /******************************************************************************/
 /* * * * * * *                 Board Cataloging             * * * * * * * * * */
 /******************************************************************************/
@@ -28,13 +26,12 @@
 /******************************************************************************/
 /*                           GLOBAL VARIABLES                                 */
 /******************************************************************************/
-extern bool debuggingOn, dumpOut, dumpIn;
+extern bool debuggingOn;
 extern int SID;
 extern ROLE ourRole;
 extern volatile STATE state, next_state, prev_state;
 extern uint8_t num_endpoints, heartbeatsReceived;
 extern volatile FAULT_TYPE fault;
-extern unsigned long long loopIteration;
 extern CAN_MESSAGE *sending, receiving;
 extern volatile bool sendHeartbeat;
 /******************************************************************************/

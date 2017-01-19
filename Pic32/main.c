@@ -114,21 +114,17 @@ void initialize_handlers(void) {
     }
 }
 
-void CAN_setup(void) {
-    initialize_handlers();
-    CAN_init();
-    initialize_heartbeat();
-}
-
 void static_inits(void) {
     DDPCONbits.JTAGEN = 0;
     initializeTimer1(0x8000, 0xffff);
     initUART();
+    initialize_handlers();
     INTCONbits.MVEC = 1;
     __builtin_enable_interrupts();
     initialize_board_roles();
     initLEDs();
-    CAN_setup();
+    CAN_init();
+    initialize_heartbeat();
     
     if (sizeof(CAN_MESSAGE) != 16 || sizeof(MESSAGE_TYPE) != 1) {
         if (debuggingOn) {
@@ -167,17 +163,21 @@ int main(void) {
         
         // handle broadcasts
         if (CAN_receive_broadcast()) {
-            if (CAN_message_is_heartbeat(&receiving)) heartbeatHandler();
-            else broadcastHandler();
+            switch (receiving.message_num) {
+                case HEARTBEAT: heartbeatHandler(); break;
+                default: broadcastHandler();
+            }
         }
         
         // handle incoming messages
         if (CAN_receive_specific()) {
-            if (receiving.message_num == ENTER_STATE) {
-                state = receiving.byte0;
-                next_state = state;
+            switch (receiving.message_num) {
+                case ENTER_STATE:
+                    state = receiving.byte0;
+                    next_state = state;
+                    break;
+                default: messageHandler();
             }
-            else messageHandler();
         }
         
         // update the fault status if necessary
@@ -189,45 +189,39 @@ int main(void) {
         switch (state) {
             
             // Standard States
-            case READY_FOR_LAUNCH:      rflHandler(); break;
-            case DASH_CTL:              dashctlHandler(); break;
-            case FAULT_STATE:           faultHandler(); break;
-            case SAFE:                  safeHandler(); break;
-            case RUNNING:               runningHandler(); break;
+            case READY_FOR_LAUNCH:      rflHandler();       break;
+            case DASH_CTL:              dashctlHandler();   break;
+            case FAULT_STATE:           faultHandler();     break;
+            case SAFE:                  safeHandler();      break;
+            case RUNNING:               runningHandler();   break;
             
             // Braking States
-            case EMERGENCY_BRAKE:       ebrakeHandler(); break;
-            case NORMAL_BRAKING:        nbrakeHandler(); break;
-            case FRONT_AXLE_BRAKING:    fabHandler(); break;
-            case REAR_AXLE_BRAKING:     rabHandler(); break;
-            case INFLATE:               inflateHandler(); break;
-            case WAITING_FOR_SAFE:      wfsHandler(); break;
+            case EMERGENCY_BRAKE:       ebrakeHandler();    break;
+            case NORMAL_BRAKING:        nbrakeHandler();    break;
+            case FRONT_AXLE_BRAKING:    fabHandler();       break;
+            case REAR_AXLE_BRAKING:     rabHandler();       break;
+            case INFLATE:               inflateHandler();   break;
+            case WAITING_FOR_SAFE:      wfsHandler();       break;
             
             // Wheel Control States
             case PUSH_PHASE:            pushphaseHandler(); break;
-            case COAST:                 coastHandler(); break;
-            case SPINDOWN:              spindownHandler(); break;
+            case COAST:                 coastHandler();     break;
+            case SPINDOWN:              spindownHandler();  break;
             
             // This only happens if we add a state and don't add a handler
-            default:
-                fault = ILLEGAL_STATE;
-                next_state = FAULT_STATE;
+            default: fault = ILLEGAL_STATE; next_state = FAULT_STATE;
         }
         
         prev_state = state;
-        state = next_state;
-        
-        // this is useful for knowing how fast we are operating
-        loopIteration++;
         
         // Used for visual indication of health
         if (fault == HEALTHY) { greenOn(); redOff(); }
         else {                  greenOff(); redOn(); }
-
+        
+        state = next_state;
         
     // Accept commands via Serial over USB
-    if (debuggingOn && messageAvailable()) serialDebugHandler();
-        
+    if (messageAvailable()) serialDebugHandler();
     }
 }
 /******************************************************************************/

@@ -131,11 +131,11 @@ int CAN_set_mode(int mode) {
 
 void CAN_init(void) {
     switch (ourRole) {
-        case VNM:   SID = VNM_SID; break;
-        case BCM:   SID = BCM_SID; break;
-        case MCM:   SID = MCM_SID; break;
-        case VSM:   SID = VSM_SID; break;
-        default:    SID = 0x400; break;
+        case VNM:   SID = VNM_SID;  break;
+        case BCM:   SID = BCM_SID;  break;
+        case MCM:   SID = MCM_SID;  break;
+        case VSM:   SID = VSM_SID;  break;
+        default:    SID = 0x400;    break;
     }
     CAN_SFR(CONbits, CAN_MAIN).ON = 1;
     CAN_set_mode(CONFIG_MODE);
@@ -151,9 +151,7 @@ void CAN_init(void) {
 /******************************************************************************/
 /*                                Utility                                     */
 /******************************************************************************/
-int CAN_check_error(void) {
-    return CAN_SFR(TREC, CAN_MAIN);
-}
+int CAN_check_error(void) { return CAN_SFR(TREC, CAN_MAIN); }
 
 uint16_t ROLEtoSID(ROLE r) {
     switch (r) {
@@ -233,14 +231,6 @@ bool CAN_receive_specific(void) {
 /******************************************************************************/
 /*                          Heartbeat Related                                 */
 /******************************************************************************/
-bool CAN_message_is_heartbeat(CAN_MESSAGE *message) {
-    return (message->message_num == WCM_HB || 
-            message->message_num == VNM_HB ||
-            message->message_num == VSM_HB ||
-            message->message_num == MCM_HB ||
-            message->message_num == BCM_HB);
-}
-
 void CAN_send_fault(void) {
     sending = BROADCAST_SEND_ADDR;
     sending->SID = ALL;
@@ -328,7 +318,7 @@ void CAN_message_dump(CAN_MESSAGE *message, bool outgoing) {
 #endif
     printf("MSG (%u): %s ", message->SIZE - 1, messageStr[message->message_num]);
     if (message->message_num == FAULT) printf(" !!%s!! ", faultStr[message->byte0]);
-    if (CAN_message_is_heartbeat(message) || message->message_num == FAULT) 
+    if (message->message_num == HEARTBEAT || message->message_num == FAULT) 
         printf("[%s][%s][%s]", stateStr[message->byte1], stateStr[message->byte2], stateStr[message->byte3]);
     else for (i = 1; i < message->SIZE; i++) printf("[0x%2x] ", message->bytes[i]);
     printf("\r\n");
@@ -336,20 +326,20 @@ void CAN_message_dump(CAN_MESSAGE *message, bool outgoing) {
 
 void CAN_ping(ROLE role, bool initiator) {
     if (role == ourRole) {
-        printf("can't ping yourself! (you are %s)\r\n", roleStr[ourRole]);
+        if (debuggingOn) printf("can't ping yourself! (you are %s)\r\n", roleStr[ourRole]);
         return;
     }
     sending = ADDRESSED_SEND_ADDR;
     sending->SID = ROLEtoSID(role);
     if (!sending->SID) {
-        printf("Cannot ping %s, ask Vaughn why not.\r\n", roleStr[role]);
+        if (debuggingOn) printf("Cannot ping %s, ask Vaughn why not.\r\n", roleStr[role]);
         return;
     }
     sending->from = ourRole;
     sending->SIZE = 8;
     sending->message_num = initiator ?  PING_TO : PING_BACK;
     strcpy(&sending->bytes[1], initiator ?  "hello!" : "gotmsg");
-    if (!CAN_send()) printf("ERROR: Could not send ping.\r\n");
+    if (!CAN_send() && debuggingOn) printf("ERROR: Could not send ping.\r\n");
 }
 /******************************************************************************/
 /******************************************************************************/

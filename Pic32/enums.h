@@ -64,7 +64,7 @@ typedef enum {
 typedef enum {
     INVALID,
     // OUT FROM POD MESSAGE TYPES
-    WCM_HB, VNM_HB, BCM_HB, MCM_HB, VSM_HB, // matches up with the value of ROLE
+    HEARTBEAT,
             
     VNM_POS, VNM_VEL, VNM_ACC, VNM_ATT,
             

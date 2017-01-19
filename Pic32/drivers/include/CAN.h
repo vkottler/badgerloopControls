@@ -9,6 +9,7 @@
 
 // Libraries
 #include <xc.h>
+#include <stdio.h>
 #include <sys/attribs.h>
 #include <stdint.h>
 #include <stdbool.h>
@@ -19,7 +20,7 @@
 #include "../../config.h"
 #include "../../enums.h"
 
-#include <stdio.h>
+
 #include "../../peripherals/include/ledShield.h"
 
 // http://stackoverflow.com/questions/13923425/c-preprocessor-concatenation-with-variable
@@ -69,7 +70,6 @@ bool CAN_receive_broadcast(void);
 bool CAN_receive_specific(void);
 
 void CAN_send_fault(void);
-bool CAN_message_is_heartbeat(CAN_MESSAGE *message);
 bool CAN_send_heartbeat(bool fake);
 
 void CAN_message_dump(CAN_MESSAGE *message, bool outgoing);

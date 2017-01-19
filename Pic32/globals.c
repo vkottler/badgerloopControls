@@ -3,12 +3,11 @@
 /******************************************************************************/
 /*                           GLOBAL VARIABLES                                 */
 /******************************************************************************/
-bool debuggingOn = false, dumpOut = false, dumpIn = false;
+bool debuggingOn = false;
 int SID = 0;
 ROLE ourRole = NOT_PRESENT;
 volatile FAULT_TYPE fault = HEALTHY;
 volatile STATE state = DASH_CTL, next_state = DASH_CTL, prev_state = DASH_CTL;
-unsigned long long loopIteration = 0;
 uint8_t heartbeatsReceived = 0;
 CAN_MESSAGE *sending, receiving;
 
@@ -30,7 +29,6 @@ void initialize_board_roles(void) {
     setBoardRole(5, BOARD5_ROLE);
     setBoardRole(6, BOARD6_ROLE);
     ourRole = getThisRole();
-    if (CHECK_BOARD) debuggingOn = true;
 }
 
 // Figure out how many boards are attached
@@ -39,7 +37,6 @@ void initialize_heartbeat(void) {
     for (i = 1; i <= NUM_BOARDS; i++) {
         if (getBoardRole(i) != NOT_PRESENT) num_endpoints++;
     }
-    if (ourRole == HEARTBEAT_SENDER) initializeSlowTimer(HEARTBEAT_DELAY);
 }
 
 static ROLE board_roles[] = {
@@ -51,9 +48,9 @@ static ROLE board_roles[] = {
     NOT_PRESENT                 // Board 6 Default Role
 };
 
-void setBoardRole(uint8_t board, ROLE role) { board_roles[board-1] = role; }
-ROLE getBoardRole(uint8_t board) { return board_roles[board-1]; }
-ROLE getThisRole(void) { return getBoardRole(getBoardNumber()); }
+void setBoardRole(uint8_t board, ROLE role) {   board_roles[board-1] = role;            }
+ROLE getBoardRole(uint8_t board) {              return board_roles[board-1];            }
+ROLE getThisRole(void) {                        return getBoardRole(getBoardNumber());  }
 /******************************************************************************/
 /******************************************************************************/
 
@@ -66,6 +63,8 @@ int MACLookUp(int boardNumber) {
         case 2:     return MAC2;
         case 3:     return MAC3;
         case 4:     return MAC4;
+        case 5:     return MAC5;
+        case 6:     return MAC6;
         default:    return -1;
     }
 }
@@ -93,7 +92,6 @@ int getBoardNumber(void) {
 void defaultHeartbeatHandler(void) {
     heartbeatsReceived++;
     if (receiving.from == WCM) {
-        heartbeatsReceived = 1;
         if (CAN_send_heartbeat(false)) heartbeatsReceived++;
         else {
             next_state = FAULT_STATE;
@@ -107,11 +105,10 @@ void defaultHeartbeatHandler(void) {
 }
 
 void globalFaultHandler(void) {
-    if (CHECK_BOARD || debuggingOn) {
+    if (debuggingOn) {
         printf("Entered Fault Handler: %s\r\nReturning to previous state: %s\r\n", faultStr[fault], stateStr[prev_state]);
         if (fault == CAN_BUS_ERROR) CAN_print_errors();
     }
-    redOn();
     next_state = prev_state;
 }
 
