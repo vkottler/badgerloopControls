@@ -1,12 +1,10 @@
 #ifndef _SERIAL_DEBUG__H__
-#define
+#define _SERIAL_DEBUG__H__
 
-#include "globals.h"
+#include <stdio.h>
 #include "drivers/include/usbUART.h"
 #include "drivers/include/CAN.h"
 #include "globals.h"
-
-extern bool debuggingOn;
 
 void whoami(void);
 void printMAC(void);

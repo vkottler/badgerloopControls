@@ -1,7 +1,5 @@
 #include "serial_debug.h"
 
-bool debugginOn = false, dumpOut = false, dumpIn = false;
-
 void printMAC(void) { printf("MAC: %x %x\r\n", EMAC1SA0, EMAC1SA1); }
 void printBoardNumber(void) { printf("Board %d connected.\r\n", getBoardNumber()); }
 

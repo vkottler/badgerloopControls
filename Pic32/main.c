@@ -3,10 +3,6 @@
 /******************************************************************************/
 /*                       Function Pointer Definitions                         */
 /******************************************************************************/
-
-
-
-
 void (*serialDebugHandler)(void) =  &Serial_Debug_Handler;
 void (*heartbeatHandler)(void) =    &defaultHeartbeatHandler;
 
@@ -42,26 +38,6 @@ void (*spindownHandler)(void) =     &volatileHandler;
 /******************************************************************************/
 /*                          Static Initializations                            */
 /******************************************************************************/
-void initialize_board_roles(void) {
-    setBoardRole(1, BOARD1_ROLE);
-    setBoardRole(2, BOARD2_ROLE);
-    setBoardRole(3, BOARD3_ROLE);
-    setBoardRole(4, BOARD4_ROLE);
-    setBoardRole(5, BOARD5_ROLE);
-    setBoardRole(6, BOARD6_ROLE);
-    ourRole = getThisRole();
-    if (CHECK_BOARD) debuggingOn = true;
-}
-
-// Figure out how many boards are attached
-void initialize_heartbeat(void) {
-    int i;
-    for (i = 1; i <= NUM_BOARDS; i++) {
-        if (getBoardRole(i) != NOT_PRESENT) num_endpoints++;
-    }
-    if (ourRole == HEARTBEAT_SENDER) initializeSlowTimer(HEARTBEAT_DELAY);
-}
-
 void initialize_handlers(void) {
 
     switch (ourRole) {
@@ -177,8 +153,11 @@ void check_bus_integrity(void) {
 int main(void) {
 
     static_inits();
+    
+    // Used to verify software doesn't get stuck during initializations
     blinkBoardLights(4, 150);
     
+    // Runs board specific initializations, each board has one of these
     if (!initHandler()) {
         next_state = FAULT_STATE;
         fault = LOCAL_INIT_FAILED;
@@ -201,7 +180,10 @@ int main(void) {
             else messageHandler();
         }
         
+        // update the fault status if necessary
         check_bus_integrity();
+        
+        // Each module processes incoming sensor data each loop iteration
         dataProcessHandler();
         
         switch (state) {
@@ -238,10 +220,14 @@ int main(void) {
         // this is useful for knowing how fast we are operating
         loopIteration++;
         
+        // Used for visual indication of health
         if (fault == HEALTHY) { greenOn(); redOff(); }
         else {                  greenOff(); redOn(); }
 
+        
+    // Accept commands via Serial over USB
     if (debuggingOn && messageAvailable()) serialDebugHandler();
+        
     }
 }
 /******************************************************************************/

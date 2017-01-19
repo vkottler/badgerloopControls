@@ -6,6 +6,7 @@
 #include <stdio.h>
 #include <stdbool.h>
 #include "enums.h"
+#include "config.h"
 
 #define CHECK_BOARD         ourRole == SERIAL_DEBUG_BOARD
 
@@ -27,13 +28,14 @@
 /******************************************************************************/
 /*                           GLOBAL VARIABLES                                 */
 /******************************************************************************/
+extern bool debugginOn, dumpOut, dumpIn;
 extern int SID;
 extern ROLE ourRole;
 extern volatile STATE state, next_state, prev_state;
 extern uint8_t num_endpoints, heartbeatsReceived;
 extern volatile FAULT_TYPE fault;
 extern unsigned long long loopIteration;
-
+extern CAN_MESSAGE *sending, receiving;
 extern volatile bool sendHeartbeat;
 /******************************************************************************/
 
@@ -41,6 +43,8 @@ extern volatile bool sendHeartbeat;
 /******************************************************************************/
 /*                           GLOBAL FUNCTIONS                                 */
 /******************************************************************************/
+void initialize_heartbeat(void);
+void initialize_board_roles(void);
 void setBoardRole(uint8_t board, ROLE role);
 ROLE getBoardRole(uint8_t board);
 ROLE getThisRole(void);

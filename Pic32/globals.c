@@ -9,6 +9,8 @@ volatile FAULT_TYPE fault = HEALTHY;
 volatile STATE state = DASH_CTL, next_state = DASH_CTL, prev_state = DASH_CTL;
 unsigned long long loopIteration = 0;
 uint8_t heartbeatsReceived = 0;
+bool debugginOn = false, dumpOut = false, dumpIn = false;
+CAN_MESSAGE *sending, receiving;
 
 // Partially only for during testing
 uint8_t num_endpoints = 0;
@@ -20,6 +22,26 @@ volatile bool sendHeartbeat = false;
 /******************************************************************************/
 /*                              ROLE Related                                  */
 /******************************************************************************/
+void initialize_board_roles(void) {
+    setBoardRole(1, BOARD1_ROLE);
+    setBoardRole(2, BOARD2_ROLE);
+    setBoardRole(3, BOARD3_ROLE);
+    setBoardRole(4, BOARD4_ROLE);
+    setBoardRole(5, BOARD5_ROLE);
+    setBoardRole(6, BOARD6_ROLE);
+    ourRole = getThisRole();
+    if (CHECK_BOARD) debuggingOn = true;
+}
+
+// Figure out how many boards are attached
+void initialize_heartbeat(void) {
+    int i;
+    for (i = 1; i <= NUM_BOARDS; i++) {
+        if (getBoardRole(i) != NOT_PRESENT) num_endpoints++;
+    }
+    if (ourRole == HEARTBEAT_SENDER) initializeSlowTimer(HEARTBEAT_DELAY);
+}
+
 static ROLE board_roles[] = {
     NOT_PRESENT,                // Board 1 Default Role
     NOT_PRESENT,                // Board 2 Default Role

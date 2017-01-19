@@ -28,12 +28,11 @@
 
 #pragma config FCANIO = OFF         // use alternate set of CAN pins
 
-#include "config.h"
 #include "globals.h"
-#include "serial_debug.h"
+#include "config.h"
 #include "peripherals/include/ledShield.h"
+#include "serial_debug.h"
 
-#include "applications/include/production.h"
 #include "applications/include/VNM.h"
 #include "applications/include/VSM.h"
 #include "applications/include/MCM.h"

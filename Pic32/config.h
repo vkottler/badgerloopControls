@@ -14,8 +14,8 @@
 #define BOARD2_ROLE         MCM
 #define BOARD3_ROLE         NOT_PRESENT
 #define BOARD4_ROLE         NOT_PRESENT
-#define BOARD5_ROLE         NOT_PRESENT
-#define BOARD6_ROLE         VNM
+#define BOARD5_ROLE         VSM
+#define BOARD6_ROLE         NOT_PRESENT
 
 #define SERIAL_DEBUG_BOARD  MCM
         
