@@ -1,6 +1,6 @@
 # [Badgerloop](http://badgerloop.com/) Embedded Software
 
-README *updated: 01/07/2017* by Vaughn Kottler
+*updated: 01/20/2017*
 
 Members/Contributors:
   * [Vaughn Kottler](http://vaughnsplayground.me/) (Team Lead)
@@ -8,42 +8,165 @@ Members/Contributors:
   * [Nick Beckwith](https://github.com/nickbeckwith)
   * [Nick Jaunich](http://nicholasjaunich.com/)
 
-## [State Machine Overview](http://vaughnsplayground.me/OverallPodOperation.html)
-
-  Iteration one of the overall pod software state machine. This diagram describes   
-  the intended behavior of the pod during normal operation
-
+## [State Machine Overview v1.0](http://vaughnsplayground.me/OverallPodOperation.html)
+## [State Machine Overview v1.1 *Competition Ready*(https://drive.google.com/file/d/0B6IlBB2PKeWqaUtxTGh1U0ZlZTA/view?usp=sharing)
 ## [System Block Diagram Overview](http://vaughnsplayground.me/OverallBlockDiagram.pdf)
-
-  This diagram represents the electrical hardware in the pod and shows the   
-  interconnectivity. It is geographically similar to the pod as viewed from above.
-
-## [CAN Spec and Message List](https://docs.google.com/spreadsheets/d/1GXqT3xmgMHae2KyNhFwad-Cw_4eZXLL4t2ddvX0Eyjw/edit?usp=sharing)
-
-  An overview how we have decided to use CAN for our run.
+## [High level Network Architecture](https://drive.google.com/file/d/0B_1lSJ7Ba9bnekFyZWdSRERid0k/view?usp=sharing)
+## [CAN Spec and Message List *WIP*](https://docs.google.com/spreadsheets/d/1GXqT3xmgMHae2KyNhFwad-Cw_4eZXLL4t2ddvX0Eyjw/edit?usp=sharing)
 
 ## Implementing Technology:
 * Microchip [pic32mx795f512l](http://www.microchip.com/wwwproducts/en/PIC32MX795F512L)
   * [Reference Documentation](http://ww1.microchip.com/downloads/en/DeviceDoc/60001156J.pdf)
 * Digilent's [chipKIT Max32 Development Board](http://store.digilentinc.com/chipkit-max32-microcontroller-board-with-mega-r3-headers/)
   * [Reference Documentation](https://reference.digilentinc.com/chipkit_max32/refmanual)
+* Custom PCB Shields
+  * TODO: Pictures
 
---
+---
 
 # X-ES Assets
 
 TODO
 
---
+---
 
 # NUC Backend Container Assets
 
 TODO
 
---
+---
 
 # Pic32 Assets
   
+ 
+## Folder and File Hierarchy
+
+---
+
+### [Top Level](Pic32/)
+
+  * [config.h](Pic32/config.h)
+
+Contains compiler definitions used as custom build settings. We use the MAC addresses of our microcontroller boards to pair a board with it's function (BCM, VNM, etc.), so these details need to be specified at compile time in this document.
+
+  * [globals.h](Pic32/globals.h)
+  * [globals.c](Pic32/globals.c)
+
+Exposes global variables and utility functions that are almost exclusively used during initialization.
+
+  * [enums.h](Pic32/enums.h)
+  * [enums.c](Pic32/enums.c)
+
+Declarations of custom structs and enum data types. We use enums as placeholders for the integer values for each custom CAN message, the value for each role which is used as the value for the `from` bit field in the CAN SID, fault types as well as states.
+
+  * [serial_debug.h](Pic32/serial_debug.h)
+  * [serial_debug.c](Pic32/serial_debug.c)
+
+Serial debug utilities. Our serial debugging capabilities are highly robust, each Max32 has an FTDI UART to USB IC so enabling serial debugging is as simple as connecting a USB cable to a module box and sending 'serialOn' via the terminal emulator of choice.
+
+  * [main.h](Pic32/main.h)
+  * [main.c](Pic32/main.c)
+
+Execution begins here. A set of function pointers get set to the module-specific function handlers after the MCU reads its MAC address register, which allows it to find out which board it is and extract its role using functions from `globals.c`.
+   
+--- 
+  
+### [applications](Pic32/applications)
+
+Module specific initialization, data acquisition and processing functions as well as state function handlers.
+
+  * [BCM.c](Pic32/applications/C/production/BCM.c)
+  * [BCM.h](Pic32/applications/include/production/BCM.h)
+
+Braking Control Module
+
+  * [MCM.c](Pic32/applications/C/production/MCM.c)
+  * [MCM.h](Pic32/applications/include/production/MCM.h)
+ 
+Magnetic Control Module
+
+  * [VNM.c](Pic32/applications/C/production/VNM.c)
+  * [VNM.h](Pic32/applications/include/production/VNM.h)
+ 
+Vehicle Navigation Module
+
+  * [VSM.c](Pic32/applications/C/production/VSM.c)
+  * [VSM.h](Pic32/applications/include/production/VSM.h)
+  
+Vehicle Safety Module
+
+### [drivers](Pic32/drivers)
+
+Use of internal peripheral hardware.
+
+  * [ADC.c](Pic32/drivers/C/ADC.c)
+  * [ADC.h](Pic32/drivers/include/ADC.c)
+ 
+Analog to digital conversion on pins A0-A15.
+
+  * [CAN.c](Pic32/drivers/C/CAN.c)
+  * [CAN.h](Pic32/drivers/include/CAN.c)
+ 
+Controller Area Network protocol implementation.
+
+  * [I2C.c](Pic32/drivers/C/I2C.c)
+  * [I2C.h](Pic32/drivers/include/I2C.c)
+ 
+Inter-Integrated Circuit protocol implementation.
+
+  * [inputCapture.c](Pic32/drivers/C/inputCapture.c)
+  * [inputCapture.h](Pic32/drivers/include/inputCapture.c)
+
+Input Capture implementation used for capturing retro-reflective sensor events.
+
+  * [slowTimer.c](Pic32/drivers/C/slowTimer.c)
+  * [slowTimer.h](Pic32/drivers/include/slowTimer.c)
+ 
+Initializes Timer4 and Timer5 together as a 32-bit timer with the highest possible clock divider setting, bringing it down to 250kHz. Any module can use this to easily schedule events on an interrupt basis.
+
+  * [timer1.c](Pic32/drivers/C/timer1.c)
+  * [timer1.h](Pic32/drivers/include/timer1.c)
+ 
+Timer1 is currently only used for blocking delays.
+
+  * [usbUART.c](Pic32/drivers/C/usbUART.c)
+  * [usbUART.h](Pic32/drivers/include/usbUART.c)
+
+Interrupt-based, produce-consume buffer implementation of UART (115200 8N1).
+
+---
+  
+### [peripherals](Pic32/peripherals)
+
+Sensor drivers, peripheral I/O definitions and functions.
+
+  * [VL6180X.c](Pic32/peripherals/C/VL6180X.c)
+  * [VL6180X.h](Pic32/peripherals/include/VL6180X.h)
+ 
+I2C driver for the VL6180X infra-red distance sensor (Sparkfun breakout board).
+
+  * [honeywellPressure.c](Pic32/peripherals/C/honeywellPressure.c)
+  * [honeywellPressure.h](Pic32/peripherals/include/honeywellPressure.h)
+
+I2C driver for a Honeywell pressure sensor. 
+
+  * [ledShield.c](Pic32/peripherals/C/ledShield.c)
+  * [ledShield.h](Pic32/peripherals/include/ledShield.h)
+ 
+I/O initializations for LED functionality on the PCBs. Formerly initializations for custom LED shields.
+
+  * [thermistor.c](Pic32/peripherals/C/thermistor.c)
+  * [thermistor.h](Pic32/peripherals/include/thermistor.h)
+
+Temperature calculations based on ADC readings. 
+
+  * [pc_buffer.h](Pic32/peripherals/include/pc_buffer.h)
+  * [pc_buffer.c](Pic32/peripherals/C/pc_buffer.c)
+ 
+Produce consume buffer implementation.
+
+---
+
 ## How to Contribute:
 
   1. Obtain collaborator access to this repository on GitHub (contact Vaughn Kottler at [vkottler@wisc.edu](vkottler@wisc.edu))
@@ -79,119 +202,4 @@ TODO
       * change the "Heap size (bytes)" field to 1024
       * apply settings
   9. Begin programming!
-  
-## Folder and File Hierarchy
-
----
-
-### Misc
-
-Code that will likely be moved to another file.
-
-  * [config.h](Pic32/config.h)
-  * [globals.c](Pic32/globals.c)
-  * [globals.h](Pic32/globals.h)
-  * [utils.c](Pic32/utils.c)
-  * [utils.h](Pic32/utils.h)
-
---- 
-  
-### [applications](Pic32/applications)
-
-  This folder contains all of the different test routines as well as the current version   
-  of all module software.
-
-#### [C](Pic32/applications/C)
-
-  * [main.c](Pic32/applications/C/main.c)
-  * [vacuumTesting.c](Pic32/applications/C/vacuumTesting.c)
-  * [i2cTesting.c](Pic32/applications/C/i2cTesting.c)
-  * [uartTesting.c](Pic32/applications/C/uartTesting.c)
-  * [pcbTesting.c](Pic32/applications/C/pcbTesting.c)
-
-##### [production](Pic32/applications/C/production)
-
-Code that will actually be flashed to the MCU for the run
-
-  * [BCM.c](Pic32/applications/C/production/BCM.c)
-  * [MCM.c](Pic32/applications/C/production/MCM.c)
-  * [VNM.c](Pic32/applications/C/production/VNM.c)
-  * [VSM.c](Pic32/applications/C/production/VSM.c)
-
-#### [include](Pic32/applications/include)
-
-  * [main.h](Pic32/applications/include/main.h)
-  * [vacuumTesting.h](Pic32/applications/include/vacuumTesting.h)
-  * [i2cTesting.h](Pic32/applications/include/i2cTesting.h)
-  * [uartTesting.h](Pic32/applications/include/uartTesting.h)
-  * [pcbTesting.h](Pic32/applications/include/pcbTesting.h)
-
-##### [production](Pic32/applications/include/production)
-
-Main module application code for during the run
-
-  * [BCM.h](Pic32/applications/include/production/BCM.h)
-  * [MCM.h](Pic32/applications/include/production/MCM.h)
-  * [VNM.h](Pic32/applications/include/production/VNM.h)
-  * [VSM.h](Pic32/applications/include/production/VSM.h)
-
----  
-  
-### [drivers](Pic32/drivers)
-
-  This folder contains functions to instantiate and interact with internal hardware peripherals   
-  such as CAN, I2C, UART, ADCs and GPIO pins.
-
-#### [C](Pic32/drivers/C)
-
-  * [ADC.c](Pic32/drivers/C/ADC.c)
-  * [CAN.c](Pic32/drivers/C/CAN.c)
-  * [I2C.c](Pic32/drivers/C/I2C.c)
-  * [SPI.c](Pic32/drivers/C/SPI.c)
-  * [inputCapture.c](Pic32/drivers/C/inputCapture.c)
-  * [slowTimer.c](Pic32/drivers/C/slowTimer.c)
-  * [timer1.c](Pic32/drivers/C/timer1.c)
-  * [usbUART.c](Pic32/drivers/C/usbUART.c)
-
-#### [include](Pic32/drivers/include)
-
-  * [ADC.h](Pic32/drivers/include/ADC.c)
-  * [CAN.h](Pic32/drivers/include/CAN.c)
-  * [I2C.h](Pic32/drivers/include/I2C.c)
-  * [SPI.h](Pic32/drivers/include/SPI.c)
-  * [inputCapture.h](Pic32/drivers/include/inputCapture.c)
-  * [slowTimer.h](Pic32/drivers/include/slowTimer.c)
-  * [timer1.h](Pic32/drivers/include/timer1.c)
-  * [usbUART.h](Pic32/drivers/include/usbUART.c)
-
----
-  
-### [peripherals](Pic32/peripherals)
-
-  This folder contains functions to interact with different peripheral devices such as   
-  sensors and other microprocessor based circuits. These rely heavily on the quality of   
-  the driver implementation for the particular communication protocol being used.
-
-#### [C](Pic32/peripherals/C)
-
-  * [SD.c](Pic32/peripherals/C/SD.c)
-  * [VL6180X.c](Pic32/peripherals/C/VL6180X.c)
-  * [honeywellPressure.c](Pic32/peripherals/C/honeywellPressure.c)
-  * [kellyController.c](Pic32/peripherals/C/kellyController.c)
-  * [ledShield.c](Pic32/peripherals/C/ledShield.c)
-  * [thermistor.c](Pic32/peripherals/C/thermistor.c)
-  * [font.c](Pic32/peripherals/C/font.c)
-  * [pc_buffer.c](Pic32/peripherals/C/pc_buffer.c)
-  * [OLED.c](Pic32/peripherals/C/OLED.c)
-
-#### [include](peripherals/include)
-
-  * [SD.h](Pic32/peripherals/include/SD.h)
-  * [VL6180X.h](Pic32/peripherals/include/VL6180X.h)
-  * [honeywellPressure.h](Pic32/peripherals/include/honeywellPressure.h)
-  * [kellyController.h](Pic32/peripherals/include/kellyController.h)
-  * [ledShield.h](Pic32/peripherals/include/ledShield.h)
-  * [thermistor.h](Pic32/peripherals/include/thermistor.h)
-  * [font.h](Pic32/peripherals/include/font.h)
-  * [pc_buffer.h](Pic32/peripherals/include/pc_buffer.h)
-  * [OLED.h](Pic32/peripherals/include/OLED.h)
+ 
