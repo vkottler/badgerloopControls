@@ -27,12 +27,8 @@ Members/Contributors:
 ---
 
 # Pic32 Assets
-  
-## Folder and File Hierarchy
 
----
-
-### [Top Level](Pic32/)
+## [top level](Pic32/)
 
   * [config.h](Pic32/config.h)
 
@@ -57,10 +53,8 @@ Serial debug utilities. Our serial debugging capabilities are highly robust, eac
   * [main.c](Pic32/main.c)
 
 Execution begins here. A set of function pointers get set to the module-specific function handlers after the MCU reads its MAC address register, which allows it to find out which board it is and extract its role using functions from `globals.c`.
-   
---- 
   
-### [applications](Pic32/applications)
+## [applications](Pic32/applications)
 
 Module specific initialization, data acquisition and processing functions as well as state function handlers.
 
@@ -84,7 +78,7 @@ Vehicle Navigation Module
   
 Vehicle Safety Module
 
-### [drivers](Pic32/drivers)
+## [drivers](Pic32/drivers)
 
 Use of internal peripheral hardware.
 
@@ -122,10 +116,8 @@ Timer1 is currently only used for blocking delays.
   * [usbUART.h](Pic32/drivers/include/usbUART.c)
 
 Interrupt-based, produce-consume buffer implementation of UART (115200 8N1).
-
----
   
-### [peripherals](Pic32/peripherals)
+## [peripherals](Pic32/peripherals)
 
 Sensor drivers, peripheral I/O definitions and functions.
 
