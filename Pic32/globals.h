@@ -12,13 +12,15 @@
 /* * * * * * *                 Board Cataloging             * * * * * * * * * */
 /******************************************************************************/
 #define MAC1    0xA7B5  // Vaughn's Personal Board
-#define MAC2    0xFFC
-#define MAC3    0x993   //#define MAC3    0x50BE   // Can't find this board??????
+#define MAC2    0x0FFC
+#define MAC3    0x0993  //#define MAC3    0x50BE   // Can't find this board??????
 #define MAC4    0x3CEE
 #define MAC5    0xD0BF
 #define MAC6    0x3EBE
+#define MAC7    0x44c3  // then 0x1f39
+#define MAC8    0x06bf  // then 0x1f39
 
-#define NUM_BOARDS  6
+#define NUM_BOARDS  8
 /******************************************************************************/
 /******************************************************************************/
 

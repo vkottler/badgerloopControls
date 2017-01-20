@@ -15,6 +15,8 @@
 #define BOARD4_ROLE         MCM
 #define BOARD5_ROLE         VSM
 #define BOARD6_ROLE         VNM
+#define BOARD7_ROLE         NOT_PRESENT
+#define BOARD8_ROLE         NOT_PRESENT
 
 // Not currently used
 #define HEARTBEAT_DELAY     1000 // in ms

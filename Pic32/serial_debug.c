@@ -29,9 +29,9 @@ void Serial_Debug_Handler(void) {
 void printStartupDiagnostics(void) {
     int i, j, numNotPresent = 0, numBoardsForThisRole = 0;
     printf("================ STARTUP DIAGNOSTICS ============\r\n");
-    printf("======== ROLES ========");
-    for (i = 0; i < NUM_ROLES; i++) {
-        if (i > 1) printf("%s\t(%d)\t", roleStr[i], i);
+    printf("======== ROLES ========\r\n");
+    for (i = 0; i < NUM_ROLES - 1; i++) {
+        if (i > 1) printf("%s (%d): ", roleStr[i], i);
         numBoardsForThisRole = 0;
         for (j = 0; j < NUM_BOARDS; j++) {
             if (getBoardRole(j+1) == i) {
@@ -42,7 +42,7 @@ void printStartupDiagnostics(void) {
                 }
             }
         }
-        printf("\r\n");
+        if (i > 1) printf("\r\n");
     }
     printf("Boards not present:\t%d\r\n", numNotPresent);
     printf("=======================\r\n"); 

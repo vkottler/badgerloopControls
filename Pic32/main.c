@@ -118,10 +118,10 @@ void static_inits(void) {
     DDPCONbits.JTAGEN = 0;
     initializeTimer1(0x8000, 0xffff);
     initUART();
-    initialize_handlers();
     INTCONbits.MVEC = 1;
     __builtin_enable_interrupts();
     initialize_board_roles();
+    initialize_handlers();
     initLEDs();
     CAN_init();
     initialize_heartbeat();
