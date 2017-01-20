@@ -8,6 +8,8 @@ Members/Contributors:
   * [Nick Beckwith](https://github.com/nickbeckwith)
   * [Nick Jaunich](http://nicholasjaunich.com/)
 
+# Methodology and System Architecture
+
 ## [State Machine Overview v1.0](http://vaughnsplayground.me/OverallPodOperation.html)
 ## [State Machine Overview v1.1 *Competition Ready*](https://drive.google.com/file/d/0B6IlBB2PKeWqaUtxTGh1U0ZlZTA/view?usp=sharing)
 ## [System Block Diagram Overview](http://vaughnsplayground.me/OverallBlockDiagram.pdf)
@@ -24,21 +26,8 @@ Members/Contributors:
 
 ---
 
-# X-ES Assets
-
-TODO
-
----
-
-# NUC Backend Container Assets
-
-TODO
-
----
-
 # Pic32 Assets
   
- 
 ## Folder and File Hierarchy
 
 ---
@@ -164,6 +153,18 @@ Temperature calculations based on ADC readings.
   * [pc_buffer.c](Pic32/peripherals/C/pc_buffer.c)
  
 Produce consume buffer implementation.
+
+---
+
+# X-ES Assets
+
+TODO
+
+---
+
+# NUC Backend Container Assets
+
+TODO
 
 ---
 
