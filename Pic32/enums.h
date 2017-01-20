@@ -10,33 +10,22 @@ typedef enum { NOT_PRESENT, WCM, VNM, BCM, MCM, VSM, BMS } ROLE;
 
 #define NUM_ROLES       7
 
-// ! ! ! ! ! WARNING ! ! ! ! !
-// If you add to this enum make sure to add an entry to the 
-// array in enums.c, as well as increment the defined number
-// for this type
-//
 typedef volatile enum { 
-    READY_FOR_LAUNCH, 
-    DASH_CTL,
-    FAULT_STATE,
-    SAFE,
-    RUNNING,
-       
-    // braking states
+    FAULT_STATE,		// SpaceX wants Fault   as value 0
+    DASH_CTL,			// SpaceX wants Idle    as value 1
+    READY_FOR_LAUNCH,		// SpaceX Wants Ready   as value 2
+    PUSH_PHASE,			// SpaceX wants Pushing as value 3
+    COAST,			// SpaceX wants Coast   as value 4
+    NORMAL_BRAKING, 		// SpaceX wants Braking as value 5
     EMERGENCY_BRAKE,
-    NORMAL_BRAKING,
     FRONT_AXLE_BRAKING,
     REAR_AXLE_BRAKING,
-    INFLATE,
     WAITING_FOR_SAFE,
-            
-    // wheel control states
-    PUSH_PHASE,
-    COAST,
-    SPINDOWN
+    SPINDOWN,
+    SAFE			      
 } STATE;
 
-#define NUM_STATES              14
+#define NUM_STATES              12
 
 // ! ! ! ! ! WARNING ! ! ! ! !
 // If you add to this enum make sure to add an entry to the 

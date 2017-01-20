@@ -5,9 +5,16 @@ const char *roleStr[] = {
 };
 
 const char *stateStr[] = {
-    "RFL", "DCTL", "FAULT", "SAFE", "RUN", "EBRAKE",
-    "NBRAKING", "FABRAKING", "RABRAKING", "INFLATE",
-    "WFS", "PUSH", "COAST", "SPINDOWN"    
+    "FAULT_STATE",		// SpaceX wants Fault   as value 0
+    "DASH_CTL",			// SpaceX wants Idle    as value 1
+    "READY_FOR_LAUNCH",		// SpaceX Wants Ready   as value 2
+    "PUSH_PHASE",		// SpaceX wants Pushing as value 3
+    "COAST",			// SpaceX wants Coast   as value 4
+    "NORMAL_BRAKING", 		// SpaceX wants Braking as value 5
+    "EMERGENCY_BRAKE",
+    "FRONT_AXLE_BRAKING",
+    "REAR_AXLE_BRAKING",
+    "WAITING_FOR_SAFE", "SPINDOWN", "SAFE"  
 };
 
 const char *faultStr[] = {
