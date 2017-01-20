@@ -9,7 +9,7 @@ Members/Contributors:
   * [Nick Jaunich](http://nicholasjaunich.com/)
 
 ## [State Machine Overview v1.0](http://vaughnsplayground.me/OverallPodOperation.html)
-## [State Machine Overview v1.1 *Competition Ready*(https://drive.google.com/file/d/0B6IlBB2PKeWqaUtxTGh1U0ZlZTA/view?usp=sharing)
+## [State Machine Overview v1.1 *Competition Ready*](https://drive.google.com/file/d/0B6IlBB2PKeWqaUtxTGh1U0ZlZTA/view?usp=sharing)
 ## [System Block Diagram Overview](http://vaughnsplayground.me/OverallBlockDiagram.pdf)
 ## [High level Network Architecture](https://drive.google.com/file/d/0B_1lSJ7Ba9bnekFyZWdSRERid0k/view?usp=sharing)
 ## [CAN Spec and Message List *WIP*](https://docs.google.com/spreadsheets/d/1GXqT3xmgMHae2KyNhFwad-Cw_4eZXLL4t2ddvX0Eyjw/edit?usp=sharing)
