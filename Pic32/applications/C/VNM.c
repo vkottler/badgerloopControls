@@ -56,7 +56,28 @@ bool VNM_sendAtt(void) {
 /******************************************************************************/
 /*              Initialization and Message Reception Behavior                 */
 /******************************************************************************/
+inline void VNM_init_funcHandlers(void) {
+    broadcastHandler =      &VNM_broadcast_handler;
+    messageHandler =        &VNM_message_handler;
+
+    dataProcessHandler =    &VNM_data_process_handler;
+
+    // Main States
+    faultHandler =          &VNM_faultHandler;
+    dashctlHandler =        &VNM_dashctlHandler;
+    rflHandler =            &VNM_rflHandler;
+    pushphaseHandler =      &VNM_pushphaseHandler;
+    coastHandler =          &VNM_coastHandler;
+    nbrakeHandler =         &VNM_nbHandler;
+    ebrakeHandler =         &VNM_ebHandler;
+    fabHandler =            &VNM_fabHandler;
+    rabHandler =            &VNM_rabHandler;
+    wfsHandler =            &VNM_wfsHandler;
+    safeHandler =           &VNM_safeHandler;
+}
+
 bool VNM_init_periph(void) {
+    VNM_init_funcHandlers();
     I2Cinit();
     memset(&accelData, 0, sizeof(COORD_VECTOR));
     initializeSlowTimer(MPU_SAMPLE_PERIOD);

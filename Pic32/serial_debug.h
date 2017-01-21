@@ -12,4 +12,6 @@ void printBoardNumber(void);
 void Serial_Debug_Handler(void);
 void printStartupDiagnostics(void);
 
+extern void (*serialDebugHandler)(void);
+
 #endif

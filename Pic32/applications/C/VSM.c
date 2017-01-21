@@ -3,8 +3,28 @@
 /******************************************************************************/
 /*              Initialization and Message Reception Behavior                 */
 /******************************************************************************/
-bool VSM_init_periph(void) {
+inline void VSM_init_funcHandlers(void) {
+    broadcastHandler =      &VSM_broadcast_handler;
+    messageHandler =        &VSM_message_handler;
 
+    dataProcessHandler =    &VSM_data_process_handler;
+
+    // Main States
+    faultHandler =          &VSM_faultHandler;
+    dashctlHandler =        &VSM_dashctlHandler;
+    rflHandler =            &VSM_rflHandler;
+    pushphaseHandler =      &VSM_pushphaseHandler;
+    coastHandler =          &VSM_coastHandler;
+    nbrakeHandler =         &VSM_nbHandler;
+    ebrakeHandler =         &VSM_ebHandler;
+    fabHandler =            &VSM_fabHandler;
+    rabHandler =            &VSM_rabHandler;
+    wfsHandler =            &VSM_wfsHandler;
+    safeHandler =           &VSM_safeHandler;
+}
+
+bool VSM_init_periph(void) {
+    VSM_init_funcHandlers();
     return true;
 }
 

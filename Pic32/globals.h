@@ -34,6 +34,7 @@ extern ROLE ourRole;
 extern volatile STATE state, next_state, prev_state;
 extern AIR_SYSTEM_STATE airss; 
 extern uint8_t num_endpoints, heartbeatsReceived;
+extern const uint8_t SWVupper, SWVlower;
 extern volatile FAULT_TYPE fault;
 extern CAN_MESSAGE *sending, receiving;
 extern volatile bool adcSampleReady;
@@ -41,11 +42,36 @@ extern volatile bool adcSampleReady;
 
 
 /******************************************************************************/
+/*                       Function Pointer Definitions                         */
+/******************************************************************************/
+extern void (*heartbeatHandler)(void);
+
+extern bool(*broadcastHandler)(void);
+extern bool(*messageHandler)(void);
+extern bool(*initHandler)(void);
+
+extern void (*dataProcessHandler)(void);
+
+// State Handlers
+extern void (*faultHandler)(void);
+extern void (*dashctlHandler)(void);
+extern void (*rflHandler)(void);
+extern void (*pushphaseHandler)(void);
+extern void (*coastHandler)(void);
+extern void (*nbrakeHandler)(void);
+extern void (*ebrakeHandler)(void);
+extern void (*fabHandler)(void);
+extern void (*rabHandler)(void);
+extern void (*wfsHandler)(void);
+extern void (*safeHandler)(void);
+/******************************************************************************/
+/******************************************************************************/
+
+
+/******************************************************************************/
 /*                           GLOBAL FUNCTIONS                                 */
 /******************************************************************************/
 void initialize_heartbeat(void);
-void initialize_board_roles(void);
-void setBoardRole(uint8_t board, ROLE role);
 ROLE getBoardRole(uint8_t board);
 ROLE getThisRole(void);
 int MACLookUp(int boardNumber);
@@ -57,6 +83,7 @@ bool volatileBoolHandler(void);
 void volatileHandler(void);
 void change_state(STATE new_state);
 void setLights(void);
+void update_state(void);
 /******************************************************************************/
 /******************************************************************************/
 #endif

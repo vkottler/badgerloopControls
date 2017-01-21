@@ -18,6 +18,9 @@
 #define BOARD7_ROLE         NOT_PRESENT
 #define BOARD8_ROLE         NOT_PRESENT
 
+#define SOFTWARE_V_UPPER    0b10000000
+#define SOFTWARE_V_LOWER    0b00000000
+
 // Not currently used
 #define HEARTBEAT_DELAY     1000 // in ms
 /******************************************************************************/
@@ -63,4 +66,28 @@
 #define CAN_MAIN_VECTOR_BITS        CAN_SFR(VECbits, CAN_MAIN)
 /******************************************************************************/
 /******************************************************************************/
+
+
+/******************************************************************************/
+/*                             Pre-Build Checks                               */
+/******************************************************************************/
+
+// hacky C preproc assert
+// http://stackoverflow.com/questions/807244/c-compiler-asserts-how-to-implement
+#define CASSERT(predicate, file) _impl_CASSERT_LINE(predicate,__LINE__,file)
+#define _impl_PASTE(a,b) a##b
+#define _impl_CASSERT_LINE(predicate, line, file) \
+    typedef char _impl_PASTE(assertion_failed_##file##_,line)[2*!!(predicate)-1];
+
+
+// This is an important check. If our MESSAGE_TYPE enum is greater than a byte
+// it will not fit in the first byte of the CAN message. If the size of the 
+// CAN message struct is greater than 16 bytes, Microchip's CAN peripheral will
+// not interpret it properly or format incoming messages how we expect them to be.
+CASSERT(sizeof(CAN_MESSAGE) == 16, enums_h);
+CASSERT(sizeof(MESSAGE_TYPE) == 1, enums_h);
+/******************************************************************************/
+/******************************************************************************/
+    
+        
 #endif

@@ -252,9 +252,7 @@ bool CAN_receive_specific(void) {
 /*                          Heartbeat Related                                 */
 /******************************************************************************/
 void CAN_send_fault(void) {
-    sending = BROADCAST_SEND_ADDR;
-    sending->SID = ALL;
-    sending->from = ourRole;
+    setupBroadcast();
     sending->SIZE = 5;
     sending->message_num = FAULT;
     sending->byte0 = fault;
@@ -337,9 +335,10 @@ void CAN_message_dump(CAN_MESSAGE *message, bool outgoing) {
     else           printf("            ");
 #endif
     printf("MSG (%u): %s ", message->SIZE - 1, messageStr[message->message_num]);
-    if (message->message_num == FAULT) printf(" !!%s!! ", faultStr[message->byte0]);
-    if (message->message_num == HEARTBEAT || message->message_num == FAULT) 
-        printf("[%s][%s][%s]", stateStr[message->byte1], stateStr[message->byte2], stateStr[message->byte3]);
+    if (message->message_num == FAULT) 
+        printf(" !!%s!! [%s][%s][%s]", faultStr[message->byte0], stateStr[message->byte1], stateStr[message->byte2], stateStr[message->byte3]);
+    else if (message->message_num == HEARTBEAT) 
+        printf("[%s][%s][%s]", stateStr[message->byte0], stateStr[message->byte1], stateStr[message->byte2]);
     else for (i = 1; i < message->SIZE; i++) printf("[0x%2x] ", message->bytes[i]);
     printf("\r\n");
 }
@@ -356,9 +355,9 @@ void CAN_ping(ROLE role, bool initiator) {
         return;
     }
     sending->from = ourRole;
-    sending->SIZE = 8;
+    sending->SIZE = 3;
     sending->message_num = initiator ?  PING_TO : PING_BACK;
-    strcpy(&sending->bytes[1], initiator ?  "hello!" : "gotmsg");
+    sending->byte0 = SWVupper; sending->byte1 = SWVlower;
     if (!CAN_send() && debuggingOn) printf("ERROR: Could not send ping.\r\n");
 }
 /******************************************************************************/

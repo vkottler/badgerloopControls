@@ -109,7 +109,28 @@ void MCM_data_process_handler(void) {
 /******************************************************************************/
 /*              Initialization and Message Reception Behavior                 */
 /******************************************************************************/
+void MCM_init_funcHandlers(void) {
+    broadcastHandler =      &MCM_broadcast_handler;
+    messageHandler =        &MCM_message_handler;
+
+    dataProcessHandler =    &MCM_data_process_handler;
+
+    // Main States
+    faultHandler =          &MCM_faultHandler;
+    dashctlHandler =        &MCM_dashctlHandler;
+    rflHandler =            &MCM_rflHandler;
+    pushphaseHandler =      &MCM_pushphaseHandler;
+    coastHandler =          &MCM_coastHandler;
+    nbrakeHandler =         &MCM_nbHandler;
+    ebrakeHandler =         &MCM_ebHandler;
+    fabHandler =            &MCM_fabHandler;
+    rabHandler =            &MCM_rabHandler;
+    wfsHandler =            &MCM_wfsHandler;
+    safeHandler =           &MCM_safeHandler;
+}
+
 bool MCM_init_periph(void) {
+    MCM_init_funcHandlers();
     I2Cinit();
     mcp_write_val(0x0000);              // do not throttle wheels
     inputCapInit(2, WHEEL_READINGS);

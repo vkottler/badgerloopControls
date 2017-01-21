@@ -19,6 +19,8 @@ uint8_t heartbeatsReceived = 0;
 
 CAN_MESSAGE *sending, receiving;
 
+const uint8_t SWVupper = SOFTWARE_V_UPPER, SWVlower = SOFTWARE_V_LOWER;
+
 // Partially only for during testing
 uint8_t num_endpoints = 0;
 volatile bool adcSampleReady = false;
@@ -27,21 +29,35 @@ volatile bool adcSampleReady = false;
 
 
 /******************************************************************************/
+/*                       Function Pointer Definitions                         */
+/******************************************************************************/
+void (*heartbeatHandler)(void) =        &defaultHeartbeatHandler;
+
+bool(*broadcastHandler)(void) =         &volatileBoolHandler;
+bool(*messageHandler)(void) =           &volatileBoolHandler;
+bool(*initHandler)(void) =              &volatileBoolHandler;
+
+void (*dataProcessHandler)(void) =      &volatileHandler;
+
+// State Handlers
+void (*faultHandler)(void) =            &globalFaultHandler;
+void (*dashctlHandler)(void) =          &volatileHandler;
+void (*rflHandler)(void) =              &volatileHandler;
+void (*pushphaseHandler)(void) =        &volatileHandler;
+void (*coastHandler)(void) =            &volatileHandler;
+void (*nbrakeHandler)(void) =           &volatileHandler;
+void (*ebrakeHandler)(void) =           &volatileHandler;
+void (*fabHandler)(void) =              &volatileHandler;
+void (*rabHandler)(void) =              &volatileHandler;
+void (*wfsHandler)(void) =              &volatileHandler;
+void (*safeHandler)(void) =             &volatileHandler;
+/******************************************************************************/
+/******************************************************************************/
+
+
+/******************************************************************************/
 /*                              ROLE Related                                  */
 /******************************************************************************/
-void initialize_board_roles(void) {
-    setBoardRole(1, BOARD1_ROLE);
-    setBoardRole(2, BOARD2_ROLE);
-    setBoardRole(3, BOARD3_ROLE);
-    setBoardRole(4, BOARD4_ROLE);
-    setBoardRole(5, BOARD5_ROLE);
-    setBoardRole(6, BOARD6_ROLE);
-    setBoardRole(7, BOARD7_ROLE);
-    setBoardRole(8, BOARD8_ROLE);
-    ourRole = getThisRole();
-}
-
-// Figure out how many boards are attached
 void initialize_heartbeat(void) {
     int i;
     for (i = 1; i <= NUM_BOARDS; i++) {
@@ -49,18 +65,17 @@ void initialize_heartbeat(void) {
     }
 }
 
-static ROLE board_roles[] = {
-    NOT_PRESENT,                // Board 1 Default Role
-    NOT_PRESENT,                // Board 2 Default Role
-    NOT_PRESENT,                // Board 3 Default Role
-    NOT_PRESENT,                // Board 4 Default Role
-    NOT_PRESENT,                // Board 5 Default Role
-    NOT_PRESENT,                // Board 6 Default Role
-    NOT_PRESENT,                // Board 7 Default Role
-    NOT_PRESENT                 // Board 8 Default Role
+static const ROLE board_roles[] = {
+    BOARD1_ROLE,                // Board 1 Default Role
+    BOARD2_ROLE,                // Board 2 Default Role
+    BOARD3_ROLE,                // Board 3 Default Role
+    BOARD4_ROLE,                // Board 4 Default Role
+    BOARD5_ROLE,                // Board 5 Default Role
+    BOARD6_ROLE,                // Board 6 Default Role
+    BOARD7_ROLE,                // Board 7 Default Role
+    BOARD8_ROLE                 // Board 8 Default Role
 };
 
-void setBoardRole(uint8_t board, ROLE role) {   board_roles[board-1] = role;            }
 ROLE getBoardRole(uint8_t board) {              return board_roles[board-1];            }
 ROLE getThisRole(void) {                        return getBoardRole(getBoardNumber());  }
 /******************************************************************************/
@@ -147,6 +162,12 @@ inline void change_state(STATE new_state) {
 inline void setLights(void) {
     if (fault == HEALTHY) { greenOn(); redOff(); } 
     else { greenOff(); redOn(); }
+}
+
+inline void update_state(void) {
+        prev_state = state;
+        setLights();
+        state = next_state;
 }
 /******************************************************************************/
 /******************************************************************************/

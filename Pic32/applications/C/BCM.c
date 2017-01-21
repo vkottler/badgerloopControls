@@ -26,7 +26,28 @@ inline void inflate(void) {
 /******************************************************************************/
 /*              Initialization and Message Reception Behavior                 */
 /******************************************************************************/
+inline void BCM_init_funcHandlers(void) {
+    broadcastHandler =      &BCM_broadcast_handler;
+    messageHandler =        &BCM_message_handler;
+
+    dataProcessHandler =    &BCM_data_process_handler;
+
+    // Main States
+    faultHandler =          &BCM_faultHandler;
+    dashctlHandler =        &BCM_dashctlHandler;
+    rflHandler =            &BCM_rflHandler;
+    pushphaseHandler =      &BCM_pushphaseHandler;
+    coastHandler =          &BCM_coastHandler;
+    nbrakeHandler =         &BCM_nbHandler;
+    ebrakeHandler =         &BCM_ebHandler;
+    fabHandler =            &BCM_fabHandler;
+    rabHandler =            &BCM_rabHandler;
+    wfsHandler =            &BCM_wfsHandler;
+    safeHandler =           &BCM_safeHandler;
+}
+
 bool BCM_init_periph(void) {
+    BCM_init_funcHandlers();
     RD1_IN1_DIR = OUTPUT;
     RD1_IN2_DIR = OUTPUT;
     RD1_IN3_DIR = OUTPUT;
