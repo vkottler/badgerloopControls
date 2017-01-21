@@ -22,4 +22,7 @@ void VSM_fabHandler(void);
 void VSM_rabHandler(void);
 void VSM_wfsHandler(void);
 void VSM_safeHandler(void);
+
+// Serial Debugging
+void VSM_printVariables(void);
 #endif

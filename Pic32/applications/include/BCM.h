@@ -55,4 +55,7 @@ void BCM_fabHandler(void);
 void BCM_rabHandler(void);
 void BCM_wfsHandler(void);
 void BCM_safeHandler(void);
+
+// Serial Debugging
+void BCM_printVariables(void);
 #endif

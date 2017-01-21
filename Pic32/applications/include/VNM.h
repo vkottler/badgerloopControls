@@ -29,4 +29,6 @@ void VNM_safeHandler(void);
 
 extern volatile bool VNM_getMPU;
 
+// Serial Debugging
+void VNM_printVariables(void);
 #endif

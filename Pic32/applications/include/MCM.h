@@ -39,4 +39,7 @@ void MCM_fabHandler(void);
 void MCM_rabHandler(void);
 void MCM_wfsHandler(void);
 void MCM_safeHandler(void);
+
+// Serial Debugging
+void MCM_printVariables(void);
 #endif

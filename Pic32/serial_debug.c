@@ -21,6 +21,14 @@ void Serial_Debug_Handler(void) {
     else if (!strcmp(uartReceive, "serialOn") || !strcmp(uartReceive, "debugOn"))   { debuggingOn = true; printf("Serial now on.\r\n"); }
     else if (!strcmp(uartReceive, "serialOff") || !strcmp(uartReceive, "debugOff")) { debuggingOn = false; printf("Serial now off.\r\n"); }
     else if (!strcmp(uartReceive, "build")) printf("%s\r\n", timestamp);
+    else if (!strcmp(uartReceive, "variables")) {
+        switch (ourRole) {
+            case VNM: VNM_printVariables(); break;
+            case VSM: VSM_printVariables(); break;
+            case MCM: MCM_printVariables(); break;
+            case BCM: BCM_printVariables(); break;
+        }
+    }
     else if (!strcmp(uartReceive, "ping MCM")) { if (ourRole != MCM) CAN_ping(MCM, true); }
     else if (!strcmp(uartReceive, "ping BCM")) { if (ourRole != BCM) CAN_ping(BCM, true); }
     else if (!strcmp(uartReceive, "ping VSM")) { if (ourRole != VSM) CAN_ping(VSM, true); }
@@ -54,6 +62,7 @@ void printStartupDiagnostics(void) {
     printf("# CAN Messages:\t%d\r\n", NUM_CAN_MESSAGES);
     printf("# States:\t%d\r\n", NUM_STATES);
     printf("# Fault Types:\t%d\r\n", NUM_FAULT_TYPES);
+    printf("Build Timestamp:\t%s\r\n", timestamp);
     printf("=================================================\r\n");
 }
 /******************************************************************************/
