@@ -4,6 +4,7 @@ void (*serialDebugHandler)(void) =      &Serial_Debug_Handler;
 
 void printMAC(void) {           printf("MAC: %x %x\r\n", EMAC1SA0, EMAC1SA1);           }
 void printBoardNumber(void) {   printf("Board %d connected.\r\n", getBoardNumber());    }
+void printVersion(void) { printf("%24s version %s\r\n", timestamp, &timestamp[26]); }
 
 /******************************************************************************/
 /*                          Live Debugging Related                            */
@@ -29,7 +30,7 @@ void Serial_Debug_Handler(void) {
     else if (!strcmp(uartReceive, "serialOff") || !strcmp(uartReceive, "debugOff")) 
         { debuggingOn = false; printf("Serial now off.\r\n"); }
     else if (!strcmp(uartReceive, "build")) 
-        printf("%24s version %s\r\n", timestamp, &timestamp[26]);
+        printVersion();
     else if (!strcmp(uartReceive, "variables")) {
         switch (ourRole) {
             case VNM: VNM_printVariables(); break;
@@ -38,11 +39,12 @@ void Serial_Debug_Handler(void) {
             case BCM: BCM_printVariables(); break;
         }
     }
-    else if (!strcmp(uartReceive, "ping MCM")) { if (ourRole != MCM) CAN_ping(MCM, true); }
-    else if (!strcmp(uartReceive, "ping BCM")) { if (ourRole != BCM) CAN_ping(BCM, true); }
-    else if (!strcmp(uartReceive, "ping VSM")) { if (ourRole != VSM) CAN_ping(VSM, true); }
-    else if (!strcmp(uartReceive, "ping VNM")) { if (ourRole != VNM) CAN_ping(VNM, true); }
-    else if (!strcmp(uartReceive, "ping WCM")) { if (ourRole != WCM) CAN_ping(WCM, true); }
+    else if (!strcmp(uartReceive, "ping MCM")) { if (ourRole != MCM) CAN_ping(MCM_SID, true); }
+    else if (!strcmp(uartReceive, "ping BCM")) { if (ourRole != BCM) CAN_ping(BCM_SID, true); }
+    else if (!strcmp(uartReceive, "ping VSM")) { if (ourRole != VSM) CAN_ping(VSM_SID, true); }
+    else if (!strcmp(uartReceive, "ping VNM")) { if (ourRole != VNM) CAN_ping(VNM_SID, true); }
+    else if (!strcmp(uartReceive, "ping WCM")) { if (ourRole != WCM) CAN_ping(WCM_SID, true); }
+    else if (!strcmp(uartReceive, "ping all")) CAN_ping(ALL, true);
     else printf("Did not recognize: '%s'\r\n", uartReceive);
 }
 
@@ -71,7 +73,9 @@ void printStartupDiagnostics(void) {
     printf("# CAN Messages:\t%d\r\n", NUM_CAN_MESSAGES);
     printf("# States:\t%d\r\n", NUM_STATES);
     printf("# Fault Types:\t%d\r\n", NUM_FAULT_TYPES);
-    printf("Build Timestamp: %s\r\n", timestamp);
+    printf("Build: ");
+    printVersion();
+    printf("\r\n");
     printf("=================================================\r\n");
 }
 /******************************************************************************/

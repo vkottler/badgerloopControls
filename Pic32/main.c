@@ -6,9 +6,9 @@
 inline void checkBroadcasts(void) {
     if (CAN_receive_broadcast()) {
         switch (receiving.message_num) {
-            case HEARTBEAT:     heartbeatHandler();                                 break;
-            case PING_TO:       if (receiving.from == WCM) CAN_ping(WCM, false);    break;
-            case ENTER_STATE:   change_state(receiving.byte0);                      break;
+            case HEARTBEAT:     heartbeatHandler();                         break;
+            case PING_TO:       CAN_ping(ROLEtoSID(receiving.from), false); break;
+            case ENTER_STATE:   change_state(receiving.byte0);              break;
             default: broadcastHandler();
         }
     }    
@@ -17,8 +17,8 @@ inline void checkBroadcasts(void) {
 inline void checkMessages(void) {
     if (CAN_receive_specific()) {
         switch (receiving.message_num) {
-            case ENTER_STATE:   change_state(receiving.byte0);      break;
-            case PING_TO:       CAN_ping(receiving.from, false);    break;
+            case ENTER_STATE:   change_state(receiving.byte0);              break;
+            case PING_TO:       CAN_ping(ROLEtoSID(receiving.from), false); break;
             default: messageHandler();
         }
     }    

@@ -27,7 +27,7 @@ const char *faultStr[] = {
 const char *messageStr[] = {
     "INVALID",
 
-    "HEARTBEAT", "PING_TO  ", "PING_BACK", "FAULT"   
+    "HEARTBEAT", "PING_TO  ", "PING_BACK", "SOFTWARE_VER", "FAULT"   
 
     "VNM_POS", "VNM_VEL", "VNM_ACC", "VNM_ATT", "VNM_STRIPLOST",
 

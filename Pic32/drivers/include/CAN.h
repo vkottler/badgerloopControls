@@ -76,7 +76,7 @@ bool CAN_send_heartbeat(bool fake);
 
 void CAN_message_dump(CAN_MESSAGE *message, bool outgoing);
 void CAN_print_errors(void);
-void CAN_ping(ROLE role, bool initiator);
+bool CAN_ping(uint16_t SID, bool initiator);
 void CAN_message_dump(CAN_MESSAGE *message, bool outgoing);
 void CAN_print_errors(void);
 /******************************************************************************/

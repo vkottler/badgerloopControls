@@ -343,20 +343,16 @@ void CAN_message_dump(CAN_MESSAGE *message, bool outgoing) {
     printf("\r\n");
 }
 
-void CAN_ping(ROLE role, bool initiator) {
-    if (role == ourRole) {
+bool CAN_ping(uint16_t SID, bool initiator) {
+    bool result = true;
+    if (SID == ROLEtoSID(ourRole)) {
         if (debuggingOn) printf("can't ping yourself! (you are %s)\r\n", roleStr[ourRole]);
         return;
     }
-    sending = ADDRESSED_SEND_ADDR;
-    sending->SID = ROLEtoSID(role);
-    if (!sending->SID) {
-        if (debuggingOn) printf("Cannot ping %s, ask Vaughn why not.\r\n", roleStr[role]);
-        return;
-    }
-    sending->from = ourRole;
-    sending->SIZE = 8;
+    setupMessage(SID);
+    sending->SIZE = initiator ? 1 : 8;
     sending->message_num = initiator ?  PING_TO : PING_BACK;
+    if (initiator) return CAN_send();
     sending->byte0 = timestamp[11];
     sending->byte1 = timestamp[12];
     sending->byte2 = timestamp[14];
@@ -364,7 +360,13 @@ void CAN_ping(ROLE role, bool initiator) {
     sending->byte4 = timestamp[17];
     sending->byte5 = timestamp[18];
     sending->byte6 = '\0';
-    if (!CAN_send() && debuggingOn) printf("ERROR: Could not send ping.\r\n");
+    result = CAN_send();
+    setupMessage(SID);
+    sending->SIZE = 8;
+    sending->message_num = SOFTWARE_VER;
+    strcpy(sending->bytes, &timestamp[26]);
+    sending->byte6 = '\0';
+    return result && CAN_send();
 }
 /******************************************************************************/
 /******************************************************************************/
