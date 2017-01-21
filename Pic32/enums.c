@@ -1,20 +1,20 @@
 #include "enums.h"
 
-const char *roleStr[] = {
-    "NP", "WCM", "VNM", "BCM", "MCM", "VSM", "BMS"
-};
+const char *roleStr[] = {"NP", "WCM", "VNM", "BCM", "MCM", "VSM", "BMS"};
+
+const char *airStr[] = {"INFL", "DEFL", "PURO"};
 
 const char *stateStr[] = {
-    "FAULT_STATE",		// SpaceX wants Fault   as value 0
+    "FAULT",			// SpaceX wants Fault   as value 0
     "DASH_CTL",			// SpaceX wants Idle    as value 1
-    "READY_FOR_LAUNCH",		// SpaceX Wants Ready   as value 2
+    "RFL",			// SpaceX Wants Ready   as value 2
     "PUSH_PHASE",		// SpaceX wants Pushing as value 3
     "COAST",			// SpaceX wants Coast   as value 4
-    "NORMAL_BRAKING", 		// SpaceX wants Braking as value 5
-    "EMERGENCY_BRAKE",
-    "FRONT_AXLE_BRAKING",
-    "REAR_AXLE_BRAKING",
-    "WAITING_FOR_SAFE", "SAFE"  
+    "N_BRAKING", 		// SpaceX wants Braking as value 5
+    "E_BRAKE",
+    "FA_BRAKING",
+    "RA_BRAKING",
+    "WF_SAFE", "SAFE"  
 };
 
 const char *faultStr[] = {
@@ -26,12 +26,16 @@ const char *faultStr[] = {
 
 const char *messageStr[] = {
     "INVALID",
-    "HEARTBEAT",
-    "VNM_POS", "VNM_VEL", "VNM_ACC", "VNM_ATT",     
+
+    "HEARTBEAT", "PING_TO  ", "PING_BACK", "FAULT"   
+
+    "VNM_POS", "VNM_VEL", "VNM_ACC", "VNM_ATT", "VNM_STRIPLOST",
+
     "VSM_TEMP1", "VSM_TEMP2", "VSM_EDATA",    
-    "BCM_BRAKE_STATE", "BCM_BRAKE_SPEED1", "BCM_BRAKE_SPEED2", 
+
+    "BCM_BRAKE_STATE", "BCM_BRAKE_SPEED1", "BCM_BRAKE_SPEED2",
+ 
     "MCM_KELLY_STATE", "MCM_CMDV", "MCM_HB_SPEED1", "MCM_HB_SPEED2",
-    "VNM_STRIPLOST",
             
     //OUT FROM DASH MESSAGE TYPES
     "ENTER_STATE",
@@ -42,8 +46,5 @@ const char *messageStr[] = {
     
     "DASH_MCM_SPINWHEELS",
     
-    "DASH_VSM_CONTRACTOR",    
-
-    // NOT YET ADDED GLOBALLY (i.e. in spreadsheet)
-    "PING_TO  ", "PING_BACK", "FAULT"   
+    "DASH_VSM_CONTRACTOR"
 };

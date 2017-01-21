@@ -32,10 +32,11 @@ extern bool debuggingOn;
 extern int SID;
 extern ROLE ourRole;
 extern volatile STATE state, next_state, prev_state;
+extern AIR_SYSTEM_STATE airss; 
 extern uint8_t num_endpoints, heartbeatsReceived;
 extern volatile FAULT_TYPE fault;
 extern CAN_MESSAGE *sending, receiving;
-extern volatile bool sendHeartbeat;
+extern volatile bool sendHeartbeat, adcSampleReady;
 /******************************************************************************/
 
 
@@ -54,6 +55,8 @@ void defaultHeartbeatHandler(void);
 void globalFaultHandler(void);
 bool volatileBoolHandler(void);
 void volatileHandler(void);
+void change_state(STATE new_state);
+void setLights(void);
 /******************************************************************************/
 /******************************************************************************/
 #endif

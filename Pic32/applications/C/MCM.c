@@ -6,8 +6,24 @@ volatile unsigned int *left_front_readings, *right_front_readings, *back_left_re
 
 uint16_t left_front_rpm, right_front_rpm, left_rear_rpm, right_rear_rpm;
 
+uint16_t commanded_speed = 0, new_speed = 0;
+
+
 /******************************************************************************/
-/*                        Data Processing & Unit Conversions                  */
+/*                                  Utility                                   */
+/******************************************************************************/
+void stop_wheels(void) {
+    if (commanded_speed != 0) {
+        mcp_write_val(0x0000);
+        commanded_speed = 0;
+    }
+}
+/******************************************************************************/
+/******************************************************************************/
+
+
+/******************************************************************************/
+/*                             Outgoing Messages                              */
 /******************************************************************************/
 bool send_wheel_rpms(void) {
     bool result = true;
@@ -30,9 +46,26 @@ bool send_wheel_rpms(void) {
     sending->byte1 = left_rear_rpm & 0xff;
     sending->byte2 = right_rear_rpm >> 8;
     sending->byte3 = right_rear_rpm & 0xff;
-    return !result || !CAN_broadcast();
+    return result && CAN_broadcast();
 }
 
+bool send_cmdv(ROLE to) {
+    sending = BROADCAST_SEND_ADDR;
+    sending->SID = ROLEtoSID(to);
+    sending->from = ourRole;
+    sending->SIZE = 3;
+    sending->message_num = MCM_CMDV;
+    sending->byte0 = commanded_speed >> 8;
+    sending->byte1 = commanded_speed & 0xff;
+    return CAN_send();
+}
+/******************************************************************************/
+/******************************************************************************/
+
+
+/******************************************************************************/
+/*                        Data Processing & Unit Conversions                  */
+/******************************************************************************/
 void compute_wheel_rpms(void) {
     uint8_t i;
     unsigned int averageInterval = 0;
@@ -82,6 +115,7 @@ void MCM_data_process_handler(void) {
 /******************************************************************************/
 bool MCM_init_periph(void) {
     I2Cinit();
+    mcp_write_val(0x0000);              // do not throttle wheels
     inputCapInit(2, WHEEL_READINGS);
     inputCapInit(5, WHEEL_READINGS);
     inputCapInit(1, WHEEL_READINGS);
@@ -102,17 +136,23 @@ bool MCM_init_periph(void) {
 }
 
 bool MCM_broadcast_handler(void) {
-    if (receiving.from == WCM) CAN_ping(WCM, false);
+
     return true;
 }
 
 bool MCM_message_handler(void) {
     switch (receiving.message_num) {
-        case PING_TO: CAN_ping(receiving.from, false); break;
+        
+        case MCM_CMDV: send_cmdv(receiving.from); break;
+            
         case DASH_MCM_SPINWHEELS: 
-            send_wheel_rpms();
-            mcp_write_val((receiving.byte0 << 8) | receiving.byte1 & 0xff);
+            new_speed = (receiving.byte0) | (receiving.byte1 & 0xff);
+            if (new_speed != commanded_speed) {
+                mcp_write_val(new_speed);
+                commanded_speed = new_speed;
+            }
             break;
+            
     }
     return true;
 }
@@ -146,27 +186,33 @@ void MCM_coastHandler(void) {
 }
 
 void MCM_nbHandler(void) {
+    stop_wheels();
 
 }
 
 void MCM_ebHandler(void) {
+    stop_wheels();
 
 }
 
 void MCM_fabHandler(void) {
+    stop_wheels();
 
 }
 
 void MCM_rabHandler(void) {
+    stop_wheels();
 
 }
 
 void MCM_wfsHandler(void) {
+    stop_wheels();
 
 }
 
 void MCM_safeHandler(void) {
     greenOn();
+
 }
 /******************************************************************************/
 /******************************************************************************/

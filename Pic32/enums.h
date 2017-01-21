@@ -10,6 +10,8 @@ typedef enum { NOT_PRESENT, WCM, VNM, BCM, MCM, VSM, BMS } ROLE;
 
 #define NUM_ROLES       7
 
+typedef enum { INFLATED, DEFLATED, PURGE_OPEN } AIR_SYSTEM_STATE;
+
 typedef volatile enum { 
     FAULT_STATE,		// SpaceX wants Fault   as value 0
     DASH_CTL,			// SpaceX wants Idle    as value 1
@@ -26,11 +28,6 @@ typedef volatile enum {
 
 #define NUM_STATES              11
 
-// ! ! ! ! ! WARNING ! ! ! ! !
-// If you add to this enum make sure to add an entry to the 
-// array in enums.c, as well as increment the defined number
-// for this type
-//
 typedef enum { 
     HEALTHY, 
     GLOBAL_INITS_FAILED,
@@ -44,27 +41,34 @@ typedef enum {
 
 #define NUM_FAULT_TYPES         7
 
-// ! ! ! ! ! WARNING ! ! ! ! !
-// If you add to this enum make sure to add an entry to the 
-// array in enums.c, as well as increment the defined number
-// for this type
-//
 typedef enum {
     INVALID,
-    // OUT FROM POD MESSAGE TYPES
-    HEARTBEAT,
-            
-    VNM_POS, VNM_VEL, VNM_ACC, VNM_ATT,
-            
+
+    /**************************************************************************/
+    /* * * * * * *             Out From Modules             * * * * * * * * * */
+    /**************************************************************************/
+    
+    // Universal
+    HEARTBEAT, PING_TO, PING_BACK, FAULT,
+    
+    // From VNM        
+    VNM_POS, VNM_VEL, VNM_ACC, VNM_ATT, VNM_STRIPLOST,       
+    
+    // From VSM        
     VSM_TEMP1, VSM_TEMP2, VSM_EDATA,
             
+    // From BCM
     BCM_BRAKE_STATE, BCM_BRAKE_SPEED1, BCM_BRAKE_SPEED2,
             
+    // From MCM
     MCM_KELLY_STATE, MCM_CMDV, MCM_HB_SPEED1, MCM_HB_SPEED2,
-            
-    VNM_STRIPLOST,
-            
-    // OUT FROM DASH MESSAGE TYPES
+    /**************************************************************************/
+    /**************************************************************************/
+  
+  
+    /**************************************************************************/
+    /* * * * * * *                Out From WCM              * * * * * * * * * */
+    /**************************************************************************/
     ENTER_STATE, 
             
     DASH_VNM_POSINDEXRESET,  
@@ -73,10 +77,10 @@ typedef enum {
             
     DASH_MCM_SPINWHEELS,
             
-    DASH_VSM_CONTRACTOR,
-            
-    // NOT YET ADDED GLOBALLY (i.e. in spreadsheet)
-    PING_TO, PING_BACK, FAULT
+    DASH_VSM_CONTRACTOR        
+    /**************************************************************************/
+    /**************************************************************************/
+
 } MESSAGE_TYPE;
 
 #define NUM_CAN_MESSAGES        29
@@ -145,10 +149,7 @@ typedef union {
 /******************************************************************************/
 /* * * * * * *             STRING REPRESENTATIONS           * * * * * * * * * */
 /******************************************************************************/
-extern const char *roleStr[];
-extern const char *stateStr[];
-extern const char *faultStr[];
-extern const char *messageStr[];
+extern const char *roleStr[], *stateStr[], *faultStr[], *messageStr[], *stateStr[];
 /******************************************************************************/
 /******************************************************************************/
 #endif

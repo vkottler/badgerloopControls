@@ -1,5 +1,28 @@
 #include "../include/BCM.h"
 
+/*
+ * Overview:
+ * 
+ * Energizing 
+ */
+
+bool toldToInflate = false;
+
+
+/******************************************************************************/
+/*                                     Utility                                */
+/******************************************************************************/
+inline void inflate(void) {
+    // Main purge HIGH
+    // Deflations HIGH
+    toldToInflate = true;
+    airss = PURGE_OPEN;
+    if (state == DASH_CTL) next_state = READY_FOR_LAUNCH;
+}
+/******************************************************************************/
+/******************************************************************************/
+
+
 /******************************************************************************/
 /*              Initialization and Message Reception Behavior                 */
 /******************************************************************************/
@@ -18,15 +41,38 @@ bool BCM_init_periph(void) {
     RD1_IN5 = 0;
     RD1_IN6 = 0;
     RD1_IN7 = 0;
+    
+    // TODO
+    // NC Relays High
+    // PWM Drivers deactivated
+    // 555 Timer Lines High
+    // Main purge LOW
+    // Deflations LOW
 
     return true;
 }
 
 bool BCM_broadcast_handler(void) {
+    switch (receiving.message_num) {
+
+        case DASH_BCM_AIRACTUATE: inflate(); break;
+
+        case DASH_BCM_BRAKEACTUATE: break;
+
+        case DASH_BCM_ABS_STATE: break;
+    }
     return true;
 }
 
 bool BCM_message_handler(void) {
+    switch (receiving.message_num) {
+        
+        case DASH_BCM_AIRACTUATE: inflate(); break;
+
+        case DASH_BCM_BRAKEACTUATE: break;
+
+        case DASH_BCM_ABS_STATE: break;
+    }
     return true;
 }
 /******************************************************************************/
@@ -56,8 +102,8 @@ void BCM_dashctlHandler(void) {
 }
 
 void BCM_rflHandler(void) {
-    
-    
+    // Main Purge:          High
+    // Deflation Valves:    High
 }
 
 void BCM_pushphaseHandler(void) {

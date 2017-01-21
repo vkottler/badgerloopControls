@@ -4,16 +4,24 @@
 /*                           GLOBAL VARIABLES                                 */
 /******************************************************************************/
 bool debuggingOn = true;
+
 int SID = 0;
+
 ROLE ourRole = NOT_PRESENT;
+
 volatile FAULT_TYPE fault = HEALTHY;
+
 volatile STATE state = DASH_CTL, next_state = DASH_CTL, prev_state = DASH_CTL;
+
+AIR_SYSTEM_STATE airss = DEFLATED;
+
 uint8_t heartbeatsReceived = 0;
+
 CAN_MESSAGE *sending, receiving;
 
 // Partially only for during testing
 uint8_t num_endpoints = 0;
-volatile bool sendHeartbeat = false;
+volatile bool sendHeartbeat = false, adcSampleReady = false;
 /******************************************************************************/
 /******************************************************************************/
 
@@ -129,6 +137,16 @@ bool volatileBoolHandler(void) {
 void volatileHandler(void) {
     fault = UNINITIALIZED_HANDLER;
     next_state = FAULT_STATE;
+}
+
+inline void change_state(STATE new_state) {
+    state = new_state;
+    next_state = new_state;
+}
+
+inline void setLights(void) {
+    if (fault == HEALTHY) { greenOn(); redOff(); } 
+    else { greenOff(); redOn(); }
 }
 /******************************************************************************/
 /******************************************************************************/
