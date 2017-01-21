@@ -12,15 +12,28 @@ char uartReceive[50];
 
 void Serial_Debug_Handler(void) {
     getMessage(uartReceive, 50);
-    if (!strcmp(uartReceive, "heartbeat"))          CAN_send_heartbeat(true);
-    else if (!strcmp(uartReceive, "whoami"))        printf("You are: %s, SID: 0x%3x, from ID: %d\r\n", roleStr[ourRole], SID, ourRole);
-    else if (!strcmp(uartReceive, "bushealth"))     CAN_print_errors();
-    else if (!strcmp(uartReceive, "state"))         printf("Previous: %s\r\nCurrent: %s\r\nNext: %s\r\n", stateStr[prev_state], stateStr[state], stateStr[next_state]);
-    else if (!strcmp(uartReceive, "info"))          printStartupDiagnostics();
-    else if (!strcmp(uartReceive, "fault"))         printf("Fault: %s\r\n", faultStr[fault]);
-    else if (!strcmp(uartReceive, "serialOn") || !strcmp(uartReceive, "debugOn"))   { debuggingOn = true; printf("Serial now on.\r\n"); }
-    else if (!strcmp(uartReceive, "serialOff") || !strcmp(uartReceive, "debugOff")) { debuggingOn = false; printf("Serial now off.\r\n"); }
-    else if (!strcmp(uartReceive, "build")) printf("%s\r\n", timestamp);
+    if (!strcmp(uartReceive, "heartbeat"))
+        CAN_send_heartbeat(true);
+    else if (!strcmp(uartReceive, "whoami"))
+        printf("You are: %s, SID: 0x%3x, from ID: %d\r\n", roleStr[ourRole], SID, ourRole);
+    else if (!strcmp(uartReceive, "bushealth"))
+        CAN_print_errors();
+    else if (!strcmp(uartReceive, "state"))
+        printf("Previous:\t%s\r\nCurrent:\t%s\r\nNext:\t%s\r\n", stateStr[prev_state], stateStr[state], stateStr[next_state]);
+    else if (!strcmp(uartReceive, "info"))
+        printStartupDiagnostics();
+    else if (!strcmp(uartReceive, "fault"))
+        printf("Fault: %s\r\n", faultStr[fault]);
+    else if (!strcmp(uartReceive, "serialOn") || !strcmp(uartReceive, "debugOn")) 
+        { debuggingOn = true; printf("Serial now on.\r\n"); }
+    else if (!strcmp(uartReceive, "serialOff") || !strcmp(uartReceive, "debugOff")) 
+        { debuggingOn = false; printf("Serial now off.\r\n"); }
+    else if (!strcmp(uartReceive, "build")) 
+        //Sat Jan 21 07:15:39 2017_v1.0.0 [071539]
+        //012345678901234567890123456
+        printf("[%c%c%c%c%c%c] version %s\r\n", 
+                timestamp[11], timestamp[12], timestamp[14], 
+                timestamp[15], timestamp[17], timestamp[18], &timestamp[26]);
     else if (!strcmp(uartReceive, "variables")) {
         switch (ourRole) {
             case VNM: VNM_printVariables(); break;
@@ -29,6 +42,13 @@ void Serial_Debug_Handler(void) {
             case BCM: BCM_printVariables(); break;
         }
     }
+    /*    sending->byte0 = timestamp[11];
+    sending->byte1 = timestamp[12];
+    sending->byte2 = timestamp[14];
+    sending->byte3 = timestamp[15];
+    sending->byte4 = timestamp[17];
+    sending->byte5 = timestamp[18];*/
+    
     else if (!strcmp(uartReceive, "ping MCM")) { if (ourRole != MCM) CAN_ping(MCM, true); }
     else if (!strcmp(uartReceive, "ping BCM")) { if (ourRole != BCM) CAN_ping(BCM, true); }
     else if (!strcmp(uartReceive, "ping VSM")) { if (ourRole != VSM) CAN_ping(VSM, true); }
@@ -62,7 +82,7 @@ void printStartupDiagnostics(void) {
     printf("# CAN Messages:\t%d\r\n", NUM_CAN_MESSAGES);
     printf("# States:\t%d\r\n", NUM_STATES);
     printf("# Fault Types:\t%d\r\n", NUM_FAULT_TYPES);
-    printf("Build Timestamp:\t%s\r\n", timestamp);
+    printf("Build Timestamp: %s\r\n", timestamp);
     printf("=================================================\r\n");
 }
 /******************************************************************************/

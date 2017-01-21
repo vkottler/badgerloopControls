@@ -62,14 +62,8 @@ inline void static_inits(void) {
 /*                            Software Execution                              */
 /******************************************************************************/
 int main(void) {
-
-    static_inits();
     
-    while (1) {
-        if (messageAvailable()) printf("yay!!!!!\r\n");
-        printf("heartbeat\r\n");
-        delay(2000, MILLI);
-    }
+    static_inits();
 
     // Used to verify software doesn't get stuck during initializations
     blinkBoardLights(4, 150);

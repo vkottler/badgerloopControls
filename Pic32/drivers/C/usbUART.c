@@ -32,15 +32,16 @@ void initUART(void) {
 bool messageAvailable(void) { return availableCount > 0; }
 
 void getMessage(char *message, int maxLength) {
-    char curr;
+    char curr = '\0', prev = '\0';
     int index = 0;
     
     if (!messageAvailable()) return;
     
     while (index < maxLength && !pc_buffer_empty(&rx_buffer)) {
+        prev = curr;
         pc_buffer_remove(&rx_buffer, &curr);
-        if (curr != '\r') message[index++] = (curr == '\n') ? '\0' : curr;
-        if (curr == '\n') {
+        message[index++] = (NEWLINE_GUARD) ? '\0' : curr;
+        if (NEWLINE_GUARD) {
             availableCount--;
             return;
         }
@@ -60,17 +61,20 @@ void _mon_putc(char c) {
 }
 
 void __ISR(U1vec, IPL1SOFT) receiveHandler(void) {
-    
-    static char curr;
-    
+    static char prev = '\0', curr = '\0';
     __builtin_disable_interrupts();
     
     // Handle received char
     if (USB_RX_FLAG) {
+        prev = curr;
         curr = U1RXREG;
-        if (curr == '\n') availableCount++;
-        if (!pc_buffer_full(&rx_buffer))
-            pc_buffer_add(&rx_buffer, curr);
+        if (curr == 0x08) {
+            if (!pc_buffer_empty(&rx_buffer)) rx_buffer.produce_count--;
+        }
+        else {
+            if (NEWLINE_GUARD) availableCount++;
+            if (!pc_buffer_full(&rx_buffer)) pc_buffer_add(&rx_buffer, curr);
+        }
         USB_RX_FLAG = 0;
     }
     

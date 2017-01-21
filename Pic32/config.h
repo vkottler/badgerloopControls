@@ -7,9 +7,11 @@
 //#define LED_SHIELD_PRESENT  1   // this asserts that the custom LED proto-shield will be present and can be used
 #define PCB_PRESENT         1
 
+#define BUILD_VERSION       v1.0.0
+
 // Specify before building which board is doing what
 // i.e. which board number has which PCB attached
-#define BOARD1_ROLE         VNM
+#define BOARD1_ROLE         VSM
 #define BOARD2_ROLE         NOT_PRESENT
 #define BOARD3_ROLE         NOT_PRESENT
 #define BOARD4_ROLE         NOT_PRESENT
@@ -17,6 +19,8 @@
 #define BOARD6_ROLE         NOT_PRESENT
 #define BOARD7_ROLE         NOT_PRESENT
 #define BOARD8_ROLE         NOT_PRESENT
+
+#define DEBUG_DEFAULT       false
 /******************************************************************************/
 /******************************************************************************/
 
@@ -65,7 +69,6 @@
 /******************************************************************************/
 /*                             Pre-Build Checks                               */
 /******************************************************************************/
-
 // hacky C preproc assert
 // http://stackoverflow.com/questions/807244/c-compiler-asserts-how-to-implement
 #define CASSERT(predicate, file) _impl_CASSERT_LINE(predicate,__LINE__,file)
@@ -80,8 +83,9 @@
 // not interpret it properly or format incoming messages how we expect them to be.
 CASSERT(sizeof(CAN_MESSAGE) == 16, enums_h);
 CASSERT(sizeof(MESSAGE_TYPE) == 1, enums_h);
+
+#define _TIMESTAMP(time, version, delim)  time#delim#version              
+#define TIMESTAMP(version)         _TIMESTAMP(__TIMESTAMP__, version, _)
 /******************************************************************************/
-/******************************************************************************/
-    
-        
+/******************************************************************************/     
 #endif

@@ -357,13 +357,13 @@ void CAN_ping(ROLE role, bool initiator) {
     sending->from = ourRole;
     sending->SIZE = 8;
     sending->message_num = initiator ?  PING_TO : PING_BACK;
-    sending->byte0 = timestamp[0];
-    sending->byte1 = timestamp[1];
-    sending->byte2 = timestamp[2];
-    sending->byte3 = timestamp[3];
-    sending->byte4 = timestamp[4];
-    sending->byte5 = timestamp[5];
-    sending->byte6 = timestamp[6];
+    sending->byte0 = timestamp[11];
+    sending->byte1 = timestamp[12];
+    sending->byte2 = timestamp[14];
+    sending->byte3 = timestamp[15];
+    sending->byte4 = timestamp[17];
+    sending->byte5 = timestamp[18];
+    sending->byte6 = '\0';
     if (!CAN_send() && debuggingOn) printf("ERROR: Could not send ping.\r\n");
 }
 /******************************************************************************/

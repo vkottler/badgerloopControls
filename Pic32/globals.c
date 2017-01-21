@@ -3,7 +3,7 @@
 /******************************************************************************/
 /*                           GLOBAL VARIABLES                                 */
 /******************************************************************************/
-bool debuggingOn = true;
+bool debuggingOn = DEBUG_DEFAULT;
 
 int SID = 0;
 
@@ -19,7 +19,7 @@ uint8_t heartbeatsReceived = 0;
 
 CAN_MESSAGE *sending, receiving;
 
-const char *timestamp = __DATE__;
+const char *timestamp = TIMESTAMP(BUILD_VERSION);
 
 // Partially only for during testing
 uint8_t num_endpoints = 0;

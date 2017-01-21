@@ -25,6 +25,8 @@
 #define USB_TX_FLAG    IFS0bits.U1TXIF
 #define USB_TX_EN      IEC0bits.U1TXIE
 
+#define NEWLINE_GUARD   (curr == '\n' && prev != '\r') || (curr == '\r' && prev != '\n')
+
 void initUART(void);
 bool messageAvailable(void);
 void getMessage(char *message, int maxLength);
