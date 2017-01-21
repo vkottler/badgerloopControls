@@ -22,6 +22,6 @@ void initializeSlowTimer(int ms) {
 }
 
 void __ISR (_TIMER_5_VECTOR, IPL1SOFT) slowTimerHandler(void) {
-    sendHeartbeat = true;
+    if (ourRole == VNM) VNM_getMPU = true;
     IFS0bits.T5IF = 0;
 }

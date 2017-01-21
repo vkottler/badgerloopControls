@@ -142,6 +142,15 @@ typedef union {
     };
     unsigned int raw[4];
 } CAN_MESSAGE;
+
+typedef struct {
+    signed short ax;  
+    signed short ay;
+    signed short az;
+    signed short gx;   
+    signed short gy;
+    signed short gz;
+} COORD_VECTOR;
 /******************************************************************************/
 /******************************************************************************/
 

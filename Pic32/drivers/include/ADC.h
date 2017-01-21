@@ -3,9 +3,10 @@
 
 #include <xc.h>
 #include <sys/attribs.h>
+#include <stdint.h>
 #include "../../globals.h"
 
 void initADC(void);
-int analogRead(int pin);
+int analogRead(uint8_t pin);
 
 #endif

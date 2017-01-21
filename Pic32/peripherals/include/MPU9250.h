@@ -3,17 +3,9 @@
 
 #include "../../globals.h"
 #include "../../drivers/include/I2C.h"
+#include "../../enums.h"
 
 #define MPU_ADDRESS     0x68
-
-typedef struct {
-    signed short ax;  
-    signed short ay;
-    signed short az;
-    signed short gx;   
-    signed short gy;
-    signed short gz;
-} COORD_VECTOR;
 
 // Functions
 bool MPUinitialize(void);

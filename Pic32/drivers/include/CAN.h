@@ -62,6 +62,8 @@
 /******************************************************************************/
 void CAN_init(void);
 int CAN_check_error(void);
+void setupBroadcast(void);
+void setupMessage(uint16_t SID);
 
 bool CAN_send(void);
 bool CAN_broadcast(void);

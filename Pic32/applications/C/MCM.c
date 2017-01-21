@@ -27,9 +27,8 @@ void stop_wheels(void) {
 /******************************************************************************/
 bool send_wheel_rpms(void) {
     bool result = true;
-    sending = BROADCAST_SEND_ADDR;
-    sending->SID = ALL;
-    sending->from = ourRole;
+    
+    setupBroadcast();
     sending->SIZE = 5;
     sending->message_num = MCM_HB_SPEED1;
     sending->byte0 = left_front_rpm >> 8;
@@ -37,9 +36,8 @@ bool send_wheel_rpms(void) {
     sending->byte2 = right_front_rpm >> 8;
     sending->byte3 = right_front_rpm & 0xff;
     result = CAN_broadcast();
-    sending = BROADCAST_SEND_ADDR;
-    sending->SID = ALL;
-    sending->from = ourRole;
+    
+    setupBroadcast();
     sending->SIZE = 5;
     sending->message_num = MCM_HB_SPEED2;
     sending->byte0 = left_rear_rpm >> 8;
@@ -50,9 +48,7 @@ bool send_wheel_rpms(void) {
 }
 
 bool send_cmdv(ROLE to) {
-    sending = BROADCAST_SEND_ADDR;
-    sending->SID = ROLEtoSID(to);
-    sending->from = ourRole;
+    setupMessage(ROLEtoSID(to));
     sending->SIZE = 3;
     sending->message_num = MCM_CMDV;
     sending->byte0 = commanded_speed >> 8;

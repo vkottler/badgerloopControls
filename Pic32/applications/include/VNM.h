@@ -1,8 +1,12 @@
 #ifndef _VNM__H__
 #define _VNM__H__
 
+#include <string.h>
 #include <stdint.h>
 #include "../../drivers/include/CAN.h"
+#include "../../drivers/include/I2C.h"
+
+#define MPU_SAMPLE_PERIOD       100         // in ms
 
 bool VNM_init_periph(void);
 bool VNM_broadcast_handler(void);
@@ -22,4 +26,7 @@ void VNM_fabHandler(void);
 void VNM_rabHandler(void);
 void VNM_wfsHandler(void);
 void VNM_safeHandler(void);
+
+extern volatile bool VNM_getMPU;
+
 #endif

@@ -36,7 +36,7 @@ extern AIR_SYSTEM_STATE airss;
 extern uint8_t num_endpoints, heartbeatsReceived;
 extern volatile FAULT_TYPE fault;
 extern CAN_MESSAGE *sending, receiving;
-extern volatile bool sendHeartbeat, adcSampleReady;
+extern volatile bool adcSampleReady;
 /******************************************************************************/
 
 

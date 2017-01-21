@@ -151,6 +151,18 @@ void CAN_init(void) {
 /******************************************************************************/
 /*                                Utility                                     */
 /******************************************************************************/
+inline void setupBroadcast(void) {
+    sending = BROADCAST_SEND_ADDR;
+    sending->SID = ALL;
+    sending->from = ourRole;
+}
+
+inline void setupMessage(uint16_t SID) {
+    sending = ADDRESSED_SEND_ADDR;
+    sending->SID = SID;
+    sending->from = ourRole;
+}
+
 int CAN_check_error(void) { return CAN_SFR(TREC, CAN_MAIN); }
 
 uint16_t ROLEtoSID(ROLE r) {

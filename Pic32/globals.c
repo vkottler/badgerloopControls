@@ -21,7 +21,7 @@ CAN_MESSAGE *sending, receiving;
 
 // Partially only for during testing
 uint8_t num_endpoints = 0;
-volatile bool sendHeartbeat = false, adcSampleReady = false;
+volatile bool adcSampleReady = false;
 /******************************************************************************/
 /******************************************************************************/
 

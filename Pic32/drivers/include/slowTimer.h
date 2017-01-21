@@ -7,6 +7,9 @@
 #include "../../globals.h"
 #include "CAN.h"
 
+// For module specific variables
+#include "../../applications/include/VNM.h"
+
 void initializeSlowTimer(int ms);
 void slowTimerHandler(void);        // ISR
 
