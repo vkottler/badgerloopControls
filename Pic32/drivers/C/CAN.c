@@ -331,7 +331,7 @@ void CAN_message_dump(CAN_MESSAGE *message, bool outgoing) {
     else                                    printf("MI: ");                                    
     printf("0x%3x from %3s ", message->SID, roleStr[message->from]);
 #ifdef CAP_TIME
-    if (!outgoing) printf("(%5d sec) ", (message->TS +65535*numOverflows) / 1000);
+    if (!outgoing) printf("(%5d sec) ", (message->TS + 65535*numOverflows) / 1000);
     else           printf("            ");
 #endif
     printf("MSG (%u): %s ", message->SIZE - 1, messageStr[message->message_num]);
@@ -339,6 +339,8 @@ void CAN_message_dump(CAN_MESSAGE *message, bool outgoing) {
         printf(" !!%s!! [%s][%s][%s]", faultStr[message->byte0], stateStr[message->byte1], stateStr[message->byte2], stateStr[message->byte3]);
     else if (message->message_num == HEARTBEAT) 
         printf("[%s][%s][%s]", stateStr[message->byte0], stateStr[message->byte1], stateStr[message->byte2]);
+    else if (message->message_num == PING_BACK || message->message_num == SOFTWARE_VER)
+        printf("[%s]", message->bytes);
     else for (i = 1; i < message->SIZE; i++) printf("[0x%2x] ", message->bytes[i]);
     printf("\r\n");
 }
