@@ -20,7 +20,7 @@ void Serial_Debug_Handler(void) {
     else if (!strcmp(uartReceive, "fault"))         printf("Fault: %s\r\n", faultStr[fault]);
     else if (!strcmp(uartReceive, "serialOn") || !strcmp(uartReceive, "debugOn"))   { debuggingOn = true; printf("Serial now on.\r\n"); }
     else if (!strcmp(uartReceive, "serialOff") || !strcmp(uartReceive, "debugOff")) { debuggingOn = false; printf("Serial now off.\r\n"); }
-    else if (!strcmp(uartReceive, "build") printf("%s\r\n", timestamp);
+    else if (!strcmp(uartReceive, "build")) printf("%s\r\n", timestamp);
     else if (!strcmp(uartReceive, "ping MCM")) { if (ourRole != MCM) CAN_ping(MCM, true); }
     else if (!strcmp(uartReceive, "ping BCM")) { if (ourRole != BCM) CAN_ping(BCM, true); }
     else if (!strcmp(uartReceive, "ping VSM")) { if (ourRole != VSM) CAN_ping(VSM, true); }
