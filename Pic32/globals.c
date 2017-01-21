@@ -19,7 +19,7 @@ uint8_t heartbeatsReceived = 0;
 
 CAN_MESSAGE *sending, receiving;
 
-const uint8_t SWVupper = SOFTWARE_V_UPPER, SWVlower = SOFTWARE_V_LOWER;
+const char *timestamp = __DATE__;
 
 // Partially only for during testing
 uint8_t num_endpoints = 0;

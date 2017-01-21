@@ -34,8 +34,8 @@ extern ROLE ourRole;
 extern volatile STATE state, next_state, prev_state;
 extern AIR_SYSTEM_STATE airss; 
 extern uint8_t num_endpoints, heartbeatsReceived;
-extern const uint8_t SWVupper, SWVlower;
 extern volatile FAULT_TYPE fault;
+extern const char *timestamp;
 extern CAN_MESSAGE *sending, receiving;
 extern volatile bool adcSampleReady;
 /******************************************************************************/

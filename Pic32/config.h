@@ -18,9 +18,6 @@
 #define BOARD7_ROLE         NOT_PRESENT
 #define BOARD8_ROLE         NOT_PRESENT
 
-#define SOFTWARE_V_UPPER    0b10000000
-#define SOFTWARE_V_LOWER    0b00000000
-
 // Not currently used
 #define HEARTBEAT_DELAY     1000 // in ms
 /******************************************************************************/
