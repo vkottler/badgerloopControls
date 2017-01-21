@@ -69,7 +69,7 @@ int main(void) {
     blinkBoardLights(4, 150);
 
     // Runs board specific initializations, each board has one of these
-    if (!initHandler()) {
+    if (!initHandler() || !CAN_startup()) {
         next_state = FAULT_STATE;
         fault = LOCAL_INIT_FAILED;
     }

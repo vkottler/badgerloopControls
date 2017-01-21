@@ -351,10 +351,10 @@ bool CAN_ping(uint16_t SID, bool initiator) {
         if (debuggingOn) printf("can't ping yourself! (you are %s)\r\n", roleStr[ourRole]);
         return;
     }
-    setupMessage(SID);
+    (SID == ALL) ? setupBroadcast() : setupMessage(SID);
     sending->SIZE = initiator ? 1 : 8;
     sending->message_num = initiator ?  PING_TO : PING_BACK;
-    if (initiator) return CAN_send();
+    if (initiator) return (SID == ALL) ? CAN_broadcast() : CAN_send();
     sending->byte0 = timestamp[11];
     sending->byte1 = timestamp[12];
     sending->byte2 = timestamp[14];
@@ -362,13 +362,20 @@ bool CAN_ping(uint16_t SID, bool initiator) {
     sending->byte4 = timestamp[17];
     sending->byte5 = timestamp[18];
     sending->byte6 = '\0';
-    result = CAN_send();
+    result = (SID == ALL) ? CAN_broadcast() : CAN_send();
     setupMessage(SID);
     sending->SIZE = 8;
     sending->message_num = SOFTWARE_VER;
     strcpy(sending->bytes, &timestamp[26]);
     sending->byte6 = '\0';
-    return result && CAN_send();
+    return result && ((SID == ALL) ? CAN_broadcast() : CAN_send());
+}
+
+bool CAN_startup(void) {
+    setupBroadcast();
+    sending->SIZE = 1;
+    sending->message_num = MODULE_STARTUP;
+    return CAN_broadcast();
 }
 /******************************************************************************/
 /******************************************************************************/

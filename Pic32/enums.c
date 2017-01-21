@@ -7,7 +7,7 @@ const char *airStr[] = {"INFL", "DEFL", "PURO"};
 const char *stateStr[] = {
     "FAULT",			// SpaceX wants Fault   as value 0
     "DASH_CTL",			// SpaceX wants Idle    as value 1
-    "RFL",			// SpaceX Wants Ready   as value 2
+    "RFL",              // SpaceX Wants Ready   as value 2
     "PUSH_PHASE",		// SpaceX wants Pushing as value 3
     "COAST",			// SpaceX wants Coast   as value 4
     "N_BRAKING", 		// SpaceX wants Braking as value 5
@@ -27,7 +27,7 @@ const char *faultStr[] = {
 const char *messageStr[] = {
     "INVALID",
 
-    "HEARTBEAT", "PING_TO  ", "PING_BACK", "SOFTWARE_VER", "FAULT"   
+    "HEARTBEAT", "PING_TO  ", "PING_BACK", "SOFTWARE_VER", "FAULT", "MODULE_STARTUP"  
 
     "VNM_POS", "VNM_VEL", "VNM_ACC", "VNM_ATT", "VNM_STRIPLOST",
 
