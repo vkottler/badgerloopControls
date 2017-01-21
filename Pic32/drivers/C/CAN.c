@@ -266,9 +266,12 @@ bool CAN_send_heartbeat(bool fake) {
     sending = BROADCAST_SEND_ADDR;
     sending->SID = ALL;
     sending->from = fake ? WCM : ourRole;
-    sending->SIZE = 2;
+    sending->SIZE = 5;
     sending->message_num = fake ? WCM : ourRole;
-    sending->byte0 = state;
+    sending->byte0 = fault;
+    sending->byte1 = prev_state;
+    sending->byte1 = state;
+    sending->byte1 = next_state;
     if (fake) heartbeatsReceived = 2; // since we bypassed WCM
     return CAN_broadcast();
 }
@@ -335,10 +338,8 @@ void CAN_message_dump(CAN_MESSAGE *message, bool outgoing) {
     else           printf("            ");
 #endif
     printf("MSG (%u): %s ", message->SIZE - 1, messageStr[message->message_num]);
-    if (message->message_num == FAULT) 
-        printf(" !!%s!! [%s][%s][%s]", faultStr[message->byte0], stateStr[message->byte1], stateStr[message->byte2], stateStr[message->byte3]);
-    else if (message->message_num == HEARTBEAT) 
-        printf("[%s][%s][%s]", stateStr[message->byte0], stateStr[message->byte1], stateStr[message->byte2]);
+    if (message->message_num == FAULT || message->message_num == HEARTBEAT) 
+        printf("F: %s [%s][%s][%s]", faultStr[message->byte0], stateStr[message->byte1], stateStr[message->byte2], stateStr[message->byte3]);
     else if (message->message_num == PING_BACK || message->message_num == SOFTWARE_VER)
         printf("[%s]", message->bytes);
     else for (i = 1; i < message->SIZE; i++) printf("[0x%2x] ", message->bytes[i]);
