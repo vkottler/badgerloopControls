@@ -1,6 +1,32 @@
 #include "main.h"
 
 /******************************************************************************/
+/*             Global, Pre-handler message interpretation                     */
+/******************************************************************************/
+inline void checkBroadcasts(void) {
+    if (CAN_receive_broadcast()) {
+        switch (receiving.message_num) {
+            case HEARTBEAT:     heartbeatHandler();                                 break;
+            case PING_TO:       if (receiving.from == WCM) CAN_ping(WCM, false);    break;
+            case ENTER_STATE:   change_state(receiving.byte0);                      break;
+            default: broadcastHandler();
+        }
+    }    
+}
+
+inline void checkMessages(void) {
+    if (CAN_receive_specific()) {
+        switch (receiving.message_num) {
+            case ENTER_STATE:   change_state(receiving.byte0);      break;
+            case PING_TO:       CAN_ping(receiving.from, false);    break;
+            default: messageHandler();
+        }
+    }    
+}
+/******************************************************************************/
+/******************************************************************************/
+
+/******************************************************************************/
 /*                          Static Initializations                            */
 /******************************************************************************/
 inline void initialize_handlers(void) {
@@ -51,23 +77,10 @@ int main(void) {
     while (1) {
 
         // handle broadcasts
-        if (CAN_receive_broadcast()) {
-            switch (receiving.message_num) {
-                case HEARTBEAT:     heartbeatHandler();                                 break;
-                case PING_TO:       if (receiving.from == WCM) CAN_ping(WCM, false);    break;
-                case ENTER_STATE:   change_state(receiving.byte0);                      break;
-                default: broadcastHandler();
-            }
-        }
+        checkBroadcasts();
 
         // handle incoming messages
-        if (CAN_receive_specific()) {
-            switch (receiving.message_num) {
-                case ENTER_STATE:   change_state(receiving.byte0);      break;
-                case PING_TO:       CAN_ping(receiving.from, false);    break;
-                default: messageHandler();
-            }
-        }
+        checkMessages();
 
         // update the fault status if necessary
         check_bus_integrity();
