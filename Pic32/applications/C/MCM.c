@@ -239,7 +239,15 @@ void MCM_safeHandler(void) {
 /*                        Serial Debugging Utilities                          */
 /******************************************************************************/
 void MCM_printVariables(void) {
-    
+    printf("L F RDY: %s\t", *left_front_HB_rdy ? "true" : "false");
+    printf("R F RDY: %s\r\n", *right_front_HB_rdy ? "true" : "false");
+    printf("L R RDY: %s\t", *left_rear_HB_rdy ? "true" : "false");
+    printf("R R RDY: %s\r\n", *right_rear_HB_rdy ? "true" : "false");
+    printf("L F RPM: %4d\t", left_front_rpm);
+    printf("R F RPM: %4d\r\n", right_front_rpm);
+    printf("L R RPM: %4d\t", left_rear_rpm);
+    printf("R R RPM: %4d\r\n", right_rear_rpm);
+    printf("CMDV: %d\r\n", commanded_speed);
 }
 /******************************************************************************/
 /******************************************************************************/

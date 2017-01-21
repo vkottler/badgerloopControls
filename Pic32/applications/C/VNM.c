@@ -173,7 +173,8 @@ void VNM_safeHandler(void) {
 void VNM_printVariables(void) {
     printf("ax:%5d ay:%5d az:%5d ", accelData.ax, accelData.ay, accelData.az);
     printf("gx:%5d gy:%5d gz:%5d\r\n", accelData.gx, accelData.gy, accelData.gz);
-    
+    printf("px:%5d py:%5d pz:%5d vx:%5d vy:%5d vz:%5d\r\n", px, py, pz, vx, vy, vz);
+    printf("ax:%5d ay:%5d az:%5d\r\n", ax, ay, az);
 }
 /******************************************************************************/
 /******************************************************************************/
