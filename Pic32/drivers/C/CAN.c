@@ -164,6 +164,14 @@ uint16_t ROLEtoSID(ROLE r) {
         default: return 0;
     }
 }
+
+void check_bus_integrity(void) {
+    if (CAN_check_error()) {
+        fault = CAN_BUS_ERROR;
+        next_state = FAULT_STATE;
+    }
+    else fault = HEALTHY;  
+}
 /******************************************************************************/
 /******************************************************************************/
 

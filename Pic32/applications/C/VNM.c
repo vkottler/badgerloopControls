@@ -1,6 +1,7 @@
 #include "../include/VNM.h"
 
 /******************************************************************************/
+/*              Initialization and Message Reception Behavior                 */
 /******************************************************************************/
 bool VNM_init_periph(void) {
     return true;
@@ -20,6 +21,7 @@ bool VNM_message_handler(void) {
 
 
 /******************************************************************************/
+/*                        Data Processing & Unit Conversions                  */
 /******************************************************************************/
 void VNM_data_process_handler(void) {
     
@@ -29,37 +31,52 @@ void VNM_data_process_handler(void) {
 
 
 /******************************************************************************/
+/*                    Module Specific State Behavior Handlers                 */
 /******************************************************************************/
-void VNM_rflHandler(void) {
-    
-} 
+void VNM_faultHandler(void) {
+    redOn();
+}
 
 void VNM_dashctlHandler(void) {
     
-}   
-
-void VNM_faultHandler(void) {
-    redOn();
-}  
-
-void VNM_safeHandler(void) {
-    greenOn();
-}  
-
-void VNM_runningHandler(void) {
     
-} 
+}
+
+void VNM_rflHandler(void) {
+    
+    
+}
 
 void VNM_pushphaseHandler(void) {
     
-}    
+}
 
 void VNM_coastHandler(void) {
     
-}       
+}
 
-void VNM_spindownHandler(void) {
-    
-} 
+void VNM_nbHandler(void) {
+
+}
+
+void VNM_ebHandler(void) {
+
+}
+
+void VNM_fabHandler(void) {
+
+}
+
+void VNM_rabHandler(void) {
+
+}
+
+void VNM_wfsHandler(void) {
+
+}
+
+void VNM_safeHandler(void) {
+    greenOn();
+}
 /******************************************************************************/
 /******************************************************************************/

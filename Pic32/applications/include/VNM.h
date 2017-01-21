@@ -10,11 +10,16 @@ bool VNM_message_handler(void);
 
 void VNM_data_process_handler(void);
 
-// Main State Handlers
-void VNM_rflHandler(void);
-void VNM_dashctlHandler(void); 
+// State Handlers
 void VNM_faultHandler(void);
+void VNM_dashctlHandler(void);
+void VNM_rflHandler(void);
+void VNM_pushphaseHandler(void);
+void VNM_coastHandler(void);
+void VNM_nbHandler(void);
+void VNM_ebHandler(void);
+void VNM_fabHandler(void);
+void VNM_rabHandler(void);
+void VNM_wfsHandler(void);
 void VNM_safeHandler(void);
-void VNM_runningHandler(void);
-
 #endif

@@ -1,6 +1,7 @@
 #include "../include/VSM.h"
 
 /******************************************************************************/
+/*              Initialization and Message Reception Behavior                 */
 /******************************************************************************/
 bool VSM_init_periph(void) {
     return true;
@@ -20,6 +21,7 @@ bool VSM_message_handler(void) {
 
 
 /******************************************************************************/
+/*                        Data Processing & Unit Conversions                  */
 /******************************************************************************/
 void VSM_data_process_handler(void) {
     
@@ -29,37 +31,52 @@ void VSM_data_process_handler(void) {
 
 
 /******************************************************************************/
+/*                    Module Specific State Behavior Handlers                 */
 /******************************************************************************/
-void VSM_rflHandler(void) {
-    
-} 
+void VSM_faultHandler(void) {
+    redOn();
+}
 
 void VSM_dashctlHandler(void) {
     
-}   
-
-void VSM_faultHandler(void) {
-    redOn();
-}  
-
-void VSM_safeHandler(void) {
-    greenOn();
-}  
-
-void VSM_runningHandler(void) {
     
-} 
+}
+
+void VSM_rflHandler(void) {
+    
+    
+}
 
 void VSM_pushphaseHandler(void) {
     
-}    
+}
 
 void VSM_coastHandler(void) {
     
-}       
+}
 
-void VSM_spindownHandler(void) {
-    
+void VSM_nbHandler(void) {
+
+}
+
+void VSM_ebHandler(void) {
+
+}
+
+void VSM_fabHandler(void) {
+
+}
+
+void VSM_rabHandler(void) {
+
+}
+
+void VSM_wfsHandler(void) {
+
+}
+
+void VSM_safeHandler(void) {
+    greenOn();
 }
 /******************************************************************************/
 /******************************************************************************/

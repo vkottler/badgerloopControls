@@ -27,16 +27,16 @@ bool MCM_message_handler(void);
 
 void MCM_data_process_handler(void);
 
-// Main State Handlers
-void MCM_rflHandler(void);
-void MCM_dashctlHandler(void); 
+// State Handlers
 void MCM_faultHandler(void);
+void MCM_dashctlHandler(void);
+void MCM_rflHandler(void);
+void MCM_pushphaseHandler(void);
+void MCM_coastHandler(void);
+void MCM_nbHandler(void);
+void MCM_ebHandler(void);
+void MCM_fabHandler(void);
+void MCM_rabHandler(void);
+void MCM_wfsHandler(void);
 void MCM_safeHandler(void);
-void MCM_runningHandler(void);
-
-// Extra State Handlers
-void MCM_pushphaseHandler(void); 
-void MCM_coastHandler(void); 
-void MCM_spindownHandler(void);
-
 #endif

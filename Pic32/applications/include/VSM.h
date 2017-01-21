@@ -10,11 +10,16 @@ bool VSM_message_handler(void);
 
 void VSM_data_process_handler(void);
 
-// Main State Handlers
-void VSM_rflHandler(void);
-void VSM_dashctlHandler(void); 
+// State Handlers
 void VSM_faultHandler(void);
+void VSM_dashctlHandler(void);
+void VSM_rflHandler(void);
+void VSM_pushphaseHandler(void);
+void VSM_coastHandler(void);
+void VSM_nbHandler(void);
+void VSM_ebHandler(void);
+void VSM_fabHandler(void);
+void VSM_rabHandler(void);
+void VSM_wfsHandler(void);
 void VSM_safeHandler(void);
-void VSM_runningHandler(void);
-
 #endif

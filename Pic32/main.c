@@ -12,25 +12,18 @@ bool (*initHandler)(void) =         &volatileBoolHandler;
 
 void (*dataProcessHandler)(void) =  &volatileHandler;
 
-// Global State Handlers
-void (*rflHandler)(void) =          &volatileHandler;
-void (*dashctlHandler)(void) =      &volatileHandler;
+// State Handlers
 void (*faultHandler)(void) =        &globalFaultHandler;
-void (*safeHandler)(void) =         &volatileHandler;
-void (*runningHandler)(void) =      &volatileHandler;
-
-// Braking handlers
-void (*ebrakeHandler)(void) =       &volatileHandler;
-void (*nbrakeHandler)(void) =       &volatileHandler;
-void (*fabHandler)(void) =          &volatileHandler;
-void (*rabHandler)(void) =          &volatileHandler;
-void (*inflateHandler)(void) =      &volatileHandler;
-void (*wfsHandler)(void) =          &volatileHandler;
-
-// Wheel control handlers
+void (*dashctlHandler)(void) =      &volatileHandler;
+void (*rflHandler)(void) =          &volatileHandler;
 void (*pushphaseHandler)(void) =    &volatileHandler;
 void (*coastHandler)(void) =        &volatileHandler;
-void (*spindownHandler)(void) =     &volatileHandler;
+void (*nbrakeHandler)(void) =       &volatileHandler;
+void (*ebrakeHandler)(void) =       &volatileHandler;
+void (*fabHandler)(void) =          &volatileHandler;
+void (*rabHandler)(void) =          &volatileHandler;
+void (*wfsHandler)(void) =          &volatileHandler;
+void (*safeHandler)(void) =         &volatileHandler;
 /******************************************************************************/
 /******************************************************************************/
 
@@ -49,11 +42,17 @@ void initialize_handlers(void) {
             dataProcessHandler =  &VNM_data_process_handler;
             
             // Main States
-            rflHandler =          &VNM_rflHandler;
-            dashctlHandler =      &VNM_dashctlHandler;
             faultHandler =        &VNM_faultHandler;
-            safeHandler =         &VNM_safeHandler;
-            runningHandler =      &VNM_runningHandler;
+            dashctlHandler =      &VNM_dashctlHandler;
+            rflHandler =          &VNM_rflHandler;
+            pushphaseHandler = 	  &VNM_pushphaseHandler;
+	    coastHandler = 	  &VNM_coastHandler;    
+	    nbrakeHandler = 	  &VNM_nbHandler;
+	    ebrakeHandler = 	  &VNM_ebrakeHandler;
+	    fabHandler = 	  &VNM_fabHandler;
+	    rabHandler =	  &VNM_rabHandler;
+	    wfsHandler = 	  &VNM_wfsHAndler;
+	    safeHandler =         &VNM_safeHandler;
             break;
             
         case VSM:
@@ -62,13 +61,19 @@ void initialize_handlers(void) {
             initHandler =         &VSM_init_periph;
             
             dataProcessHandler =  &VSM_data_process_handler;
-            
+
             // Main States
-            rflHandler =          &VSM_rflHandler;
-            dashctlHandler =      &VSM_dashctlHandler;
             faultHandler =        &VSM_faultHandler;
-            safeHandler =         &VSM_safeHandler;
-            runningHandler =      &VSM_runningHandler;
+            dashctlHandler =      &VSM_dashctlHandler;
+            rflHandler =          &VSM_rflHandler;
+            pushphaseHandler = 	  &VSM_pushphaseHandler;
+	    coastHandler = 	  &VSM_coastHandler;    
+	    nbrakeHandler = 	  &VSM_nbHandler;
+	    ebrakeHandler = 	  &VSM_ebrakeHandler;
+	    fabHandler = 	  &VSM_fabHandler;
+	    rabHandler =	  &VSM_rabHandler;
+	    wfsHandler = 	  &VSM_wfsHAndler;
+	    safeHandler =         &VSM_safeHandler;
             break;
             
         case BCM:
@@ -77,16 +82,19 @@ void initialize_handlers(void) {
             initHandler =         &BCM_init_periph;
             
             dataProcessHandler =  &BCM_data_process_handler;
-            
+ 
             // Main States
-            rflHandler =          &BCM_rflHandler;
-            dashctlHandler =      &BCM_dashctlHandler;
             faultHandler =        &BCM_faultHandler;
-            safeHandler =         &BCM_safeHandler;
-            runningHandler =      &BCM_runningHandler;
-            
-            // Module Specific
-            // TODO
+            dashctlHandler =      &BCM_dashctlHandler;
+            rflHandler =          &BCM_rflHandler;
+            pushphaseHandler = 	  &BCM_pushphaseHandler;
+	    coastHandler = 	  &BCM_coastHandler;    
+	    nbrakeHandler = 	  &BCM_nbHandler;
+	    ebrakeHandler = 	  &BCM_ebrakeHandler;
+	    fabHandler = 	  &BCM_fabHandler;
+	    rabHandler =	  &BCM_rabHandler;
+	    wfsHandler = 	  &BCM_wfsHAndler;
+	    safeHandler =         &BCM_safeHandler;
             break;
             
         case MCM:
@@ -96,29 +104,27 @@ void initialize_handlers(void) {
             
             dataProcessHandler =  &MCM_data_process_handler;
             
-            rflHandler =          &MCM_rflHandler;
-            dashctlHandler =      &MCM_dashctlHandler;
+            // Main States
             faultHandler =        &MCM_faultHandler;
-            safeHandler =         &MCM_safeHandler;
-            runningHandler =      &MCM_runningHandler;
-            
-            // Module Specific
-            pushphaseHandler =    &MCM_pushphaseHandler; 
-            coastHandler =        &MCM_coastHandler; 
-            spindownHandler =     &MCM_spindownHandler;
+            dashctlHandler =      &MCM_dashctlHandler;
+            rflHandler =          &MCM_rflHandler;
+            pushphaseHandler = 	  &MCM_pushphaseHandler;
+	    coastHandler = 	  &MCM_coastHandler;    
+	    nbrakeHandler = 	  &MCM_nbHandler;
+	    ebrakeHandler = 	  &MCM_ebrakeHandler;
+	    fabHandler = 	  &MCM_fabHandler;
+	    rabHandler =	  &MCM_rabHandler;
+	    wfsHandler = 	  &MCM_wfsHAndler;
+	    safeHandler =         &MCM_safeHandler;
             break;
     } 
-    if (debuggingOn) {
-        printBoardNumber();
-        printStartupDiagnostics();
-    }
 }
 
 void static_inits(void) {
-    DDPCONbits.JTAGEN = 0;
-    initializeTimer1(0x8000, 0xffff);
-    initUART();
-    INTCONbits.MVEC = 1;
+    DDPCONbits.JTAGEN = 0;		// we don't program via JTAG
+    initializeTimer1(0x8000, 0xffff);	// used only for blocking delays
+    initUART();		
+    INTCONbits.MVEC = 1;		// we allow individual interrupt vector functions
     __builtin_enable_interrupts();
     initialize_board_roles();
     initialize_handlers();
@@ -126,6 +132,10 @@ void static_inits(void) {
     CAN_init();
     initialize_heartbeat();
     
+    // This is an important check. If our MESSAGE_TYPE enum is greater than a byte
+    // it will not fit in the first byte of the CAN message. If the size of the 
+    // CAN message struct is greater than 16 bytes, Microchip's CAN peripheral will
+    // not interpret it properly or format incoming messages how we expect them to be.
     if (sizeof(CAN_MESSAGE) != 16 || sizeof(MESSAGE_TYPE) != 1) {
         if (debuggingOn) {
             printf("ERROR: sizeof CAN_MESSAGE is %d bytes, sizeof MESSAGE_TYPE enum is %d bytes.\r\n", sizeof(CAN_MESSAGE), sizeof(MESSAGE_TYPE));
@@ -138,14 +148,11 @@ void static_inits(void) {
 }
 /******************************************************************************/
 /******************************************************************************/
-void check_bus_integrity(void) {
-    if (CAN_check_error()) {
-        fault = CAN_BUS_ERROR;
-        next_state = FAULT_STATE;
-    }
-    else fault = HEALTHY;  
-}
 
+
+/******************************************************************************/
+/*                            Software Execution                              */
+/******************************************************************************/
 int main(void) {
 
     static_inits();
@@ -165,7 +172,8 @@ int main(void) {
         if (CAN_receive_broadcast()) {
             switch (receiving.message_num) {
                 case HEARTBEAT: heartbeatHandler(); break;
-                default: broadcastHandler();
+        	case PING: if (receiving.from == WCM) CAN_ping(WCM, false);
+		default: broadcastHandler();
             }
         }
         
@@ -176,6 +184,7 @@ int main(void) {
                     state = receiving.byte0;
                     next_state = state;
                     break;
+		case PING: CAN_ping(receiving.from, false);
                 default: messageHandler();
             }
         }
@@ -189,24 +198,17 @@ int main(void) {
         switch (state) {
             
             // Standard States
-            case READY_FOR_LAUNCH:      rflHandler();       break;
-            case DASH_CTL:              dashctlHandler();   break;
             case FAULT_STATE:           faultHandler();     break;
-            case SAFE:                  safeHandler();      break;
-            case RUNNING:               runningHandler();   break;
-            
-            // Braking States
-            case EMERGENCY_BRAKE:       ebrakeHandler();    break;
-            case NORMAL_BRAKING:        nbrakeHandler();    break;
-            case FRONT_AXLE_BRAKING:    fabHandler();       break;
-            case REAR_AXLE_BRAKING:     rabHandler();       break;
-            case INFLATE:               inflateHandler();   break;
-            case WAITING_FOR_SAFE:      wfsHandler();       break;
-            
-            // Wheel Control States
+            case DASH_CTL:              dashctlHandler();   break;
+            case READY_FOR_LAUNCH:      rflHandler();       break;
             case PUSH_PHASE:            pushphaseHandler(); break;
             case COAST:                 coastHandler();     break;
-            case SPINDOWN:              spindownHandler();  break;
+            case NORMAL_BRAKING:        nbrakeHandler();    break;
+            case EMERGENCY_BRAKE:       ebrakeHandler();    break;
+            case FRONT_AXLE_BRAKING:    fabHandler();       break;
+            case REAR_AXLE_BRAKING:     rabHandler();       break;
+            case WAITING_FOR_SAFE:      wfsHandler();       break;
+            case SAFE:                  safeHandler();      break;
             
             // This only happens if we add a state and don't add a handler
             default: fault = ILLEGAL_STATE; next_state = FAULT_STATE;
@@ -226,3 +228,4 @@ int main(void) {
 }
 /******************************************************************************/
 /******************************************************************************/
+

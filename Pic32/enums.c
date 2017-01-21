@@ -14,7 +14,7 @@ const char *stateStr[] = {
     "EMERGENCY_BRAKE",
     "FRONT_AXLE_BRAKING",
     "REAR_AXLE_BRAKING",
-    "WAITING_FOR_SAFE", "SPINDOWN", "SAFE"  
+    "WAITING_FOR_SAFE", "SAFE"  
 };
 
 const char *faultStr[] = {

@@ -1,20 +1,14 @@
 #include "../include/MCM.h"
 
-volatile bool *left_front_HB_rdy;
-volatile bool *right_front_HB_rdy;
-volatile bool *left_rear_HB_rdy;
-volatile bool *right_rear_HB_rdy;
+volatile bool *left_front_HB_rdy, *right_front_HB_rdy, *left_rear_HB_rdy, *right_rear_HB_rdy;
 
-volatile unsigned int *left_front_readings;
-volatile unsigned int *right_front_readings;
-volatile unsigned int *back_left_readings;
-volatile unsigned int *back_right_readings;
+volatile unsigned int *left_front_readings, *right_front_readings, *back_left_readings, *back_right_readings;
 
-uint16_t left_front_rpm;
-uint16_t right_front_rpm;
-uint16_t left_rear_rpm;
-uint16_t right_rear_rpm;
+uint16_t left_front_rpm, right_front_rpm, left_rear_rpm, right_rear_rpm;
 
+/******************************************************************************/
+/*                        Data Processing & Unit Conversions                  */
+/******************************************************************************/
 bool send_wheel_rpms(void) {
     bool result = true;
     sending = BROADCAST_SEND_ADDR;
@@ -76,8 +70,15 @@ void compute_wheel_rpms(void) {
     }
 }
 
+void MCM_data_process_handler(void) {
+    compute_wheel_rpms();
+}
+/******************************************************************************/
+/******************************************************************************/
+
 
 /******************************************************************************/
+/*              Initialization and Message Reception Behavior                 */
 /******************************************************************************/
 bool MCM_init_periph(void) {
     I2Cinit();
@@ -120,19 +121,10 @@ bool MCM_message_handler(void) {
 
 
 /******************************************************************************/
+/*                    Module Specific State Behavior Handlers                 */
 /******************************************************************************/
-void MCM_data_process_handler(void) {
-    compute_wheel_rpms();
-}
-/******************************************************************************/
-/******************************************************************************/
-
-
-/******************************************************************************/
-/******************************************************************************/
-void MCM_rflHandler(void) {
-    
-    
+void MCM_faultHandler(void) {
+    redOn();
 }
 
 void MCM_dashctlHandler(void) {
@@ -140,15 +132,8 @@ void MCM_dashctlHandler(void) {
     
 }
 
-void MCM_faultHandler(void) {
-    redOn();
-}
-
-void MCM_safeHandler(void) {
-    greenOn();
-}
-
-void MCM_runningHandler(void) {
+void MCM_rflHandler(void) {
+    
     
 }
 
@@ -160,8 +145,28 @@ void MCM_coastHandler(void) {
     
 }
 
-void MCM_spindownHandler(void) {
-    
+void MCM_nbHandler(void) {
+
+}
+
+void MCM_ebHandler(void) {
+
+}
+
+void MCM_fabHandler(void) {
+
+}
+
+void MCM_rabHandler(void) {
+
+}
+
+void MCM_wfsHandler(void) {
+
+}
+
+void MCM_safeHandler(void) {
+    greenOn();
 }
 /******************************************************************************/
 /******************************************************************************/

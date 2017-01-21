@@ -43,13 +43,16 @@ bool BCM_message_handler(void);
 
 void BCM_data_process_handler(void);
 
-// Main State Handlers
-void BCM_rflHandler(void);
-void BCM_dashctlHandler(void); 
+// State Handlers
 void BCM_faultHandler(void);
+void BCM_dashctlHandler(void);
+void BCM_rflHandler(void);
+void BCM_pushphaseHandler(void);
+void BCM_coastHandler(void);
+void BCM_nbHandler(void);
+void BCM_ebHandler(void);
+void BCM_fabHandler(void);
+void BCM_rabHandler(void);
+void BCM_wfsHandler(void);
 void BCM_safeHandler(void);
-void BCM_runningHandler(void);
-
-// Extra States
-
 #endif

@@ -1,6 +1,7 @@
 #include "../include/BCM.h"
 
 /******************************************************************************/
+/*              Initialization and Message Reception Behavior                 */
 /******************************************************************************/
 bool BCM_init_periph(void) {
     RD1_IN1_DIR = OUTPUT;
@@ -22,12 +23,10 @@ bool BCM_init_periph(void) {
 }
 
 bool BCM_broadcast_handler(void) {
-    if (receiving.from == WCM) CAN_ping(WCM, false);
     return true;
 }
 
 bool BCM_message_handler(void) {
-    if (receiving.message_num == PING_TO) CAN_ping(receiving.from, false);
     return true;
 }
 /******************************************************************************/
@@ -35,6 +34,7 @@ bool BCM_message_handler(void) {
 
 
 /******************************************************************************/
+/*                        Data Processing & Unit Conversions                  */
 /******************************************************************************/
 void BCM_data_process_handler(void) {
     
@@ -44,37 +44,52 @@ void BCM_data_process_handler(void) {
 
 
 /******************************************************************************/
+/*                    Module Specific State Behavior Handlers                 */
 /******************************************************************************/
-void BCM_rflHandler(void) {
-    
-} 
+void BCM_faultHandler(void) {
+    redOn();
+}
 
 void BCM_dashctlHandler(void) {
     
-}   
-
-void BCM_faultHandler(void) {
-    redOn();
-}  
-
-void BCM_safeHandler(void) {
-    greenOn();
-}  
-
-void BCM_runningHandler(void) {
     
-} 
+}
+
+void BCM_rflHandler(void) {
+    
+    
+}
 
 void BCM_pushphaseHandler(void) {
     
-}    
+}
 
 void BCM_coastHandler(void) {
     
-}       
+}
 
-void BCM_spindownHandler(void) {
-    
-}    
+void BCM_nbHandler(void) {
+
+}
+
+void BCM_ebHandler(void) {
+
+}
+
+void BCM_fabHandler(void) {
+
+}
+
+void BCM_rabHandler(void) {
+
+}
+
+void BCM_wfsHandler(void) {
+
+}
+
+void BCM_safeHandler(void) {
+    greenOn();
+}
 /******************************************************************************/
-/******************************************************************************/           
+/******************************************************************************/

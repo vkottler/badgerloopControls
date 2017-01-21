@@ -21,11 +21,10 @@ typedef volatile enum {
     FRONT_AXLE_BRAKING,
     REAR_AXLE_BRAKING,
     WAITING_FOR_SAFE,
-    SPINDOWN,
     SAFE			      
 } STATE;
 
-#define NUM_STATES              12
+#define NUM_STATES              11
 
 // ! ! ! ! ! WARNING ! ! ! ! !
 // If you add to this enum make sure to add an entry to the 
