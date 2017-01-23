@@ -45,6 +45,10 @@ void Serial_Debug_Handler(void) {
     else if (!strcmp(uartReceive, "ping VNM")) { if (ourRole != VNM) CAN_ping(VNM_SID, true); }
     else if (!strcmp(uartReceive, "ping WCM")) { if (ourRole != WCM) CAN_ping(WCM_SID, true); }
     else if (!strcmp(uartReceive, "ping all")) CAN_ping(ALL, true);
+    else if (!strncmp(uartReceive, "pin", 3)) { 
+        if (strlen(uartReceive) >= 8) pinHandler(uartReceive+4);
+        else printf("Usage: pin XX on/off. You typed: %s\r\n", uartReceive);
+    }
     else printf("Did not recognize: '%s'\r\n", uartReceive);
 }
 

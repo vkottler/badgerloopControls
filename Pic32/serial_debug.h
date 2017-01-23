@@ -5,6 +5,7 @@
 #include "drivers/include/usbUART.h"
 #include "drivers/include/CAN.h"
 #include "globals.h"
+#include "peripherals/include/pins.h"
 
 // for module specific serial debugging
 #include "applications/include/BCM.h"
