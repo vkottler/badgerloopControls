@@ -13,10 +13,10 @@
 // i.e. which board number has which PCB attached
 #define BOARD1_ROLE         NOT_PRESENT
 #define BOARD2_ROLE         NOT_PRESENT
-#define BOARD3_ROLE         BCM
-#define BOARD4_ROLE         NOT_PRESENT
-#define BOARD5_ROLE         VNM
-#define BOARD6_ROLE         MCM
+#define BOARD3_ROLE         NOT_PRESENT
+#define BOARD4_ROLE         BCM
+#define BOARD5_ROLE         NOT_PRESENT
+#define BOARD6_ROLE         NOT_PRESENT
 #define BOARD7_ROLE         NOT_PRESENT
 #define BOARD8_ROLE         NOT_PRESENT
 

@@ -326,11 +326,11 @@ void CAN_message_dump(CAN_MESSAGE *message, bool outgoing) {
     else                                    printf("MI: ");                                    
     printf("0x%3x from %3s ", message->SID, roleStr[message->from]);
     printf(" %2d (%u bytes): %s ", message->message_num, message->SIZE - 1, messageStr[message->message_num]);
-    if ((message->message_num == FAULT || message->message_num == HEARTBEAT) && message->SIZE == 5) 
+    if ((message->message_num == FAULT || message->message_num == HEARTBEAT) && message->SIZE == 6) 
         printf("[%.5s][%.5s] [%.5s][%.5s][%.5s]", faultStr[message->byte0], faultStr[message->byte1], 
                 stateStr[message->byte2], stateStr[message->byte3], stateStr[message->byte4]);
     else if (message->message_num == PING_BACK || message->message_num == SOFTWARE_VER)
-        printf("[%s]", message->bytes);
+        printf("\t[%s]", message->bytes);
     else for (i = 1; i < message->SIZE - 1; i++) printf("[0x%2x] ", message->bytes[i]);
     printf("\r\n");
 }
