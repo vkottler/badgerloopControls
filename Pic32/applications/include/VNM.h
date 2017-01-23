@@ -6,6 +6,7 @@
 #include "../../drivers/include/CAN.h"
 #include "../../drivers/include/I2C.h"
 #include "../../drivers/include/inputCapture.h"
+#include "../../drivers/include/timers.h"
 
 #define MPU_SAMPLE_PERIOD       100         // in ms
 

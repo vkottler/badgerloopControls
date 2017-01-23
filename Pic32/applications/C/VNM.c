@@ -89,7 +89,7 @@ bool VNM_init_periph(void) {
     VNM_init_funcHandlers();
     I2Cinit();
     memset(&accelData, 0, sizeof(COORD_VECTOR));
-    initializeSlowTimer(MPU_SAMPLE_PERIOD);
+    startTimer45(MPU_SAMPLE_PERIOD);
     inputCapInit(1, 1);
     inputCapInit(4, 1);
     inputCapInit(5, 1);

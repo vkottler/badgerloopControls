@@ -7,16 +7,16 @@
 //#define LED_SHIELD_PRESENT  1   // this asserts that the custom LED proto-shield will be present and can be used
 #define PCB_PRESENT         1
 
-#define BUILD_VERSION       v0.0.5
+#define BUILD_VERSION       v0.0.6
 
 // Specify before building which board is doing what
 // i.e. which board number has which PCB attached
 #define BOARD1_ROLE         NOT_PRESENT
 #define BOARD2_ROLE         NOT_PRESENT
-#define BOARD3_ROLE         NOT_PRESENT
-#define BOARD4_ROLE         MCM
-#define BOARD5_ROLE         NOT_PRESENT
-#define BOARD6_ROLE         VNM
+#define BOARD3_ROLE         BCM
+#define BOARD4_ROLE         NOT_PRESENT
+#define BOARD5_ROLE         VNM
+#define BOARD6_ROLE         MCM
 #define BOARD7_ROLE         NOT_PRESENT
 #define BOARD8_ROLE         NOT_PRESENT
 

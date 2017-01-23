@@ -53,7 +53,7 @@ void Serial_Debug_Handler(void) {
     else if (!strcmp(uartReceive, "info"))
         printStartupDiagnostics();
     else if (!strcmp(uartReceive, "fault"))
-        printf("Fault: %s\r\n", faultStr[fault]);
+        printf("Previous: %s Current: %s\r\n", faultStr[prev_fault], faultStr[fault]);
     else if (!strcmp(uartReceive, "serialOn") || !strcmp(uartReceive, "debugOn")) 
         { debuggingOn = true; printf("Serial now on.\r\n"); }
     else if (!strcmp(uartReceive, "serialOff") || !strcmp(uartReceive, "debugOff") || !strcmp(uartReceive, "quit")) 

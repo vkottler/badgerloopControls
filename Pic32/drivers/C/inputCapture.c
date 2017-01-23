@@ -18,7 +18,6 @@ volatile unsigned int *IC3times;
 volatile unsigned int *IC4times;
 volatile unsigned int *IC5times;
 
-static bool timerStarted = false;
 static bool ic1en = false;
 static bool ic2en = false;
 static bool ic3en = false;
@@ -37,15 +36,6 @@ unsigned int getFrequency(unsigned int delta) {
 
 unsigned int getRPM(unsigned int delta) {
     return getFrequency(delta) * 60;
-}
-
-void startTimer(void) {
-    T2CONbits.T32 = 1;
-    T2CONbits.TCKPS = 7;        // 1:256 = 250000 Hz
-    PR2 = 0xffff; PR3 = 0xffff;
-    _T3IF = 0; _T3IP = 1; _T3IE = 1;
-    timerStarted = true;
-    T2CONbits.ON = 1;
 }
 
 void inputCapInit(int module, uint8_t events_per_int) {
@@ -111,7 +101,7 @@ void inputCapInit(int module, uint8_t events_per_int) {
             IC5depth = events_per_int;
             break;
     }
-    if (!timerStarted) startTimer();
+    startTimer23();
 }
 
 void __ISR (_INPUT_CAPTURE_1_VECTOR, IPL1SOFT) IC1Interrupt(void) {

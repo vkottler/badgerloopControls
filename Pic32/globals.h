@@ -7,7 +7,7 @@
 #include <stdbool.h>
 #include "enums.h"
 #include "config.h"
-#include "drivers/include/timer1.h"
+#include "drivers/include/timers.h"
 
 /******************************************************************************/
 /* * * * * * *                 Board Cataloging             * * * * * * * * * */

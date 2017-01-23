@@ -5,8 +5,7 @@
 #include <sys/attribs.h>
 #include <stdbool.h>
 #include <stdint.h>
-
-#define TIMER_FREQ                      250000.0
+#include "timers.h"
 
 #define IC1_DIR TRISDbits.TRISD8        // Pin 48 (IC1)
 #define IC2_DIR TRISDbits.TRISD9        // Pin 74 (IC2)
@@ -28,10 +27,6 @@
 #define INPUT           1
 #endif
 
-#define _T3IE   IEC0bits.T3IE   // int enable (timer2)
-#define _T3IF   IFS0bits.T3IF   // int flag (timer2)
-#define _T3IP   IPC3bits.T3IP   // 3 bits wide, int priority
-
 #define _IC1E   IEC0bits.IC1IE  // int enable (input cap)
 #define _IC1F   IFS0bits.IC1IF  // int flag (input cap)
 #define _IC1P   IPC1bits.IC1IP  // 3 bits wide, int priority
@@ -52,7 +47,6 @@
 #define _IC5F   IFS0bits.IC5IF  // int flag (input cap)
 #define _IC5P   IPC5bits.IC5IP  // 3 bits wide, int priority
 
-void startTimer(void);
 void inputCapInit(int module, uint8_t events_per_int);
 unsigned int getRPM(unsigned int delta);
 unsigned int getFrequency(unsigned int delta);

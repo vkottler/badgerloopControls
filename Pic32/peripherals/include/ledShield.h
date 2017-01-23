@@ -3,7 +3,7 @@
 
 #include <xc.h>
 #include "../../globals.h"
-#include "../../drivers/include/timer1.h"
+#include "../../drivers/include/timers.h"
 
 // (RA3 = LD4, RC1 = LD5)
 #define OUTPUT          0
