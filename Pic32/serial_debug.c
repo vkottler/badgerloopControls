@@ -35,8 +35,14 @@ void printResets(void) {
 char uartReceive[50];
 
 void Serial_Debug_Handler(void) {
+    if (!debuggingOn) {
+        printf("\r\n\r\n-----------------------------------\r\n");
+        printf("  Debugging enabled automatically\r\n");
+        printf("-----------------------------------\r\n\r\n");
+    }
+    debuggingOn = true;
     getMessage(uartReceive, 50);
-    if (!strcmp(uartReceive, "heartbeat"))
+    if (!strcmp(uartReceive, "heartbeat")) 
         CAN_send_heartbeat(true);
     else if (!strcmp(uartReceive, "whoami"))
         printf("You are: %s, SID: 0x%3x, from ID: %d\r\n", roleStr[ourRole], SID, ourRole);
@@ -50,7 +56,7 @@ void Serial_Debug_Handler(void) {
         printf("Fault: %s\r\n", faultStr[fault]);
     else if (!strcmp(uartReceive, "serialOn") || !strcmp(uartReceive, "debugOn")) 
         { debuggingOn = true; printf("Serial now on.\r\n"); }
-    else if (!strcmp(uartReceive, "serialOff") || !strcmp(uartReceive, "debugOff")) 
+    else if (!strcmp(uartReceive, "serialOff") || !strcmp(uartReceive, "debugOff") || !strcmp(uartReceive, "quit")) 
         { debuggingOn = false; printf("Serial now off.\r\n"); }
     else if (!strcmp(uartReceive, "build") || !strcmp(uartReceive, "version")) 
         printVersion();

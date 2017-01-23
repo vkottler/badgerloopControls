@@ -26,12 +26,6 @@ volatile uint32_t *pinLats[] = {
     &LATA, &LATG, &LATG, &LATG, &LATA                                                   // pin 81-85    
 };
 
-/*
-uint32_t *pinPorts[] = {
-    
-};
-*/
-
 uint8_t pinPin[] = {
     2,
     8, 8, 0, 14, 1, 2, 9, 12, 3, 4,
@@ -45,6 +39,41 @@ uint8_t pinPin[] = {
     7, 14, 12, 13, 9
 };
 
+bool checkPin(uint8_t pin) {
+    switch (pin) {
+        
+        // UART
+        case 0:
+        case 1:
+            
+        // IC
+        case 8:
+        case 48:
+        case 49:
+        case 38:
+        case 74:
+        
+        // USB PWR
+        case 34: 
+        
+        // I2C
+        case 20:
+        case 21:
+         
+        // CAN
+#if CAN_MAIN == 1
+        case 14:
+        case 15:
+#else
+        case 23:
+        case 22:
+#endif
+            return false;
+            
+        default: return true;
+    }
+}
+
 void pinMode(uint8_t pin, uint8_t dir) {
     if (pinDirs[pin] == NULL) return;
     DIR_REG = dir ? (DIR_REG | PIN_MASK) : (DIR_REG & ~PIN_MASK); 
@@ -55,9 +84,14 @@ bool readPinDir(uint8_t pin) {
     return DIR_REG & PIN_MASK;
 }
 
-void digitalWrite(uint8_t pin, uint8_t val) {
-    if (readPinDir(pin)) pinMode(pin, OUTPUT);
-    VAL_REG = val ? (VAL_REG | PIN_MASK) : (VAL_REG & ~PIN_MASK);
+bool digitalWrite(uint8_t pin, uint8_t val) {
+    if (checkPin(pin)) {
+        if (readPinDir(pin)) pinMode(pin, OUTPUT);
+        VAL_REG = val ? (VAL_REG | PIN_MASK) : (VAL_REG & ~PIN_MASK);
+        return true;
+    }
+    else if (debuggingOn) printf("Cannot use pin %d. Is it used for something else?\r\n", pin);
+    return false;
 }
 
 /*
@@ -79,12 +113,10 @@ void pinHandler(char *input) {
         return;
     }
     if (!strcmp(isDoubleDigit ? &input[3] : &input[2], "on")) {
-        printf("Turning pin %d on.\r\n", pin);
-        digitalWrite(pin, 1);
+        if (digitalWrite(pin, 1)) printf("Turning pin %d on.\r\n", pin);
     }   
     else if (!strcmp(isDoubleDigit ? &input[3] : &input[2], "off")) {
-        printf("Turning pin %d off.\r\n", pin);
-        digitalWrite(pin, 0);
+        if (digitalWrite(pin, 0)) printf("Turning pin %d off.\r\n", pin);
     }
     else printf("Malformed 'on' or 'off'. Try again, got: '%s'.\r\n", isDoubleDigit ? &input[3] : &input[2]);
 }

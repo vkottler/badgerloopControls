@@ -10,7 +10,7 @@ bool I2CWriteBits(uint8_t deviceAddress, uint8_t deviceRegister, uint8_t bitStar
     b |= data;
     b_array[0] = deviceRegister;
     b_array[1] = b;
-    return I2CwriteAndRead(deviceAddress, b_array, 2, NULL, 0);
+    return I2CwriteAndRead(deviceAddress, b_array, 2, NULL, 0, true);
 }
 
 bool I2CWriteBit(uint8_t deviceAddress, uint8_t deviceRegister, uint8_t bitNum, uint8_t data) {
@@ -19,7 +19,7 @@ bool I2CWriteBit(uint8_t deviceAddress, uint8_t deviceRegister, uint8_t bitNum, 
     uint8_t b_array[2];
     b_array[0] = deviceRegister;
     b_array[1] = b;
-    return I2CwriteAndRead(deviceAddress, b_array, 2, NULL, 0);
+    return I2CwriteAndRead(deviceAddress, b_array, 2, NULL, 0, true);
 }
 
 bool MPUinitialize(void) {
@@ -34,7 +34,7 @@ bool MPUinitialize(void) {
 bool MPUread(COORD_VECTOR *vec) {
     uint8_t readAccel[14];
     uint8_t readAccel_cmd = MPU9250_ACCEL_XOUT_H;
-    if (I2CwriteAndRead(MPU_ADDRESS, &readAccel_cmd, 1, readAccel, 14)) return false;
+    if (I2CwriteAndRead(MPU_ADDRESS, &readAccel_cmd, 1, readAccel, 14, true)) return false;
     vec->ax = (((signed short) readAccel[0]) << 8) | readAccel[1];   // ax
     vec->ay = (((signed short) readAccel[2]) << 8) | readAccel[3];   // ay
     vec->az = (((signed short) readAccel[4]) << 8) | readAccel[5];   // az

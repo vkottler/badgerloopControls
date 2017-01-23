@@ -144,7 +144,8 @@ typedef union {
     };
     struct {
         unsigned :32; unsigned :32;
-        uint8_t bytes[8];
+        unsigned :8;
+        uint8_t bytes[7];
     };
     unsigned int raw[4];
 } CAN_MESSAGE;

@@ -41,8 +41,10 @@
 // is shared by ISR and main code execution (i.e. double volatile)
 typedef volatile uint8_t * volatile buffer_t;
 
+extern volatile bool transactionReady, I2Csuccessful;
+
 void I2Cinit(void);
 void I2CmasterInt(void);
-bool I2CwriteAndRead(unsigned int addr, const buffer_t write, unsigned int wlen, const buffer_t read, unsigned int rlen);
+bool I2CwriteAndRead(unsigned int addr, const buffer_t write, unsigned int wlen, const buffer_t read, unsigned int rlen, bool blocking);
 
 #endif

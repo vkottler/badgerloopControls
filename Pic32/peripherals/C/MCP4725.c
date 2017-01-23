@@ -11,7 +11,7 @@ bool mcp_write_val(uint16_t value, bool writeEEPROM) {
     }
     mcp[1] = value >> 4;
     mcp[2] = (value % 16) << 4;
-    return !I2CwriteAndRead(MCP_ADDR, mcp, 3, NULL, 0); 
+    return !I2CwriteAndRead(MCP_ADDR, mcp, 3, NULL, 0, true); 
 }
 /**
  * helper function converts value to voltage and sends it over.

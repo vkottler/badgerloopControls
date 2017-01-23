@@ -250,14 +250,19 @@ bool CAN_receive_specific(void) {
 /******************************************************************************/
 /*                          Heartbeat Related                                 */
 /******************************************************************************/
+inline void load_state(void) {
+    sending->byte0 = prev_fault;
+    sending->byte1 = fault;
+    sending->byte2 = prev_state;
+    sending->byte3 = state;
+    sending->byte4 = next_state;
+}
+
 void CAN_send_fault(void) {
     setupBroadcast();
-    sending->SIZE = 5;
+    sending->SIZE = 6;
     sending->message_num = FAULT;
-    sending->byte0 = fault;
-    sending->byte1 = prev_state;
-    sending->byte2 = state;
-    sending->byte3 = next_state;
+    load_state();
     if (!CAN_broadcast()) fault = CAN_OUT_FULL_ERROR;
 }
 
@@ -265,12 +270,9 @@ bool CAN_send_heartbeat(bool fake) {
     sending = BROADCAST_SEND_ADDR;
     sending->SID = ALL;
     sending->from = fake ? WCM : ourRole;
-    sending->SIZE = 5;
-    sending->message_num = fake ? WCM : ourRole;
-    sending->byte0 = fault;
-    sending->byte1 = prev_state;
-    sending->byte1 = state;
-    sending->byte1 = next_state;
+    sending->SIZE = 6;
+    sending->message_num = HEARTBEAT;
+    load_state();
     if (fake) heartbeatsReceived = 2; // since we bypassed WCM
     return CAN_broadcast();
 }
@@ -323,12 +325,13 @@ void CAN_message_dump(CAN_MESSAGE *message, bool outgoing) {
     else if (message->SID & ALL)            printf("BI: ");
     else                                    printf("MI: ");                                    
     printf("0x%3x from %3s ", message->SID, roleStr[message->from]);
-    printf("MSG (%u): %s ", message->SIZE - 1, messageStr[message->message_num]);
+    printf(" %2d (%u bytes): %s ", message->message_num, message->SIZE - 1, messageStr[message->message_num]);
     if (message->message_num == FAULT || message->message_num == HEARTBEAT) 
-        printf("F: %s [%s][%s][%s]", faultStr[message->byte0], stateStr[message->byte1], stateStr[message->byte2], stateStr[message->byte3]);
+        printf("[%.5s][%.5s] [%.5s][%.5s][%.5s]", faultStr[message->byte0], faultStr[message->byte1], 
+                stateStr[message->byte2], stateStr[message->byte3], stateStr[message->byte4]);
     else if (message->message_num == PING_BACK || message->message_num == SOFTWARE_VER)
         printf("[%s]", message->bytes);
-    else for (i = 1; i < message->SIZE; i++) printf("[0x%2x] ", message->bytes[i]);
+    else for (i = 1; i < message->SIZE - 1; i++) printf("[0x%2x] ", message->bytes[i]);
     printf("\r\n");
 }
 

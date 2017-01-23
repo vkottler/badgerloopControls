@@ -166,9 +166,9 @@ void handleFaults(void) {
 
 void globalFaultHandler(void) {
     while (1) {
-        if (debuggingOn) printf("Unrecoverable fault: %s (previously %s)\r\n", faultStr[fault], faultStr[prev_fault]);
+        printf("Unrecoverable fault: %s (previously %s)\r\n", faultStr[fault], faultStr[prev_fault]);
         blinkBoardLights(2, 250);
-        delay(100, MILLI);
+        delay(500, MILLI);
     }
 }
 

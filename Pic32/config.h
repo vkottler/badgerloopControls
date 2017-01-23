@@ -7,7 +7,7 @@
 //#define LED_SHIELD_PRESENT  1   // this asserts that the custom LED proto-shield will be present and can be used
 #define PCB_PRESENT         1
 
-#define BUILD_VERSION       v0.0.4
+#define BUILD_VERSION       v0.0.5
 
 // Specify before building which board is doing what
 // i.e. which board number has which PCB attached

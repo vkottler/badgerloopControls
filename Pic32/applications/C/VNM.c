@@ -93,9 +93,9 @@ bool VNM_init_periph(void) {
     inputCapInit(1, 1);
     inputCapInit(4, 1);
     inputCapInit(5, 1);
-    *front_rdy = &IC1ready;
-    *middle_rdy = &IC4ready;
-    *rear_rdy = &IC5ready;
+    front_rdy = &IC1ready;
+    middle_rdy = &IC4ready;
+    rear_rdy = &IC5ready;
     frontInterval= IC1times;
     middleInterval = IC4times;
     rearInterval= IC5times;
@@ -209,7 +209,7 @@ void VNM_printVariables(void) {
     printf("ax:%5d ay:%5d az:%5d\r\n", ax, ay, az);
     printf("=================================================\r\n");
     printf("strips ([F][M][R]):\t[%3d][%3d][%3d]\r\n", frontCount, middleCount, rearCount);
-    printf("velocity (m/s):\t[%4d][%4d][%4d]\r\n", frontVelocity, middleVelocity, rearVelocity);
+    printf("velocity (m/s):\t\t[%4d][%4d][%4d]\r\n", frontVelocity, middleVelocity, rearVelocity);
     printf("=================================================\r\n");
 }
 /******************************************************************************/

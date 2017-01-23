@@ -1,5 +1,7 @@
 #include "../include/I2C.h"
 
+volatile bool transactionReady = false, I2Csuccessful = false;
+
 // for keeping track of state during the ISR
 static volatile enum { IDLE, START, WRITE, READ, RESTART, ACK, NACK, STOP, ERROR } state = IDLE;
 
@@ -15,15 +17,17 @@ void I2Cinit(void) {
     I2C1CONbits.ON = 1;
 }
 
-bool I2CwriteAndRead(unsigned int addr, const buffer_t write, unsigned int wlen, const buffer_t read, unsigned int rlen) {
+bool I2CwriteAndRead(unsigned int addr, const buffer_t write, unsigned int wlen, const buffer_t read, unsigned int rlen, bool blocking) {
     numWrite = wlen, numRead = rlen;
     toWrite = write, toRead = read;
     address = addr;
     state = START;
+    transactionReady = false;
+    I2Csuccessful = false;
     I2C1CONbits.SEN = 1;
     
     // Hopefully this never happens
-    while(state != IDLE && state != ERROR) 
+    while(state != IDLE && state != ERROR && blocking) 
         if (I2C1STATbits.BCL) {
             I2C1STATbits.BCL = 0; 
             return true;
@@ -69,9 +73,18 @@ void __ISR(I2C1vec, IPL1SOFT) I2CmasterInt(void) {
              
         case RESTART: state = ACK; I2C1TRN = (address << 1) | 1;  break;        // restart complete  
         case ACK: state = READ; I2C1CONbits.RCEN = 1; break;                    // ack finished sending, re-enable receive
+        
         case NACK: state = STOP; I2C1CONbits.PEN = 1; break;                    // just stop, no more incoming data
-        case STOP: state = IDLE; break;                                         // stop sequence (SEN HW clear) finished, return
-        default: state = ERROR;                                                 // we should never get here       
+        case STOP: 
+            I2Csuccessful = true;
+            transactionReady = true;
+            state = IDLE; 
+            break;                                                              // stop sequence (SEN HW clear) finished, return
+        
+        default: 
+            I2Csuccessful = false;
+            transactionReady = true;
+            state = ERROR;                                                      // we should never get here       
     }
     IFS0bits.I2C1MIF = 0;
 }

@@ -23,14 +23,14 @@ int VL_setReg(uint8_t addr, uint16_t reg, uint8_t val) {
     values[0] = (reg & 0xff00) >> 8;
     values[1] = reg & 0x00ff;
     values[2] = val;
-    return I2CwriteAndRead(addr, values, 3, NULL, 0); 
+    return I2CwriteAndRead(addr, values, 3, NULL, 0, true); 
 } 
 
 uint8_t VL_read(uint8_t addr, uint16_t reg) {
     uint8_t values[2], retval = 0, errorCheck = 0;
     values[0] = (reg & 0xff00) >> 8;
     values[1] = reg & 0x00ff;
-    errorCheck = I2CwriteAndRead(addr, values, 2, &retval, 1);
+    errorCheck = I2CwriteAndRead(addr, values, 2, &retval, 1, true);
     if (errorCheck) return -1;
     return retval;
 }
