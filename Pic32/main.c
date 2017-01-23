@@ -64,24 +64,26 @@ inline void static_inits(void) {
 int main(void) {
     
     static_inits();
+    
+    if (debuggingOn) printResets();
 
     // Used to verify software doesn't get stuck during initializations
     blinkBoardLights(4, 150);
 
     // Runs board specific initializations, each board has one of these
-    if (!initHandler() || !CAN_startup()) {
+    if (!initHandler()) {
         next_state = FAULT_STATE;
         fault = LOCAL_INIT_FAILED;
     }
 
     while (1) {
-
+        
         // handle broadcasts
         checkBroadcasts();
 
         // handle incoming messages
         checkMessages();
-
+        
         // update the fault status if necessary
         check_bus_integrity();
 

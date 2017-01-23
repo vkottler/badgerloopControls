@@ -4,7 +4,30 @@ void (*serialDebugHandler)(void) =      &Serial_Debug_Handler;
 
 void printMAC(void) {           printf("MAC: %x %x\r\n", EMAC1SA0, EMAC1SA1);           }
 void printBoardNumber(void) {   printf("Board %d connected.\r\n", getBoardNumber());    }
-void printVersion(void) { printf("%24s version %s\r\n", timestamp, &timestamp[26]); }
+void printVersion(void) { printf("%.24s version %s\r\n", timestamp, &timestamp[26]); }
+
+void printResets(void) {
+    printf("(");
+    if (RCONbits.BOR) printf("[brown out]");
+    if (RCONbits.CMR) printf("[config mismatch]");
+    if (RCONbits.EXTR) printf("[external reset]");
+    if (RCONbits.IDLE) printf("[wake from idle]");
+    if (RCONbits.POR) printf("[power on]");
+    if (RCONbits.SLEEP) printf("[wake from sleep]");
+    if (RCONbits.SWR) printf("[software reset]");
+    if (RCONbits.VREGS) printf("[VREG standby]");
+    if (RCONbits.WDTO) printf("[watchdog timeout]");
+    printf(")");
+    if (RCONbits.BOR) {
+        printf("unsetting BOR ");
+        RCONbits.BOR = 0;
+    }
+    if (RCONbits.POR) {
+        printf("unsetting POR");
+        RCONbits.POR = 0;
+    }
+    printf("\r\n");
+}
 
 /******************************************************************************/
 /*                          Live Debugging Related                            */
@@ -29,7 +52,7 @@ void Serial_Debug_Handler(void) {
         { debuggingOn = true; printf("Serial now on.\r\n"); }
     else if (!strcmp(uartReceive, "serialOff") || !strcmp(uartReceive, "debugOff")) 
         { debuggingOn = false; printf("Serial now off.\r\n"); }
-    else if (!strcmp(uartReceive, "build")) 
+    else if (!strcmp(uartReceive, "build") || !strcmp(uartReceive, "version")) 
         printVersion();
     else if (!strcmp(uartReceive, "variables")) {
         switch (ourRole) {

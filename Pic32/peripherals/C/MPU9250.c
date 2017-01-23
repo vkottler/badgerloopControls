@@ -23,12 +23,12 @@ bool I2CWriteBit(uint8_t deviceAddress, uint8_t deviceRegister, uint8_t bitNum, 
 }
 
 bool MPUinitialize(void) {
-    bool status;
+    bool status = false;
     status |= I2CWriteBit(MPU_ADDRESS, MPU9250_PWR_MGMT_1, MPU9250_PWR1_SLEEP_BIT, 0);                                                               // Disable Sleep
     status |= I2CWriteBits(MPU_ADDRESS, MPU9250_PWR_MGMT_1, MPU9250_PWR1_CLKSEL_BIT, MPU9250_PWR1_CLKSEL_LENGTH, MPU9250_CLOCK_PLL_XGYRO);           // Set clock source
     status |= I2CWriteBits(MPU_ADDRESS, MPU9250_RA_GYRO_CONFIG, MPU9250_GCONFIG_FS_SEL_BIT, MPU9250_GCONFIG_FS_SEL_LENGTH, MPU9250_GYRO_FS_500);     // Set full scale gyro range
     status |= I2CWriteBits(MPU_ADDRESS, MPU9250_RA_ACCEL_CONFIG, MPU9250_ACONFIG_AFS_SEL_BIT, MPU9250_ACONFIG_AFS_SEL_LENGTH, MPU9250_ACCEL_FS_2);   // Set full scale accel range
-    return !status;
+    return status ? false : true;
 }
 
 bool MPUread(COORD_VECTOR *vec) {

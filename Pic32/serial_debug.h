@@ -18,6 +18,7 @@ void printMAC(void);
 void printBoardNumber(void);
 void Serial_Debug_Handler(void);
 void printStartupDiagnostics(void);
+void printResets(void);
 
 extern void (*serialDebugHandler)(void);
 

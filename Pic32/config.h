@@ -7,16 +7,16 @@
 //#define LED_SHIELD_PRESENT  1   // this asserts that the custom LED proto-shield will be present and can be used
 #define PCB_PRESENT         1
 
-#define BUILD_VERSION       v1.0.0
+#define BUILD_VERSION       v0.0.4
 
 // Specify before building which board is doing what
 // i.e. which board number has which PCB attached
-#define BOARD1_ROLE         VSM
+#define BOARD1_ROLE         NOT_PRESENT
 #define BOARD2_ROLE         NOT_PRESENT
 #define BOARD3_ROLE         NOT_PRESENT
-#define BOARD4_ROLE         NOT_PRESENT
+#define BOARD4_ROLE         MCM
 #define BOARD5_ROLE         NOT_PRESENT
-#define BOARD6_ROLE         NOT_PRESENT
+#define BOARD6_ROLE         VNM
 #define BOARD7_ROLE         NOT_PRESENT
 #define BOARD8_ROLE         NOT_PRESENT
 
@@ -33,8 +33,6 @@
 
 #define BAUD_250K           1
 //#define BAUD_1M             1 // For interfacing with Kelly Controller
-
-#define CAP_TIME            1
 
 #if CAN_MAIN == 1
 #define MAIN_CAN_VECTOR     _CAN_1_VECTOR

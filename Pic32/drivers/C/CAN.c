@@ -74,9 +74,6 @@ void CAN_fifo_init(void) {
 
 void CAN_set_up_interrupts(void) {
     CAN_SFR(INTbits, CAN_MAIN).RBIE = 1;
-#ifdef CAP_TIME
-    CAN_TIMER_EN = 1;
-#endif
     
     // Disable Interrupts for now
     //CAN_SFR(FIFOINT0bits, CAN_MAIN).RXFULLIE = 1;
@@ -85,22 +82,21 @@ void CAN_set_up_interrupts(void) {
     //ADDRESSED_RECEIVE_ENABLE = 1;               // interrupt when not empty        
     
     // enable interrupts globally
+#if CAN_MAIN == 1
     IEC1bits.CAN1IE = 1;
-    IEC1bits.CAN2IE = 1;
     IPC11bits.CAN1IP = 3;
     IPC11bits.CAN1IS = 0;
+#elif CAN_MAIN == 2
+    IEC1bits.CAN2IE = 1;
     IPC11bits.CAN2IP = 3;
     IPC11bits.CAN2IS = 0;
+#endif
     MAIN_CAN_FLAG = 0;
     ALT_CAN_FLAG = 0;
 }
 
 // See http://ww1.microchip.com/downloads/en/DeviceDoc/61154C.pdf Bit Timing section
 void CAN_set_timings(void) {
-#ifdef CAP_TIME
-    CAN_SFR(CONbits, CAN_MAIN).CANCAP = 1;             // capture timestamps
-    CAN_SFR(TMRbits, CAN_MAIN).CANTSPRE = 64000;       // increment every millisecond
-#endif
     CAN_SFR(CFGbits, CAN_MAIN).SAM = 1;                  // Sample 3 times between SEG1PH and SEG2PH
     CAN_SFR(CFGbits, CAN_MAIN).SEG2PHTS = 1;             // SEG2PH set manually
 
@@ -283,24 +279,15 @@ bool CAN_send_heartbeat(bool fake) {
 /*                                    ISRs                                    */
 /******************************************************************************/
 void __ISR (MAIN_CAN_VECTOR, IPL1SOFT) MAIN_CAN_Interrupt(void) {
-    
-    if (CAN_MAIN_VECTOR_BITS.ICODE > 32) {
-        if (CAN_MAIN_VECTOR_BITS.ICODE == 0x46) {
-            numOverflows++;
-            CAN_TIMER_FLAG = 0;
-        }
+    if (CAN_MAIN_VECTOR_BITS.ICODE == 0) {
+        //CAN_receive_broadcast();
+        fault = CAN_INTERRUPT_ERROR;
     }
-    else {
-        if (CAN_MAIN_VECTOR_BITS.ICODE == 0) {
-            //CAN_receive_broadcast();
-            fault = CAN_INTERRUPT_ERROR;
-        }
-        else if (CAN_MAIN_VECTOR_BITS.ICODE == 1) {
-            //CAN_receive_specific();
-            fault = CAN_INTERRUPT_ERROR;
-        }
-        CAN_SFR(INTbits, CAN_MAIN).RBIF = 0;
+    else if (CAN_MAIN_VECTOR_BITS.ICODE == 1) {
+        //CAN_receive_specific();
+        fault = CAN_INTERRUPT_ERROR;
     }
+    CAN_SFR(INTbits, CAN_MAIN).RBIF = 0;
     MAIN_CAN_FLAG = 0;
 }
 
@@ -333,10 +320,6 @@ void CAN_message_dump(CAN_MESSAGE *message, bool outgoing) {
     else if (message->SID & ALL)            printf("BI: ");
     else                                    printf("MI: ");                                    
     printf("0x%3x from %3s ", message->SID, roleStr[message->from]);
-#ifdef CAP_TIME
-    if (!outgoing) printf("(%5d sec) ", (message->TS + 65535*numOverflows) / 1000);
-    else           printf("            ");
-#endif
     printf("MSG (%u): %s ", message->SIZE - 1, messageStr[message->message_num]);
     if (message->message_num == FAULT || message->message_num == HEARTBEAT) 
         printf("F: %s [%s][%s][%s]", faultStr[message->byte0], stateStr[message->byte1], stateStr[message->byte2], stateStr[message->byte3]);
@@ -370,13 +353,6 @@ bool CAN_ping(uint16_t SID, bool initiator) {
     strcpy(sending->bytes, &timestamp[26]);
     sending->byte6 = '\0';
     return result && ((SID == ALL) ? CAN_broadcast() : CAN_send());
-}
-
-bool CAN_startup(void) {
-    setupBroadcast();
-    sending->SIZE = 1;
-    sending->message_num = MODULE_STARTUP;
-    return CAN_broadcast();
 }
 /******************************************************************************/
 /******************************************************************************/
