@@ -30,16 +30,22 @@ typedef volatile enum {
 
 typedef enum { 
     HEALTHY, 
-    GLOBAL_INITS_FAILED,
-    LOCAL_INIT_FAILED,
-    ILLEGAL_STATE,
-    ILLEGAL_ROLE,
-    UNINITIALIZED_HANDLER,
-    CAN_BUS_ERROR,
-    CAN_INTERRUPT_ERROR
+            
+    // Initialization / Software failure
+    GLOBAL_INITS_FAILED, LOCAL_INIT_FAILED,
+    ILLEGAL_STATE, ILLEGAL_ROLE, UNINITIALIZED_HANDLER,
+            
+    // CAN failure
+    CAN_BUS_ERROR, CAN_IN_FULL_ERROR, CAN_OUT_FULL_ERROR,
+    
+    // Use to make sure we handle new faults if we add more
+    UNIMPLEMENTED_FAULT
+            
 } FAULT_TYPE;
 
-#define NUM_FAULT_TYPES         7
+#define IS_CAN_FAULT            fault == CAN_BUS_ERROR || fault == CAN_IN_FULL_ERROR || fault == CAN_OUT_FULL_ERROR
+
+#define NUM_FAULT_TYPES         9
 
 typedef enum {
     INVALID,

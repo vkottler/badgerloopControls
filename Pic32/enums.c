@@ -21,7 +21,7 @@ const char *faultStr[] = {
     "HEALTHY", "GLOBAL_INITS",
     "LOCAL_INITS", "ILLEGAL_STATE",
     "ILLEGAL_ROLE", "UNINITIALIZED_HANDLER",
-    "CAN_BUS", "CAN_INT" 
+    "CAN_BUS", "CAN_IF", "CAN_OF", "UNIMPLEMENTED" 
 };
 
 const char *messageStr[] = {

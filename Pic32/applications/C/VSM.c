@@ -25,6 +25,7 @@ inline void VSM_init_funcHandlers(void) {
 
 bool VSM_init_periph(void) {
     VSM_init_funcHandlers();
+    
     return true;
 }
 

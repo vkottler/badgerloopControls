@@ -7,6 +7,7 @@
 #include <stdbool.h>
 #include "enums.h"
 #include "config.h"
+#include "drivers/include/timer1.h"
 
 /******************************************************************************/
 /* * * * * * *                 Board Cataloging             * * * * * * * * * */
@@ -34,10 +35,10 @@ extern ROLE ourRole;
 extern volatile STATE state, next_state, prev_state;
 extern AIR_SYSTEM_STATE airss; 
 extern uint8_t num_endpoints, heartbeatsReceived;
-extern volatile FAULT_TYPE fault;
+extern volatile FAULT_TYPE prev_fault, fault;
 extern const char *timestamp;
 extern CAN_MESSAGE *sending, receiving;
-extern volatile bool adcSampleReady;
+extern volatile bool adcSampleReady, sendFaultAvailable;
 /******************************************************************************/
 
 
@@ -78,12 +79,22 @@ int MACLookUp(int boardNumber);
 int getMAC(void) ;
 
 void defaultHeartbeatHandler(void);
+void handleFaults(void);
 void globalFaultHandler(void);
 bool volatileBoolHandler(void);
 void volatileHandler(void);
 void change_state(STATE new_state);
 void setLights(void);
 void update_state(void);
+/******************************************************************************/
+/******************************************************************************/
+
+
+/******************************************************************************/
+/*             Global, Pre-handler message interpretation                     */
+/******************************************************************************/
+inline void checkBroadcasts(void);
+inline void checkMessagess(void);
 /******************************************************************************/
 /******************************************************************************/
 #endif

@@ -1,32 +1,6 @@
 #include "main.h"
 
 /******************************************************************************/
-/*             Global, Pre-handler message interpretation                     */
-/******************************************************************************/
-inline void checkBroadcasts(void) {
-    if (CAN_receive_broadcast()) {
-        switch (receiving.message_num) {
-            case HEARTBEAT:     heartbeatHandler();                         break;
-            case PING_TO:       CAN_ping(ROLEtoSID(receiving.from), false); break;
-            case ENTER_STATE:   change_state(receiving.byte0);              break;
-            default: broadcastHandler();
-        }
-    }    
-}
-
-inline void checkMessages(void) {
-    if (CAN_receive_specific()) {
-        switch (receiving.message_num) {
-            case ENTER_STATE:   change_state(receiving.byte0);              break;
-            case PING_TO:       CAN_ping(ROLEtoSID(receiving.from), false); break;
-            default: messageHandler();
-        }
-    }    
-}
-/******************************************************************************/
-/******************************************************************************/
-
-/******************************************************************************/
 /*                          Static Initializations                            */
 /******************************************************************************/
 inline void initialize_handlers(void) {
@@ -37,9 +11,9 @@ inline void initialize_handlers(void) {
         case MCM: initHandler = &MCM_init_periph; break;
         case VNM: initHandler = &VNM_init_periph; break;
         default: 
-            fault = GLOBAL_INITS_FAILED;
+            prev_fault = fault;
+            fault = ILLEGAL_ROLE;
             next_state = FAULT_STATE;
-            state = FAULT_STATE;
     }
 }
 
@@ -68,11 +42,14 @@ int main(void) {
     if (debuggingOn) printResets();
 
     // Used to verify software doesn't get stuck during initializations
-    blinkBoardLights(4, 150);
+#ifndef RUN_RDY
+    blinkBoardLights(5, 200);
+#endif
 
     // Runs board specific initializations, each board has one of these
     if (!initHandler()) {
         next_state = FAULT_STATE;
+        prev_fault = fault;
         fault = LOCAL_INIT_FAILED;
     }
 
@@ -93,7 +70,7 @@ int main(void) {
         switch (state) {
 
             // Standard States
-            case FAULT_STATE:               faultHandler();         break;
+            case FAULT_STATE:               handleFaults();         break;
             case DASH_CTL:                  dashctlHandler();       break;
             case READY_FOR_LAUNCH:          rflHandler();           break;
             case PUSH_PHASE:                pushphaseHandler();     break;
@@ -106,7 +83,10 @@ int main(void) {
             case SAFE:                      safeHandler();          break;
 
                 // This only happens if we add a state and don't add a handler
-            default: fault = ILLEGAL_STATE; next_state = FAULT_STATE;
+            default: 
+                prev_fault = fault;
+                fault = ILLEGAL_STATE; 
+                next_state = FAULT_STATE;
         }
 
         update_state();

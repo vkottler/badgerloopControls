@@ -76,8 +76,8 @@ void CAN_set_up_interrupts(void) {
     CAN_SFR(INTbits, CAN_MAIN).RBIE = 1;
     
     // Disable Interrupts for now
-    //CAN_SFR(FIFOINT0bits, CAN_MAIN).RXFULLIE = 1;
-    //CAN_SFR(FIFOINT1bits, CAN_MAIN).RXFULLIE = 1;
+    CAN_SFR(FIFOINT0bits, CAN_MAIN).RXFULLIE = 1;
+    CAN_SFR(FIFOINT1bits, CAN_MAIN).RXFULLIE = 1;
     //GLOBAL_RECEIVE_ENABLE = 1;                  // interrupt when not empty
     //ADDRESSED_RECEIVE_ENABLE = 1;               // interrupt when not empty        
     
@@ -178,7 +178,10 @@ void check_bus_integrity(void) {
         fault = CAN_BUS_ERROR;
         next_state = FAULT_STATE;
     }
-    else fault = HEALTHY;  
+    else if (IS_CAN_FAULT) {
+        prev_fault = fault;
+        fault = HEALTHY;
+    }
 }
 /******************************************************************************/
 /******************************************************************************/
@@ -255,7 +258,7 @@ void CAN_send_fault(void) {
     sending->byte1 = prev_state;
     sending->byte2 = state;
     sending->byte3 = next_state;
-    CAN_broadcast();
+    if (!CAN_broadcast()) fault = CAN_OUT_FULL_ERROR;
 }
 
 bool CAN_send_heartbeat(bool fake) {
@@ -280,12 +283,12 @@ bool CAN_send_heartbeat(bool fake) {
 /******************************************************************************/
 void __ISR (MAIN_CAN_VECTOR, IPL1SOFT) MAIN_CAN_Interrupt(void) {
     if (CAN_MAIN_VECTOR_BITS.ICODE == 0) {
-        //CAN_receive_broadcast();
-        fault = CAN_INTERRUPT_ERROR;
+        checkBroadcasts();
+        fault = CAN_IN_FULL_ERROR;
     }
     else if (CAN_MAIN_VECTOR_BITS.ICODE == 1) {
-        //CAN_receive_specific();
-        fault = CAN_INTERRUPT_ERROR;
+        checkMessages();
+        fault = CAN_IN_FULL_ERROR;
     }
     CAN_SFR(INTbits, CAN_MAIN).RBIF = 0;
     MAIN_CAN_FLAG = 0;

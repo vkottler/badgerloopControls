@@ -9,7 +9,7 @@ int SID = 0;
 
 ROLE ourRole = NOT_PRESENT;
 
-volatile FAULT_TYPE fault = HEALTHY;
+volatile FAULT_TYPE fault = HEALTHY, prev_fault = HEALTHY;
 
 volatile STATE state = DASH_CTL, next_state = DASH_CTL, prev_state = DASH_CTL;
 
@@ -23,7 +23,7 @@ const char *timestamp = TIMESTAMP(BUILD_VERSION);
 
 // Partially only for during testing
 uint8_t num_endpoints = 0;
-volatile bool adcSampleReady = false;
+volatile bool adcSampleReady = false, sendFaultAvailable = true;
 /******************************************************************************/
 /******************************************************************************/
 
@@ -129,18 +129,47 @@ void defaultHeartbeatHandler(void) {
             fault = CAN_BUS_ERROR;
         }
     }
+#ifndef RUN_RDY
     if (heartbeatsReceived == num_endpoints) {
         blinkBoardLights(2, 100);
         heartbeatsReceived = 0;
+    }   
+#endif
+}
+
+void handleFaults(void) {
+    switch(fault) {
+        
+        // Unrecoverable software-related faults
+        case GLOBAL_INITS_FAILED:
+        case LOCAL_INIT_FAILED:
+        case ILLEGAL_STATE:
+        case ILLEGAL_ROLE: 
+        case UNINITIALIZED_HANDLER: 
+            globalFaultHandler();
+            break;
+        
+        // CAN errors
+        case CAN_BUS_ERROR:    
+        case CAN_IN_FULL_ERROR:
+        case CAN_OUT_FULL_ERROR:
+            CAN_send_fault();
+            next_state = prev_state;
+            break;
+            
+        default: 
+            prev_fault = fault;
+            fault = UNIMPLEMENTED_FAULT;
+            next_state = FAULT_STATE;
     }    
 }
 
 void globalFaultHandler(void) {
-    if (debuggingOn) {
-        printf("Entered Fault Handler: %s\r\nReturning to previous state: %s\r\n", faultStr[fault], stateStr[prev_state]);
-        if (fault == CAN_BUS_ERROR) CAN_print_errors();
+    while (1) {
+        if (debuggingOn) printf("Unrecoverable fault: %s (previously %s)\r\n", faultStr[fault], faultStr[prev_fault]);
+        blinkBoardLights(2, 250);
+        delay(100, MILLI);
     }
-    next_state = prev_state;
 }
 
 bool volatileBoolHandler(void) {
@@ -168,6 +197,33 @@ inline void update_state(void) {
         prev_state = state;
         setLights();
         state = next_state;
+}
+/******************************************************************************/
+/******************************************************************************/
+
+
+/******************************************************************************/
+/*             Global, Pre-handler message interpretation                     */
+/******************************************************************************/
+inline void checkBroadcasts(void) {
+    if (CAN_receive_broadcast()) {
+        switch (receiving.message_num) {
+            case HEARTBEAT:     heartbeatHandler();                         break;
+            case PING_TO:       CAN_ping(ROLEtoSID(receiving.from), false); break;
+            case ENTER_STATE:   change_state(receiving.byte0);              break;
+            default:            broadcastHandler();
+        }
+    }    
+}
+
+inline void checkMessages(void) {
+    if (CAN_receive_specific()) {
+        switch (receiving.message_num) {
+            case ENTER_STATE:   change_state(receiving.byte0);              break;
+            case PING_TO:       CAN_ping(ROLEtoSID(receiving.from), false); break;
+            default:            messageHandler();
+        }
+    }    
 }
 /******************************************************************************/
 /******************************************************************************/

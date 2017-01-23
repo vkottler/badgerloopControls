@@ -3,8 +3,17 @@
 volatile bool VNM_getMPU = false;
 COORD_VECTOR accelData;
 
+volatile bool *front_rdy, *middle_rdy, *rear_rdy;
+
+volatile unsigned int *frontInterval, *middleInterval, *rearInterval;
+
+unsigned int frontVelocity = 0, middleVelocity = 0, rearVelocity = 0;
+
 uint16_t px = 0, py = 0, pz = 0, vx = 0, vy = 0, vz = 0, 
          ax = 0, ay = 0, az = 0;
+
+uint16_t frontCount = 0, middleCount = 0, rearCount = 0;
+uint8_t frontFaults = 0, rearFaults = 0, middleFaults = 0;
 
 /******************************************************************************/
 /*                             Outgoing Messages                              */
@@ -81,8 +90,15 @@ bool VNM_init_periph(void) {
     I2Cinit();
     memset(&accelData, 0, sizeof(COORD_VECTOR));
     initializeSlowTimer(MPU_SAMPLE_PERIOD);
-    // TODO
-    // Initialize input capture
+    inputCapInit(1, 1);
+    inputCapInit(4, 1);
+    inputCapInit(5, 1);
+    *front_rdy = &IC1ready;
+    *middle_rdy = &IC4ready;
+    *rear_rdy = &IC5ready;
+    frontInterval= IC1times;
+    middleInterval = IC4times;
+    rearInterval= IC5times;
     return MPUinitialize();
 }
 
@@ -106,6 +122,21 @@ void VNM_data_process_handler(void) {
     if (VNM_getMPU) {
         MPUread(&accelData);
         VNM_getMPU = false;
+    }
+    if (FRONT_MISS) frontFaults++;
+    if (MIDDLE_MISS) middleFaults++;
+    if (REAR_MISS) rearFaults++;
+    if (*front_rdy) {
+        frontVelocity = getFrequency(*frontInterval) * 30;
+        frontCount++;
+    }
+    if (*middle_rdy) {
+        middleVelocity = getFrequency(*middleInterval) * 30;
+        middleCount++;
+    }
+    if (*rear_rdy) {
+        rearVelocity = getFrequency(*rearInterval) * 30;
+        rearCount++;
     }
 }
 /******************************************************************************/
@@ -171,10 +202,15 @@ void VNM_safeHandler(void) {
 //         ax = 0, ay = 0, az = 0;
 
 void VNM_printVariables(void) {
+    printf("=================================================\r\n");
     printf("ax:%5d ay:%5d az:%5d ", accelData.ax, accelData.ay, accelData.az);
     printf("gx:%5d gy:%5d gz:%5d\r\n", accelData.gx, accelData.gy, accelData.gz);
     printf("px:%5d py:%5d pz:%5d vx:%5d vy:%5d vz:%5d\r\n", px, py, pz, vx, vy, vz);
     printf("ax:%5d ay:%5d az:%5d\r\n", ax, ay, az);
+    printf("=================================================\r\n");
+    printf("strips ([F][M][R]):\t[%3d][%3d][%3d]\r\n", frontCount, middleCount, rearCount);
+    printf("velocity (m/s):\t[%4d][%4d][%4d]\r\n", frontVelocity, middleVelocity, rearVelocity);
+    printf("=================================================\r\n");
 }
 /******************************************************************************/
 /******************************************************************************/
