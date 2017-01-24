@@ -40,7 +40,6 @@ bool(*initHandler)(void) =              &volatileBoolHandler;
 void (*dataProcessHandler)(void) =      &volatileHandler;
 
 // State Handlers
-void (*faultHandler)(void) =            &globalFaultHandler;
 void (*dashctlHandler)(void) =          &volatileHandler;
 void (*rflHandler)(void) =              &volatileHandler;
 void (*pushphaseHandler)(void) =        &volatileHandler;
@@ -131,7 +130,7 @@ void defaultHeartbeatHandler(void) {
     }
 #ifndef RUN_RDY
     if (heartbeatsReceived == num_endpoints) {
-        blinkBoardLights(2, 100);
+        blinkBoardLights(4, 150);
         heartbeatsReceived = 0;
     }   
 #endif
@@ -189,8 +188,8 @@ inline void change_state(STATE new_state) {
 }
 
 inline void setLights(void) {
-    if (fault == HEALTHY) { greenOn(); redOff(); } 
-    else { greenOff(); redOn(); }
+    if (fault == HEALTHY)   { greenOn(); redOff(); } 
+    else                    { greenOff(); redOn(); }
 }
 
 inline void update_state(void) {

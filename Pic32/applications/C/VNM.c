@@ -72,7 +72,6 @@ inline void VNM_init_funcHandlers(void) {
     dataProcessHandler =    &VNM_data_process_handler;
 
     // Main States
-    faultHandler =          &VNM_faultHandler;
     dashctlHandler =        &VNM_dashctlHandler;
     rflHandler =            &VNM_rflHandler;
     pushphaseHandler =      &VNM_pushphaseHandler;
@@ -146,10 +145,6 @@ void VNM_data_process_handler(void) {
 /******************************************************************************/
 /*                    Module Specific State Behavior Handlers                 */
 /******************************************************************************/
-void VNM_faultHandler(void) {
-    redOn();
-}
-
 void VNM_dashctlHandler(void) {
     
     

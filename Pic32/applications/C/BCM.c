@@ -78,7 +78,6 @@ inline void BCM_init_funcHandlers(void) {
     dataProcessHandler =    &BCM_data_process_handler;
 
     // Main States
-    faultHandler =          &BCM_faultHandler;
     dashctlHandler =        &BCM_dashctlHandler;
     rflHandler =            &BCM_rflHandler;
     pushphaseHandler =      &BCM_pushphaseHandler;
@@ -175,10 +174,6 @@ void BCM_data_process_handler(void) {
 /******************************************************************************/
 /*                    Module Specific State Behavior Handlers                 */
 /******************************************************************************/
-void BCM_faultHandler(void) {
-    (fault == HEALTHY) ? greenOn() : redOn();
-}
-
 void BCM_dashctlHandler(void) {
     
 }

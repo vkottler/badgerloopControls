@@ -119,7 +119,6 @@ void MCM_init_funcHandlers(void) {
     dataProcessHandler =    &MCM_data_process_handler;
 
     // Main States
-    faultHandler =          &MCM_faultHandler;
     dashctlHandler =        &MCM_dashctlHandler;
     rflHandler =            &MCM_rflHandler;
     pushphaseHandler =      &MCM_pushphaseHandler;
@@ -179,10 +178,6 @@ bool MCM_message_handler(void) {
 /******************************************************************************/
 /*                    Module Specific State Behavior Handlers                 */
 /******************************************************************************/
-void MCM_faultHandler(void) {
-    redOn();
-}
-
 void MCM_dashctlHandler(void) {
     
     

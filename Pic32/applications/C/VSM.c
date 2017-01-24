@@ -10,7 +10,6 @@ inline void VSM_init_funcHandlers(void) {
     dataProcessHandler =    &VSM_data_process_handler;
 
     // Main States
-    faultHandler =          &VSM_faultHandler;
     dashctlHandler =        &VSM_dashctlHandler;
     rflHandler =            &VSM_rflHandler;
     pushphaseHandler =      &VSM_pushphaseHandler;
@@ -55,10 +54,6 @@ void VSM_data_process_handler(void) {
 /******************************************************************************/
 /*                    Module Specific State Behavior Handlers                 */
 /******************************************************************************/
-void VSM_faultHandler(void) {
-    redOn();
-}
-
 void VSM_dashctlHandler(void) {
     
     
