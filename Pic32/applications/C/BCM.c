@@ -134,10 +134,10 @@ bool BCM_init_periph(void) {
     digitalWrite(VALVES, 0);
     
     // Braking wheel retros
-    inputCapInit(B1_IC, BCM_READINGS);
-    inputCapInit(B2_IC, BCM_READINGS);
-    inputCapInit(B3_IC, BCM_READINGS);
-    inputCapInit(B4_IC, BCM_READINGS);
+    inputCapInit(B1_IC);
+    inputCapInit(B2_IC);
+    inputCapInit(B3_IC);
+    inputCapInit(B4_IC);
     
     return true;
 }
@@ -175,7 +175,8 @@ void BCM_compute_wheel_rpms(void) {
 
 void BCM_data_process_handler(void) {
     if (timer45Event) {
-        sendBrakeState(ALL);
+        //sendBrakeState(ALL);
+        BCM_printVariables();
         timer45Event = false;
     }
 }

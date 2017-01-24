@@ -5,7 +5,10 @@
 #include <sys/attribs.h>
 #include <stdbool.h>
 #include <stdint.h>
+#include <string.h>
 #include "timers.h"
+
+#define FILTER_LEN          5
 
 #define IC_TIMER            startTimer2
 #define IC_TIMER_ON         timer2Started
@@ -56,7 +59,7 @@
 #define _IC5F   IFS0bits.IC5IF  // int flag (input cap)
 #define _IC5P   IPC5bits.IC5IP  // 3 bits wide, int priority
 
-void inputCapInit(int module, uint8_t events_per_int);
+void inputCapInit(int module);
 unsigned int getRPM(unsigned int delta);
 unsigned int getFrequency(unsigned int delta);
 

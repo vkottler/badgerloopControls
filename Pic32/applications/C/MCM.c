@@ -72,8 +72,9 @@ void MCM_data_process_handler(void) {
     MCM_compute_wheel_rpms();
     check_cmdv();
     if (timer45Event) {
-        send_cmdv(ALL);
-        send_wheel_rpms(ALL);
+        //send_cmdv(ALL);
+        //send_wheel_rpms(ALL);
+        MCM_printVariables();
         timer45Event = false;
     }
 }
@@ -107,10 +108,10 @@ bool MCM_init_periph(void) {
     MCM_init_funcHandlers();
     I2Cinit();
     mcp_write_val(0x0000);              // do not throttle wheels
-    inputCapInit(2, WHEEL_READINGS);
-    inputCapInit(5, WHEEL_READINGS);
-    inputCapInit(1, WHEEL_READINGS);
-    inputCapInit(4, WHEEL_READINGS);
+    inputCapInit(2);
+    inputCapInit(5);
+    inputCapInit(1);
+    inputCapInit(4);
     return true;
 }
 
@@ -197,11 +198,7 @@ void MCM_safeHandler(void) {
 /*                        Serial Debugging Utilities                          */
 /******************************************************************************/
 void MCM_printVariables(void) {
-    printf("L F RPM: %4d\t", left_front_rpm);
-    printf("R F RPM: %4d\r\n", right_front_rpm);
-    printf("L R RPM: %4d\t", left_rear_rpm);
-    printf("R R RPM: %4d\r\n", right_rear_rpm);
-    printf("CMDV: %d\r\n", commanded_speed);
+    printf("LF: %5d RF: %5d LR: %5d RR: %5d\r\n", left_front_rpm, right_front_rpm, left_rear_rpm, right_rear_rpm);
 }
 /******************************************************************************/
 /******************************************************************************/

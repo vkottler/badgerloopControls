@@ -20,7 +20,6 @@
 #define B2_EI           _IC3E
 #define B3_EI           _IC2E
 #define B4_EI           _IC5E
-#define BCM_READINGS    2
 
 #define X1_NC_B1	53
 #define X1_NC_B2	52

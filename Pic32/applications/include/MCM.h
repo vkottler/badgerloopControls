@@ -13,8 +13,6 @@
 // HB3 (left rear):     Pin 48 is IC1
 // HB4 (right rear):    Pin 49 is IC4
 
-#define WHEEL_READINGS                  2
-
 bool MCM_init_periph(void);
 bool MCM_broadcast_handler(void);
 bool MCM_message_handler(void);
