@@ -13,11 +13,11 @@ typedef enum { NOT_PRESENT, WCM, VNM, BCM, MCM, VSM, BMS } ROLE;
 typedef enum { INFLATED, DEFLATED, PURGE_OPEN } AIR_SYSTEM_STATE;
 
 typedef volatile enum { 
-    FAULT_STATE,		// SpaceX wants Fault   as value 0
-    DASH_CTL,			// SpaceX wants Idle    as value 1
+    FAULT_STATE,            // SpaceX wants Fault   as value 0
+    DASH_CTL,               // SpaceX wants Idle    as value 1
     READY_FOR_LAUNCH,		// SpaceX Wants Ready   as value 2
-    PUSH_PHASE,			// SpaceX wants Pushing as value 3
-    COAST,			// SpaceX wants Coast   as value 4
+    PUSH_PHASE,             // SpaceX wants Pushing as value 3
+    COAST,                  // SpaceX wants Coast   as value 4
     NORMAL_BRAKING, 		// SpaceX wants Braking as value 5
     EMERGENCY_BRAKE,
     FRONT_AXLE_BRAKING,
@@ -165,7 +165,7 @@ typedef struct {
 /******************************************************************************/
 /* * * * * * *             STRING REPRESENTATIONS           * * * * * * * * * */
 /******************************************************************************/
-extern const char *roleStr[], *stateStr[], *faultStr[], *messageStr[], *stateStr[];
+extern const char *roleStr[], *stateStr[], *faultStr[], *messageStr[], *stateStr[], *airStr[];
 /******************************************************************************/
 /******************************************************************************/
 #endif

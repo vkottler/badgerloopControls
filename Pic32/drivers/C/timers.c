@@ -30,7 +30,7 @@ void startTimer45(int ms) {
 }
 
 void __ISR (_TIMER_5_VECTOR, IPL1SOFT) slowTimerHandler(void) {
-    if (ourRole == VNM) VNM_getMPU = true;
+    timer45Event = true;
     IFS0bits.T5IF = 0;
 }
 /******************************************************************************/

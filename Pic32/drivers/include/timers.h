@@ -8,9 +8,6 @@
 #include "../../globals.h"
 #include "CAN.h"
 
-// For module specific variables
-#include "../../applications/include/VNM.h"
-
 extern bool timer1Started, timer23Started, timer45Started;
 
 

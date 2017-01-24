@@ -38,7 +38,7 @@ extern uint8_t num_endpoints, heartbeatsReceived;
 extern volatile FAULT_TYPE prev_fault, fault;
 extern const char *timestamp;
 extern CAN_MESSAGE *sending, receiving;
-extern volatile bool adcSampleReady, sendFaultAvailable;
+extern volatile bool adcSampleReady, sendFaultAvailable, timer45Event;
 /******************************************************************************/
 
 

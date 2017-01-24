@@ -27,6 +27,7 @@ inline void static_inits(void) {
     initLEDs();
     CAN_init();
     initialize_heartbeat();
+    startTimer45(GLOBAL_SEND_INTERVAL);
 }
 /******************************************************************************/
 /******************************************************************************/

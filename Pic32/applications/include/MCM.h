@@ -13,8 +13,6 @@
 // HB3 (left rear):     Pin 48 is IC1
 // HB4 (right rear):    Pin 49 is IC4
 
-#define SEND_SPEED_DELAY                64000
-
 #define WHEEL_READINGS                  2
 #define RIGHT_FRONT_ENABLE_INT          _IC5E
 #define LEFT_FRONT_ENABLE_INT           _IC2E

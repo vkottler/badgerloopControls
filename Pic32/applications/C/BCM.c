@@ -1,13 +1,13 @@
 #include "../include/BCM.h"
 
-/*
- * Overview:
- * 
- * Energizing 
- */
-
 bool toldToInflate = false;
 
+uint8_t b1Intensity = 0, prev_b1Intensity = 0, 
+        b2Intensity = 0, prev_b2Intensity = 0,
+        b3Intensity = 0, prev_b3Intensity = 0,
+        b4Intensity = 0, prev_b4Intensity = 0;
+
+uint8_t pressure1 = 0, pressure2 = 0;
 
 /******************************************************************************/
 /*                                     Utility                                */
@@ -18,6 +18,51 @@ inline void inflate(void) {
     toldToInflate = true;
     airss = PURGE_OPEN;
     if (state == DASH_CTL) next_state = READY_FOR_LAUNCH;
+}
+
+inline void b1Brake() {
+    
+}
+
+inline void b2Brake() {
+    
+}
+
+inline void b3Brake() {
+    
+}
+
+inline void b4Brake() {
+    
+}
+
+void parseBAmessage(void) {
+    prev_b1Intensity = b1Intensity;
+    prev_b2Intensity = b2Intensity;
+    prev_b3Intensity = b3Intensity;
+    prev_b4Intensity = b4Intensity;
+    b1Intensity = receiving.byte0;
+    b2Intensity = receiving.byte1;
+    b3Intensity = receiving.byte2;
+    b4Intensity = receiving.byte3;
+    if (b1Intensity != prev_b1Intensity) b1Brake();
+    if (b2Intensity != prev_b2Intensity) b2Brake();
+    if (b3Intensity != prev_b3Intensity) b3Brake();
+    if (b4Intensity != prev_b4Intensity) b4Brake();
+}
+
+bool sendBrakeState(uint16_t SID) {
+    (SID & ALL) ? setupBroadcast() : setupMessage(SID);
+    sending->message_num = BCM_BRAKE_STATE;
+    sending->SIZE = 8;
+    sending->byte0 = b1Intensity;
+    sending->byte1 = b2Intensity;
+    sending->byte2 = b3Intensity;
+    sending->byte3 = b4Intensity;
+    sending->byte4 = airss;
+    sending->byte5 = pressure1;
+    sending->byte6 = pressure2;
+    return (SID & ALL) ? CAN_broadcast() : CAN_send(); 
 }
 /******************************************************************************/
 /******************************************************************************/
@@ -48,38 +93,42 @@ inline void BCM_init_funcHandlers(void) {
 
 bool BCM_init_periph(void) {
     BCM_init_funcHandlers();
-    RD1_IN1_DIR = OUTPUT;
-    RD1_IN2_DIR = OUTPUT;
-    RD1_IN3_DIR = OUTPUT;
-    RD1_IN4_DIR = OUTPUT;
-    RD1_IN5_DIR = OUTPUT;
-    RD1_IN6_DIR = OUTPUT;
-    RD1_IN7_DIR = OUTPUT;
-    RD1_IN1 = 0;
-    RD1_IN2 = 0;
-    RD1_IN3 = 0;
-    RD1_IN4 = 0;
-    RD1_IN5 = 0;
-    RD1_IN6 = 0;
-    RD1_IN7 = 0;
     
+    // Box 1 I/O
+    pinMode(X1_NC_B1, OUTPUT);
+    pinMode(X1_NC_B2, OUTPUT);
+    pinMode(X1_NE555_B1, OUTPUT);
+    pinMode(X1_NE555_B2, OUTPUT);
+    pinMode(X1_SLP_B1, OUTPUT);
+    pinMode(X1_SLP_B2, OUTPUT);
+    pinMode(X1_PWM_B1, OUTPUT);
+    pinMode(X2_PWM_B2, OUTPUT);
+    
+    // Box 2 I/O
     // TODO
-    // NC Relays High
-    // PWM Drivers deactivated
-    // 555 Timer Lines High
-    // Main purge LOW
-    // Deflations LOW
+    
+    // Valve I/0
+    // TODO
+    
+    // Box 1: Turn on NC Relays, Disable Sleep, hold PWM low
+    digitalWrite(X1_NC_B1, 1);
+    digitalWrite(X1_NC_B2, 1);
+    digitalWrite(X1_SLP_B1, 1);
+    digitalWrite(X1_PWM_B1, 0);
+    digitalWrite(X1_PWM_B2, 0);
+    
+    // Box 1: Turn on NC Relays, Disable Sleep, hold PWM low
+    // TODO
 
+    // Valve Initialization
+    // TODO (Main purge LOW, Main purge LOW)
     return true;
 }
 
 bool BCM_broadcast_handler(void) {
     switch (receiving.message_num) {
-
         case DASH_BCM_AIRACTUATE: inflate(); break;
-
-        case DASH_BCM_BRAKEACTUATE: break;
-
+        case DASH_BCM_BRAKEACTUATE: parseBAmessage(); break;
         case DASH_BCM_ABS_STATE: break;
     }
     return true;
@@ -90,7 +139,7 @@ bool BCM_message_handler(void) {
         
         case DASH_BCM_AIRACTUATE: inflate(); break;
 
-        case DASH_BCM_BRAKEACTUATE: break;
+        case DASH_BCM_BRAKEACTUATE: parseBAmessage(); break;
 
         case DASH_BCM_ABS_STATE: break;
     }
@@ -104,7 +153,10 @@ bool BCM_message_handler(void) {
 /*                        Data Processing & Unit Conversions                  */
 /******************************************************************************/
 void BCM_data_process_handler(void) {
-    
+    if (timer45Event) {
+        sendBrakeState(ALL);
+        timer45Event = false;
+    }
 }
 /******************************************************************************/
 /******************************************************************************/
@@ -118,7 +170,6 @@ void BCM_faultHandler(void) {
 }
 
 void BCM_dashctlHandler(void) {
-    
     
 }
 
@@ -166,7 +217,11 @@ void BCM_safeHandler(void) {
 /*                        Serial Debugging Utilities                          */
 /******************************************************************************/
 void BCM_printVariables(void) {
-    printf("TODO\r\n");
+    printf("=================================================\r\n");
+    printf("Air System State: %s\r\n", airStr[airss]);
+    printf("p_b1: %3d p_b2: %3d p_b3: %3d p_b4: %3d\r\n", prev_b1Intensity, prev_b2Intensity, prev_b3Intensity, prev_b4Intensity);
+    printf("  b1: %3d   b2: %3d   b3: %3d   b4: %3d\r\n", b1Intensity, b2Intensity, b3Intensity, b4Intensity);
+    printf("=================================================\r\n");
 }
 /******************************************************************************/
 /******************************************************************************/

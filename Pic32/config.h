@@ -7,7 +7,7 @@
 //#define LED_SHIELD_PRESENT  1   // this asserts that the custom LED proto-shield will be present and can be used
 #define PCB_PRESENT         1
 
-#define BUILD_VERSION       v0.0.6
+#define BUILD_VERSION       v0.0.8
 
 // Specify before building which board is doing what
 // i.e. which board number has which PCB attached
@@ -15,14 +15,17 @@
 #define BOARD2_ROLE         NOT_PRESENT
 #define BOARD3_ROLE         NOT_PRESENT
 #define BOARD4_ROLE         BCM
-#define BOARD5_ROLE         NOT_PRESENT
-#define BOARD6_ROLE         NOT_PRESENT
+#define BOARD5_ROLE         VSM
+#define BOARD6_ROLE         MCM
 #define BOARD7_ROLE         NOT_PRESENT
 #define BOARD8_ROLE         NOT_PRESENT
 
 #define DEBUG_DEFAULT       false
 
-#define SEND_FAULT_TIMEOUT  1000    // ms
+#define SEND_FAULT_TIMEOUT      1000*250    // ms
+#define GLOBAL_SEND_INTERVAL    5000
+#define TMR45                   ((TMR5 << 16) | TMR4)
+#define CHECK_SEND_CAN_TO       currTime - SEND_FAULT_TIMEOUT > lastSentTimeout && currTime > currTime - SEND_FAULT_TIMEOUT 
 
 //#define RUN_RDY             1
 /******************************************************************************/

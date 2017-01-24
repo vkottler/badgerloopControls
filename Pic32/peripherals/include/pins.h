@@ -9,6 +9,8 @@
 #include <ctype.h>
 #include "../../serial_debug.h"
 
+// WARNING: Max32 pin 51 and 43 are the same Pic32 processor pin!!
+
 #ifndef OUTPUT
 #define OUTPUT          0
 #endif

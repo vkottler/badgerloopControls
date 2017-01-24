@@ -23,7 +23,7 @@ const char *timestamp = TIMESTAMP(BUILD_VERSION);
 
 // Partially only for during testing
 uint8_t num_endpoints = 0;
-volatile bool adcSampleReady = false, sendFaultAvailable = true;
+volatile bool adcSampleReady = false, sendFaultAvailable = true, timer45Event = false;
 /******************************************************************************/
 /******************************************************************************/
 

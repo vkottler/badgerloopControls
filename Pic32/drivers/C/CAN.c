@@ -7,6 +7,8 @@ static volatile unsigned int numOverflows = 0;
 static volatile unsigned int timeOfLastMessage = 0;
 static unsigned int *receivePointer;
 
+static unsigned int lastSentTimeout = 0, currTime = 0;
+
 /*
  * Chosen FIFO usage:
  * 0: Receive, Mask: 0x400
@@ -194,7 +196,11 @@ void check_bus_integrity(void) {
 //
 // Returns true/false based on whether or not it's possible to send the message currently
 bool CAN_send(void) {
-    if (!CAN_SFR(FIFOINT2bits, CAN_MAIN).TXNFULLIF) return false;   // wait until FIFO is not full
+    if (!CAN_SFR(FIFOINT2bits, CAN_MAIN).TXNFULLIF) {
+        fault = CAN_OUT_FULL_ERROR;
+        next_state = fault;
+        return false;   // wait until FIFO is not full
+    }
     if (debuggingOn) CAN_message_dump(sending, true);
     CAN_SFR(FIFOCON2SET, CAN_MAIN) = 0x2000;     // increment pointer for fifo
     CAN_SFR(FIFOCON2bits, CAN_MAIN).TXREQ = 1;   // tell CAN to send message
@@ -205,7 +211,11 @@ bool CAN_send(void) {
 //
 // Returns true/false based on whether or not it's possible to send the message currently
 bool CAN_broadcast(void) {
-    if (!CAN_SFR(FIFOINT3bits, CAN_MAIN).TXNFULLIF) return false;
+    if (!CAN_SFR(FIFOINT3bits, CAN_MAIN).TXNFULLIF) {
+        fault = CAN_OUT_FULL_ERROR;
+        next_state = fault;
+        return false;
+    }
     if (debuggingOn) CAN_message_dump(sending, true);
     CAN_SFR(FIFOCON3SET, CAN_MAIN) = 0x2000;     // increment pointer for fifo
     CAN_SFR(FIFOCON3bits, CAN_MAIN).TXREQ = 1;   // tell CAN to send message
@@ -259,11 +269,15 @@ inline void load_state(void) {
 }
 
 void CAN_send_fault(void) {
-    setupBroadcast();
-    sending->SIZE = 6;
-    sending->message_num = FAULT;
-    load_state();
-    if (!CAN_broadcast()) fault = CAN_OUT_FULL_ERROR;
+    currTime = TMR45;
+    if (CHECK_SEND_CAN_TO) {
+        lastSentTimeout = currTime;
+        setupBroadcast();
+        sending->SIZE = 6;
+        sending->message_num = FAULT;
+        load_state();
+        if (!CAN_broadcast()) fault = CAN_OUT_FULL_ERROR;
+    }
 }
 
 bool CAN_send_heartbeat(bool fake) {
@@ -331,7 +345,7 @@ void CAN_message_dump(CAN_MESSAGE *message, bool outgoing) {
                 stateStr[message->byte2], stateStr[message->byte3], stateStr[message->byte4]);
     else if (message->message_num == PING_BACK || message->message_num == SOFTWARE_VER)
         printf("\t[%s]", message->bytes);
-    else for (i = 1; i < message->SIZE - 1; i++) printf("[0x%2x] ", message->bytes[i]);
+    else for (i = 0; i < message->SIZE - 1; i++) printf("[0x%2x] ", message->bytes[i]);
     printf("\r\n");
 }
 
