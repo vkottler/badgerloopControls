@@ -40,8 +40,8 @@
 #define X2_SLP_B3	31
 #define X2_SLP_B4	24
 
-#define MT_VALVE    48
-#define VALVES      47
+#define MT_VALVE    47
+#define VALVES      48
 
 bool BCM_init_periph(void);
 bool BCM_broadcast_handler(void);
