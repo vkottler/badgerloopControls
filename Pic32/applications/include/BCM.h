@@ -5,6 +5,22 @@
 #include "../../drivers/include/CAN.h"
 #include "../../drivers/include/inputCapture.h"
 #include "../../peripherals/include/ledShield.h"
+#include "../../drivers/include/PWM.h"
+
+#define B1_OC           3
+#define B2_OC           4
+#define B3_OC           1
+#define B4_OC           2
+
+#define B1_IC           4   // pin 49
+#define B2_IC           3   // pin 38
+#define B3_IC           2   // pin 74
+#define B4_IC           5   // pin 8
+#define B1_EI           _IC4E
+#define B2_EI           _IC3E
+#define B3_EI           _IC2E
+#define B4_EI           _IC5E
+#define BCM_READINGS    2
 
 #define X1_NC_B1	53
 #define X1_NC_B2	52
@@ -23,6 +39,9 @@
 #define X2_PWM_B4	5	// output compare 2 (pin 5)
 #define X2_SLP_B3	31
 #define X2_SLP_B4	24
+
+#define MT_VALVE    48
+#define VALVES      47
 
 bool BCM_init_periph(void);
 bool BCM_broadcast_handler(void);

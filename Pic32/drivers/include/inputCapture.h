@@ -7,6 +7,15 @@
 #include <stdint.h>
 #include "timers.h"
 
+#define IC_TIMER            startTimer2
+#define IC_TIMER_ON         timer2Started
+#define IC_OVERFLOW         timer2Overflow
+#define IC_ISR              true
+#define IC_PRESCALAR        256
+#define IC_PERIOD           50000
+
+#define TIMER_FREQ          250000
+
 #define IC1_DIR TRISDbits.TRISD8        // Pin 48 (IC1)
 #define IC2_DIR TRISDbits.TRISD9        // Pin 74 (IC2)
 #define IC3_DIR TRISDbits.TRISD10       // Pin 38 (IC3)
@@ -50,6 +59,12 @@
 void inputCapInit(int module, uint8_t events_per_int);
 unsigned int getRPM(unsigned int delta);
 unsigned int getFrequency(unsigned int delta);
+
+uint16_t IC1_rpm(void);
+uint16_t IC2_rpm(void);
+uint16_t IC3_rpm(void);
+uint16_t IC4_rpm(void);
+uint16_t IC5_rpm(void);
 
 void IC1Interrupt(void);
 void IC2Interrupt(void);

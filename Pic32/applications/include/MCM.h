@@ -14,10 +14,6 @@
 // HB4 (right rear):    Pin 49 is IC4
 
 #define WHEEL_READINGS                  2
-#define RIGHT_FRONT_ENABLE_INT          _IC5E
-#define LEFT_FRONT_ENABLE_INT           _IC2E
-#define RIGHT_REAR_ENABLE_INT           _IC4E
-#define LEFT_REAR_ENABLE_INT            _IC1E
 
 bool MCM_init_periph(void);
 bool MCM_broadcast_handler(void);

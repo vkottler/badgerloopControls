@@ -1,9 +1,5 @@
 #include "../include/MCM.h"
 
-volatile bool *left_front_HB_rdy, *right_front_HB_rdy, *left_rear_HB_rdy, *right_rear_HB_rdy;
-
-volatile unsigned int *left_front_readings, *right_front_readings, *back_left_readings, *back_right_readings;
-
 uint16_t left_front_rpm = 0, right_front_rpm = 0, left_rear_rpm = 0, right_rear_rpm = 0;
 
 uint16_t commanded_speed = 0, new_speed = 0;
@@ -24,35 +20,35 @@ void stop_wheels(void) {
 /******************************************************************************/
 /*                             Outgoing Messages                              */
 /******************************************************************************/
-bool send_wheel_rpms(void) {
+bool send_wheel_rpms(uint16_t SID) {
     bool result = true;
     
-    setupBroadcast();
+    (SID & ALL) ? setupBroadcast() : setupMessage(SID);
     sending->SIZE = 5;
     sending->message_num = MCM_HB_SPEED1;
     sending->byte0 = left_front_rpm >> 8;
     sending->byte1 = left_front_rpm & 0xff;
     sending->byte2 = right_front_rpm >> 8;
     sending->byte3 = right_front_rpm & 0xff;
-    result = CAN_broadcast();
+    result = (SID & ALL) ? CAN_broadcast() : CAN_send();
     
-    setupBroadcast();
+    (SID & ALL) ? setupBroadcast() : setupMessage(SID);
     sending->SIZE = 5;
     sending->message_num = MCM_HB_SPEED2;
     sending->byte0 = left_rear_rpm >> 8;
     sending->byte1 = left_rear_rpm & 0xff;
     sending->byte2 = right_rear_rpm >> 8;
     sending->byte3 = right_rear_rpm & 0xff;
-    return result && CAN_broadcast();
+    return ((SID & ALL) ? CAN_broadcast() : CAN_send()) && result;
 }
 
-bool send_cmdv(ROLE to) {
-    setupMessage(ROLEtoSID(to));
+bool send_cmdv(uint16_t SID) {
+    (SID & ALL) ? setupBroadcast() : setupMessage(SID);
     sending->SIZE = 3;
     sending->message_num = MCM_CMDV;
     sending->byte0 = commanded_speed >> 8;
     sending->byte1 = commanded_speed & 0xff;
-    return CAN_send();
+    return (SID & ALL) ? CAN_broadcast() : CAN_send();
 }
 /******************************************************************************/
 /******************************************************************************/
@@ -61,47 +57,23 @@ bool send_cmdv(ROLE to) {
 /******************************************************************************/
 /*                        Data Processing & Unit Conversions                  */
 /******************************************************************************/
-void compute_wheel_rpms(void) {
-    uint8_t i;
-    unsigned int averageInterval = 0;
-    if (*left_front_HB_rdy) {
-        LEFT_FRONT_ENABLE_INT = 0;
-        for (i = 0; i < WHEEL_READINGS - 1; i++) averageInterval += left_front_readings[i + 1] - left_front_readings[i];
-        averageInterval = averageInterval / (WHEEL_READINGS - 1);
-        left_front_rpm = getRPM(averageInterval) & 0xffff;
-        *left_front_HB_rdy = false;
-        LEFT_FRONT_ENABLE_INT = 1;
-    }
-    if (*right_front_HB_rdy) {
-        RIGHT_FRONT_ENABLE_INT = 0;
-        for (i = 0; i < WHEEL_READINGS - 1; i++) averageInterval += right_front_readings[i + 1] - right_front_readings[i];
-        averageInterval = averageInterval / (WHEEL_READINGS - 1);
-        right_front_rpm = getRPM(averageInterval) & 0xffff;
-        *right_front_HB_rdy = false;
-        RIGHT_FRONT_ENABLE_INT = 1;        
-    }
-    if (*left_rear_HB_rdy) {
-        LEFT_REAR_ENABLE_INT = 0;
-        for (i = 0; i < WHEEL_READINGS - 1; i++) averageInterval += left_front_readings[i + 1] - left_front_readings[i];
-        averageInterval = averageInterval / (WHEEL_READINGS - 1);
-        left_rear_rpm = getRPM(averageInterval) & 0xffff;
-        *left_rear_HB_rdy = false;
-        LEFT_REAR_ENABLE_INT = 1;        
-    }
-    if (*right_rear_HB_rdy) {
-        RIGHT_REAR_ENABLE_INT = 0;
-        for (i = 0; i < WHEEL_READINGS - 1; i++) averageInterval += left_front_readings[i + 1] - left_front_readings[i];
-        averageInterval = averageInterval / (WHEEL_READINGS - 1);
-        right_rear_rpm = getRPM(averageInterval) & 0xffff;
-        *right_rear_HB_rdy = false;
-        RIGHT_REAR_ENABLE_INT = 1;         
-    }
+void MCM_compute_wheel_rpms(void) {
+    left_front_rpm =    IC2_rpm();
+    right_front_rpm=    IC5_rpm();
+    left_rear_rpm =     IC1_rpm();
+    right_rear_rpm =    IC4_rpm();
+}
+
+void check_cmdv(void) {
+    
 }
 
 void MCM_data_process_handler(void) {
-    compute_wheel_rpms();
+    MCM_compute_wheel_rpms();
+    check_cmdv();
     if (timer45Event) {
-        send_cmdv(WCM);
+        send_cmdv(ALL);
+        send_wheel_rpms(ALL);
         timer45Event = false;
     }
 }
@@ -139,14 +111,6 @@ bool MCM_init_periph(void) {
     inputCapInit(5, WHEEL_READINGS);
     inputCapInit(1, WHEEL_READINGS);
     inputCapInit(4, WHEEL_READINGS);
-    left_front_HB_rdy = &IC2ready;
-    right_front_HB_rdy = &IC5ready;
-    left_rear_HB_rdy = &IC1ready;
-    right_rear_HB_rdy = &IC4ready;
-    left_front_readings = IC2times;
-    right_front_readings = IC5times;
-    back_left_readings = IC1times;
-    back_right_readings = IC4times;
     return true;
 }
 
@@ -233,10 +197,6 @@ void MCM_safeHandler(void) {
 /*                        Serial Debugging Utilities                          */
 /******************************************************************************/
 void MCM_printVariables(void) {
-    printf("L F RDY: %s\t", *left_front_HB_rdy ? "true" : "false");
-    printf("R F RDY: %s\r\n", *right_front_HB_rdy ? "true" : "false");
-    printf("L R RDY: %s\t", *left_rear_HB_rdy ? "true" : "false");
-    printf("R R RDY: %s\r\n", *right_rear_HB_rdy ? "true" : "false");
     printf("L F RPM: %4d\t", left_front_rpm);
     printf("R F RPM: %4d\r\n", right_front_rpm);
     printf("L R RPM: %4d\t", left_rear_rpm);

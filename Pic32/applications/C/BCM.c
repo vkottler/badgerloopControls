@@ -1,11 +1,14 @@
 #include "../include/BCM.h"
 
 bool toldToInflate = false;
+bool brakingReady = false;
 
 uint8_t b1Intensity = 0, prev_b1Intensity = 0, 
         b2Intensity = 0, prev_b2Intensity = 0,
         b3Intensity = 0, prev_b3Intensity = 0,
         b4Intensity = 0, prev_b4Intensity = 0;
+
+uint16_t B1_rpm = 0, B2_rpm = 0, B3_rpm = 0, B4_rpm = 0;
 
 uint8_t pressure1 = 0, pressure2 = 0;
 
@@ -13,28 +16,17 @@ uint8_t pressure1 = 0, pressure2 = 0;
 /*                                     Utility                                */
 /******************************************************************************/
 inline void inflate(void) {
-    // Main purge HIGH
-    // Deflations HIGH
+    digitalWrite(MT_VALVE, 1);
+    digitalWrite(VALVES, 1);
     toldToInflate = true;
     airss = PURGE_OPEN;
     if (state == DASH_CTL) next_state = READY_FOR_LAUNCH;
 }
 
-inline void b1Brake() {
-    
-}
-
-inline void b2Brake() {
-    
-}
-
-inline void b3Brake() {
-    
-}
-
-inline void b4Brake() {
-    
-}
+inline void b1Brake() { PWM_set_period(B1_OC, b1Intensity); }
+inline void b2Brake() { PWM_set_period(B2_OC, b2Intensity); }
+inline void b3Brake() { PWM_set_period(B3_OC, b3Intensity); }
+inline void b4Brake() { PWM_set_period(B4_OC, b4Intensity); }
 
 void parseBAmessage(void) {
     prev_b1Intensity = b1Intensity;
@@ -102,6 +94,16 @@ bool BCM_init_periph(void) {
     pinMode(X1_SLP_B2, OUTPUT);
     pinMode(X1_PWM_B1, OUTPUT);
     pinMode(X1_PWM_B2, OUTPUT);
+    PWM_init(B1_OC);
+    PWM_init(B2_OC);
+    
+    // Box 1: Turn on NC Relays, Disable Sleep, hold PWM low
+    digitalWrite(X1_NC_B1, 1);
+    digitalWrite(X1_NC_B2, 1);
+    digitalWrite(X1_SLP_B1, 1);
+    digitalWrite(X1_SLP_B2, 1);
+    digitalWrite(X1_PWM_B1, 0);
+    digitalWrite(X1_PWM_B2, 0);
     
     // Box 2 I/O
     pinMode(X2_NC_B3, OUTPUT);
@@ -112,34 +114,37 @@ bool BCM_init_periph(void) {
     pinMode(X2_SLP_B4, OUTPUT);
     pinMode(X2_PWM_B3, OUTPUT);
     pinMode(X2_PWM_B4, OUTPUT);
+    PWM_init(B3_OC);
+    PWM_init(B4_OC);
     
-    // Valve I/0
-    // TODO
-    
-    // Box 1: Turn on NC Relays, Disable Sleep, hold PWM low
-    digitalWrite(X1_NC_B1, 1);
-    digitalWrite(X1_NC_B2, 1);
-    digitalWrite(X1_SLP_B1, 1);
-    digitalWrite(X1_SLP_B2, 1);
-    digitalWrite(X1_PWM_B1, 0);
-    digitalWrite(X1_PWM_B2, 0);
-    
-    // Box 1: Turn on NC Relays, Disable Sleep, hold PWM low
+    // Box 2: Turn on NC Relays, Disable Sleep, hold PWM low
     digitalWrite(X2_NC_B3, 1);
     digitalWrite(X2_NC_B4, 1);
     digitalWrite(X2_SLP_B3, 1);
     digitalWrite(X2_SLP_B4, 1);
     digitalWrite(X2_PWM_B3, 0);
     digitalWrite(X2_PWM_B4, 0);
-
+    
+    // Valve I/0
+    pinMode(MT_VALVE, OUTPUT);
+    pinMode(VALVES, OUTPUT);
+    
     // Valve Initialization
-    // TODO (Main purge LOW, Main purge LOW)
+    digitalWrite(MT_VALVE, 0);
+    digitalWrite(VALVES, 0);
+    
+    // Braking wheel retros
+    inputCapInit(B1_IC, BCM_READINGS);
+    inputCapInit(B2_IC, BCM_READINGS);
+    inputCapInit(B3_IC, BCM_READINGS);
+    inputCapInit(B4_IC, BCM_READINGS);
+    
     return true;
 }
 
 bool BCM_broadcast_handler(void) {
     switch (receiving.message_num) {
-        case DASH_BCM_AIRACTUATE: inflate();            break;
+        case DASH_BCM_AIRACTUATE:   inflate();          break;
         case DASH_BCM_BRAKEACTUATE: parseBAmessage();   break;
         case DASH_BCM_ABS_STATE:                        break;
     }
@@ -148,7 +153,7 @@ bool BCM_broadcast_handler(void) {
 
 bool BCM_message_handler(void) {
     switch (receiving.message_num) {
-        case DASH_BCM_AIRACTUATE: inflate();            break;
+        case DASH_BCM_AIRACTUATE:   inflate();          break;
         case DASH_BCM_BRAKEACTUATE: parseBAmessage();   break;
         case DASH_BCM_ABS_STATE:                        break;
     }
@@ -161,6 +166,13 @@ bool BCM_message_handler(void) {
 /******************************************************************************/
 /*                        Data Processing & Unit Conversions                  */
 /******************************************************************************/
+void BCM_compute_wheel_rpms(void) {
+    B1_rpm = IC3_rpm();
+    B2_rpm = IC4_rpm();
+    B3_rpm = IC1_rpm();
+    B4_rpm = IC2_rpm();
+}
+
 void BCM_data_process_handler(void) {
     if (timer45Event) {
         sendBrakeState(ALL);
@@ -175,12 +187,15 @@ void BCM_data_process_handler(void) {
 /*                    Module Specific State Behavior Handlers                 */
 /******************************************************************************/
 void BCM_dashctlHandler(void) {
-    
+
 }
 
+// The only way to get here is by receiving INFLATE message
 void BCM_rflHandler(void) {
-    // Main Purge:          High
-    // Deflation Valves:    High
+    if (!brakingReady) {
+        
+        brakingReady = true;
+    }
 }
 
 void BCM_pushphaseHandler(void) {
