@@ -102,10 +102,17 @@ bool BCM_init_periph(void) {
     pinMode(X1_SLP_B1, OUTPUT);
     pinMode(X1_SLP_B2, OUTPUT);
     pinMode(X1_PWM_B1, OUTPUT);
-    pinMode(X2_PWM_B2, OUTPUT);
+    pinMode(X1_PWM_B2, OUTPUT);
     
     // Box 2 I/O
-    // TODO
+    pinMode(X2_NC_B3, OUTPUT);
+    pinMode(X2_NC_B4, OUTPUT);
+    pinMode(X2_NE555_B3, OUTPUT);
+    pinMode(X2_NE555_B4, OUTPUT);
+    pinMode(X2_SLP_B3, OUTPUT);
+    pinMode(X2_SLP_B4, OUTPUT);
+    pinMode(X2_PWM_B3, OUTPUT);
+    pinMode(X2_PWM_B4, OUTPUT);
     
     // Valve I/0
     // TODO
@@ -114,11 +121,17 @@ bool BCM_init_periph(void) {
     digitalWrite(X1_NC_B1, 1);
     digitalWrite(X1_NC_B2, 1);
     digitalWrite(X1_SLP_B1, 1);
+    digitalWrite(X1_SLP_B2, 1);
     digitalWrite(X1_PWM_B1, 0);
     digitalWrite(X1_PWM_B2, 0);
     
     // Box 1: Turn on NC Relays, Disable Sleep, hold PWM low
-    // TODO
+    digitalWrite(X2_NC_B3, 1);
+    digitalWrite(X2_NC_B4, 1);
+    digitalWrite(X2_SLP_B3, 1);
+    digitalWrite(X2_SLP_B4, 1);
+    digitalWrite(X2_PWM_B3, 0);
+    digitalWrite(X2_PWM_B4, 0);
 
     // Valve Initialization
     // TODO (Main purge LOW, Main purge LOW)
@@ -127,21 +140,18 @@ bool BCM_init_periph(void) {
 
 bool BCM_broadcast_handler(void) {
     switch (receiving.message_num) {
-        case DASH_BCM_AIRACTUATE: inflate(); break;
-        case DASH_BCM_BRAKEACTUATE: parseBAmessage(); break;
-        case DASH_BCM_ABS_STATE: break;
+        case DASH_BCM_AIRACTUATE: inflate();            break;
+        case DASH_BCM_BRAKEACTUATE: parseBAmessage();   break;
+        case DASH_BCM_ABS_STATE:                        break;
     }
     return true;
 }
 
 bool BCM_message_handler(void) {
     switch (receiving.message_num) {
-        
-        case DASH_BCM_AIRACTUATE: inflate(); break;
-
-        case DASH_BCM_BRAKEACTUATE: parseBAmessage(); break;
-
-        case DASH_BCM_ABS_STATE: break;
+        case DASH_BCM_AIRACTUATE: inflate();            break;
+        case DASH_BCM_BRAKEACTUATE: parseBAmessage();   break;
+        case DASH_BCM_ABS_STATE:                        break;
     }
     return true;
 }
@@ -166,7 +176,7 @@ void BCM_data_process_handler(void) {
 /*                    Module Specific State Behavior Handlers                 */
 /******************************************************************************/
 void BCM_faultHandler(void) {
-    redOn();
+    (fault == HEALTHY) ? greenOn() : redOn();
 }
 
 void BCM_dashctlHandler(void) {
