@@ -72,9 +72,9 @@ void MCM_data_process_handler(void) {
     MCM_compute_wheel_rpms();
     check_cmdv();
     if (timer45Event) {
+        MCM_printVariables();
         //send_cmdv(ALL);
         //send_wheel_rpms(ALL);
-        MCM_printVariables();
         timer45Event = false;
     }
 }

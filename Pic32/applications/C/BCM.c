@@ -175,8 +175,7 @@ void BCM_compute_wheel_rpms(void) {
 
 void BCM_data_process_handler(void) {
     if (timer45Event) {
-        //sendBrakeState(ALL);
-        BCM_printVariables();
+        sendBrakeState(ALL);
         timer45Event = false;
     }
 }

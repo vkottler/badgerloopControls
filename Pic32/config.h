@@ -20,7 +20,7 @@
 #define BOARD7_ROLE         NOT_PRESENT
 #define BOARD8_ROLE         NOT_PRESENT
 
-#define DEBUG_DEFAULT       true
+#define DEBUG_DEFAULT       false
 
 #define SEND_FAULT_TIMEOUT      1000*250    // ms
 #define GLOBAL_SEND_INTERVAL    100

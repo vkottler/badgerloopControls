@@ -11,7 +11,7 @@ ROLE ourRole = NOT_PRESENT;
 
 volatile FAULT_TYPE fault = HEALTHY, prev_fault = HEALTHY;
 
-volatile STATE state = DASH_CTL, next_state = DASH_CTL, prev_state = DASH_CTL;
+volatile STATE state = DASH_CTL, next_state = DASH_CTL, prev_state = DASH_CTL, last_healthy = DASH_CTL;
 
 AIR_SYSTEM_STATE airss = DEFLATED;
 
@@ -139,6 +139,8 @@ void defaultHeartbeatHandler(void) {
 void handleFaults(void) {
     switch(fault) {
         
+        case HEALTHY: next_state = last_healthy; break;
+        
         // Unrecoverable software-related faults
         case GLOBAL_INITS_FAILED:
         case LOCAL_INIT_FAILED:
@@ -153,7 +155,7 @@ void handleFaults(void) {
         case CAN_IN_FULL_ERROR:
         case CAN_OUT_FULL_ERROR:
             CAN_send_fault();
-            next_state = prev_state;
+            next_state = last_healthy;
             break;
             
         default: 
@@ -166,7 +168,7 @@ void handleFaults(void) {
 void globalFaultHandler(void) {
     while (1) {
         printf("Unrecoverable fault: %s (previously %s)\r\n", faultStr[fault], faultStr[prev_fault]);
-        blinkBoardLights(2, 250);
+        blinkBoardLights(2, 1000);
         delay(500, MILLI);
     }
 }
@@ -182,7 +184,7 @@ void volatileHandler(void) {
     next_state = FAULT_STATE;
 }
 
-inline void change_state(STATE new_state) {
+inline void force_change_state(STATE new_state) {
     state = new_state;
     next_state = new_state;
 }
@@ -193,9 +195,10 @@ inline void setLights(void) {
 }
 
 inline void update_state(void) {
-        prev_state = state;
-        setLights();
-        state = next_state;
+    if (state != FAULT_STATE) last_healthy = state;
+    prev_state = state;
+    setLights();
+    state = next_state;
 }
 /******************************************************************************/
 /******************************************************************************/
@@ -209,7 +212,7 @@ inline void checkBroadcasts(void) {
         switch (receiving.message_num) {
             case HEARTBEAT:     heartbeatHandler();                         break;
             case PING_TO:       CAN_ping(ROLEtoSID(receiving.from), false); break;
-            case ENTER_STATE:   change_state(receiving.byte0);              break;
+            case ENTER_STATE:   force_change_state(receiving.byte0);              break;
             default:            broadcastHandler();
         }
     }    
@@ -218,7 +221,7 @@ inline void checkBroadcasts(void) {
 inline void checkMessages(void) {
     if (CAN_receive_specific()) {
         switch (receiving.message_num) {
-            case ENTER_STATE:   change_state(receiving.byte0);              break;
+            case ENTER_STATE:   force_change_state(receiving.byte0);              break;
             case PING_TO:       CAN_ping(ROLEtoSID(receiving.from), false); break;
             default:            messageHandler();
         }
