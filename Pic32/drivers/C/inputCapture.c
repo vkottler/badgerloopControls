@@ -2,9 +2,11 @@
 
 static uint16_t IC1_curr_rpm = 0, IC2_curr_rpm = 0, IC3_curr_rpm = 0, IC4_curr_rpm = 0, IC5_curr_rpm = 0;
 
-static uint16_t IC1_curr = 0, IC1_prev = 0, IC2_curr = 0, IC2_prev = 0,
+static unsigned int IC1_curr = 0, IC1_prev = 0, IC2_curr = 0, IC2_prev = 0,
                 IC3_curr = 0, IC3_prev = 0, IC4_curr = 0, IC4_prev = 0,
                 IC5_curr = 0, IC5_prev = 0;
+
+volatile unsigned int IC1count = 0, IC2count = 0, IC3count = 0, IC4count = 0, IC5count = 0;
 
 volatile unsigned int IC1filter[FILTER_LEN], IC2filter[FILTER_LEN], IC3filter[FILTER_LEN], IC4filter[FILTER_LEN], IC5filter[FILTER_LEN];
 volatile unsigned int IC1filterIndex = 0, IC2filterIndex = 0, IC3filterIndex = 0, IC4filterIndex = 0, IC5filterIndex = 0;
@@ -126,8 +128,9 @@ void inputCapInit(int module) {
 }
 
 void __ISR (_INPUT_CAPTURE_1_VECTOR, IPL1SOFT) IC1Interrupt(void) {
+    IC1count++;
     __builtin_disable_interrupts();
-    IC1filterAverageCount -= (IC1filterIndex + 1 == FILTER_LEN) ? IC1filter[0] : IC1filter[IC1filterIndex + 1];
+    IC1filterAverageCount -= IC1filter[IC1filterIndex];
     IC1_prev = IC1_curr;
     IC1_curr = IC1BUF + 50000*IC_OVERFLOW;
     IC1filter[IC1filterIndex] = IC1_curr - IC1_prev;
@@ -139,8 +142,9 @@ void __ISR (_INPUT_CAPTURE_1_VECTOR, IPL1SOFT) IC1Interrupt(void) {
 }
 
 void __ISR (_INPUT_CAPTURE_2_VECTOR, IPL1SOFT) IC2Interrupt(void) {
+    IC2count++;
     __builtin_disable_interrupts();
-    IC2filterAverageCount -= (IC2filterIndex + 1 == FILTER_LEN) ? IC2filter[0] : IC2filter[IC2filterIndex + 1];
+    IC2filterAverageCount -= IC2filter[IC2filterIndex];
     IC2_prev = IC2_curr;
     IC2_curr = IC2BUF + 50000*IC_OVERFLOW;
     IC2filter[IC2filterIndex] = IC2_curr - IC2_prev;
@@ -152,8 +156,9 @@ void __ISR (_INPUT_CAPTURE_2_VECTOR, IPL1SOFT) IC2Interrupt(void) {
 }
 
 void __ISR (_INPUT_CAPTURE_3_VECTOR, IPL1SOFT) IC3Interrupt(void) {
+    IC3count++;
     __builtin_disable_interrupts();
-    IC3filterAverageCount -= (IC3filterIndex + 1 == FILTER_LEN) ? IC3filter[0] : IC3filter[IC3filterIndex + 1];
+    IC3filterAverageCount -= IC3filter[IC3filterIndex];
     IC3_prev = IC3_curr;
     IC3_curr = IC3BUF + 50000*IC_OVERFLOW;
     IC3filter[IC3filterIndex] = IC3_curr - IC3_prev;
@@ -165,8 +170,9 @@ void __ISR (_INPUT_CAPTURE_3_VECTOR, IPL1SOFT) IC3Interrupt(void) {
 }
 
 void __ISR (_INPUT_CAPTURE_4_VECTOR, IPL1SOFT) IC4Interrupt(void) {
+    IC4count++;
     __builtin_disable_interrupts();
-    IC4filterAverageCount -= (IC4filterIndex + 1 == FILTER_LEN) ? IC4filter[0] : IC4filter[IC4filterIndex + 1];
+    IC4filterAverageCount -= IC4filter[IC4filterIndex];
     IC4_prev = IC4_curr;
     IC4_curr = IC4BUF + 50000*IC_OVERFLOW;
     IC4filter[IC4filterIndex] = IC4_curr - IC4_prev;
@@ -178,8 +184,9 @@ void __ISR (_INPUT_CAPTURE_4_VECTOR, IPL1SOFT) IC4Interrupt(void) {
 }
 
 void __ISR (_INPUT_CAPTURE_5_VECTOR, IPL1SOFT) IC5Interrupt(void) {
+    IC5count++;
     __builtin_disable_interrupts();
-    IC5filterAverageCount -= (IC5filterIndex + 1 == FILTER_LEN) ? IC5filter[0] : IC5filter[IC5filterIndex + 1];
+    IC5filterAverageCount -= IC5filter[IC5filterIndex];
     IC5_prev = IC5_curr;
     IC5_curr = IC5BUF + 50000*IC_OVERFLOW;
     IC5filter[IC5filterIndex] = IC5_curr - IC5_prev;

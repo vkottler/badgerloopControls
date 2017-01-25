@@ -8,7 +8,7 @@
 #include <string.h>
 #include "timers.h"
 
-#define FILTER_LEN          5
+#define FILTER_LEN          20
 
 #define IC_TIMER            startTimer2
 #define IC_TIMER_ON         timer2Started
@@ -76,16 +76,6 @@ void IC4Interrupt(void);
 void IC5Interrupt(void);
 void TM3Interrupt(void);
 
-extern volatile bool IC1ready;
-extern volatile bool IC2ready;
-extern volatile bool IC3ready;
-extern volatile bool IC4ready;
-extern volatile bool IC5ready;
-
-extern volatile unsigned int *IC1times;
-extern volatile unsigned int *IC2times;
-extern volatile unsigned int *IC3times;
-extern volatile unsigned int *IC4times;
-extern volatile unsigned int *IC5times;
+extern volatile unsigned int IC1count, IC2count, IC3count, IC4count, IC5count;
 
 #endif

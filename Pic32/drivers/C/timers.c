@@ -82,7 +82,7 @@ void startTimer2(uint16_t prescalar, uint16_t period, bool interrupts) {
     PR2 = period;
     if (interrupts) {
         IEC0bits.T2IE = 1;
-        IFS0bits.T3IF = 0;
+        IFS0bits.T2IF = 0;
         IPC2bits.T2IP = 1;
     }
     T2CONbits.ON = 1;

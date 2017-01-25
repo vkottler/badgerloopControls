@@ -54,7 +54,7 @@ bool checkPin(uint8_t pin) {
         case 74:
         
         // USB PWR
-        case 34: 
+        case 24: 
         
         // I2C
         case 20:

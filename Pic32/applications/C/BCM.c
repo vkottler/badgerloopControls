@@ -102,8 +102,6 @@ bool BCM_init_periph(void) {
     digitalWrite(X1_NC_B2, 1);
     digitalWrite(X1_SLP_B1, 1);
     digitalWrite(X1_SLP_B2, 1);
-    digitalWrite(X1_PWM_B1, 0);
-    digitalWrite(X1_PWM_B2, 0);
     
     // Box 2 I/O
     pinMode(X2_NC_B3, OUTPUT);
@@ -121,9 +119,7 @@ bool BCM_init_periph(void) {
     digitalWrite(X2_NC_B3, 1);
     digitalWrite(X2_NC_B4, 1);
     digitalWrite(X2_SLP_B3, 1);
-    digitalWrite(X2_SLP_B4, 1);
-    digitalWrite(X2_PWM_B3, 0);
-    digitalWrite(X2_PWM_B4, 0);
+    //digitalWrite(X2_SLP_B4, 1);
     
     // Valve I/0
     pinMode(MT_VALVE, OUTPUT);
@@ -138,6 +134,11 @@ bool BCM_init_periph(void) {
     inputCapInit(B2_IC);
     inputCapInit(B3_IC);
     inputCapInit(B4_IC);
+    
+    PWM_set_period(B1_OC, 50);
+    PWM_set_period(B2_OC, 25); 
+    PWM_set_period(B3_OC, 75);
+    PWM_set_period(B4_OC, 100);
     
     return true;
 }

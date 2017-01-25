@@ -17,27 +17,32 @@ uint8_t frontFaults = 0, rearFaults = 0, middleFaults = 0;
 bool VNM_sendPos(void) {
     setupBroadcast();
     sending->SIZE = 7;
+    sending->message_num = VNM_POS;
     sending->byte0 = px >> 8;
     sending->byte1 = px & 0xff;
     sending->byte2 = py >> 8;
     sending->byte3 = py & 0xff;
     sending->byte4 = pz >> 8;
     sending->byte5 = pz & 0xff;
+    return CAN_broadcast();
 }
 
 bool VNM_sendVel(void) {
     setupBroadcast();
     sending->SIZE = 7;
+    sending->message_num = VNM_VEL;
     sending->byte0 = vx >> 8;
     sending->byte1 = vx & 0xff;
     sending->byte2 = vy >> 8;
     sending->byte3 = vy & 0xff;
     sending->byte4 = vz >> 8;
     sending->byte5 = vz & 0xff;
+    return CAN_broadcast();
 }
 
 bool VNM_sendAcc(void) {
-    setupMessage(WCM);
+    setupBroadcast();
+    sending->message_num = VNM_ACC;
     sending->SIZE = 7;
     sending->byte0 = ax >> 8;
     sending->byte1 = ax & 0xff;
@@ -45,14 +50,36 @@ bool VNM_sendAcc(void) {
     sending->byte3 = ay & 0xff;
     sending->byte4 = az >> 8;
     sending->byte5 = az & 0xff;
+    return CAN_broadcast();
 }
 
 bool VNM_sendAtt(void) {
-    setupMessage(WCM);
+    setupBroadcast();
     sending->SIZE = 7;
     // pitch
     // roll
     // yaw
+}
+
+bool VNM_sendStrip(void) {
+    setupBroadcast();
+    sending->message_num = VNM_STRIP_COUNT;
+    sending->SIZE = 7;
+    sending->byte0 = FRONT_COUNT >> 8;
+    sending->byte1 = FRONT_COUNT & 0xff;
+    sending->byte2 = MIDDLE_COUNT >> 8;
+    sending->byte3 = MIDDLE_COUNT & 0xff;
+    sending->byte4 = REAR_COUNT >> 8;
+    sending->byte5 = REAR_COUNT & 0xff;
+    return CAN_broadcast();
+}
+
+bool VNM_sendLost(void) {
+    setupBroadcast();
+    sending->message_num = VNM_STRIPLOST;
+    sending->SIZE = 1;
+    return CAN_broadcast();
+    
 }
 /******************************************************************************/
 /******************************************************************************/
@@ -112,9 +139,22 @@ void VNM_data_process_handler(void) {
         MPUread(&accelData);
         VNM_getMPU = false;
     }
-    if (FRONT_MISS) frontFaults++;
-    if (MIDDLE_MISS) middleFaults++;
-    if (REAR_MISS) rearFaults++;
+    if (FRONT_MISS) {
+        VNM_sendLost();
+        frontFaults++;
+    }
+    if (MIDDLE_MISS) {
+        VNM_sendLost();
+        middleFaults++;
+    }
+    if (REAR_MISS) {
+        VNM_sendLost();
+        rearFaults++;
+    }
+    if (timer45Event) {
+        VNM_sendStrip();
+        timer45Event = false;
+    }
 }
 /******************************************************************************/
 /******************************************************************************/

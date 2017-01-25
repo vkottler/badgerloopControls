@@ -10,9 +10,13 @@
 
 #define MPU_SAMPLE_PERIOD       100         // in ms
 
-#define FRONT_MISS  IC1CONbits.ICOV
-#define MIDDLE_MISS IC4CONbits.ICOV
-#define REAR_MISS   IC5CONbits.ICOV
+#define FRONT_MISS      IC1CONbits.ICOV
+#define MIDDLE_MISS     IC4CONbits.ICOV
+#define REAR_MISS       IC5CONbits.ICOV
+
+#define FRONT_COUNT     IC1count
+#define MIDDLE_COUNT    IC4count
+#define REAR_COUNT      IC5count
 
 // Front  Retro: Pin 48 (IC1)
 // Middle Retro: Pin 49 (IC4)
