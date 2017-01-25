@@ -29,12 +29,20 @@ void printResets(void) {
     printf("\r\n");
 }
 
+void printMessages(void) {
+    uint8_t i;
+    printf("\r\n-----------------------------------\r\n");
+    for (i = 0; i < NUM_CAN_MESSAGES; i++) printf("(%d) %s\r\n", i, messageStr[i]);
+    printf("-----------------------------------\r\n");
+}
+
 /******************************************************************************/
 /*                          Live Debugging Related                            */
 /******************************************************************************/
 char uartReceive[50];
 
 void Serial_Debug_Handler(void) {
+    uint8_t bIntensity = 0;
     if (!debuggingOn) {
         printf("\r\n\r\n-----------------------------------\r\n");
         printf("  Debugging enabled automatically\r\n");
@@ -58,8 +66,11 @@ void Serial_Debug_Handler(void) {
         { debuggingOn = true; printf("Serial now on.\r\n"); }
     else if (!strcmp(uartReceive, "serialOff") || !strcmp(uartReceive, "debugOff") || !strcmp(uartReceive, "quit")) 
         { debuggingOn = false; printf("Serial now off.\r\n"); }
-    else if (!strcmp(uartReceive, "build") || !strcmp(uartReceive, "version")) 
-        printVersion();
+    else if (!strcmp(uartReceive, "build") || !strcmp(uartReceive, "version")) printVersion();
+    else if (!strcmp(uartReceive, "messages")) printMessages();
+    else if (!strcmp(uartReceive, "inflate") && ourRole == BCM) inflate();
+    else if (!strcmp(uartReceive, "deflate") && ourRole == BCM) deflate();
+    else if (!strcmp(uartReceive, "ready brakes") && ourRole == BCM) readyBrakes();
     else if (!strcmp(uartReceive, "variables")) {
         switch (ourRole) {
             case VNM: VNM_printVariables(); break;
@@ -74,9 +85,19 @@ void Serial_Debug_Handler(void) {
     else if (!strcmp(uartReceive, "ping VNM")) { if (ourRole != VNM) CAN_ping(VNM_SID, true); }
     else if (!strcmp(uartReceive, "ping WCM")) { if (ourRole != WCM) CAN_ping(WCM_SID, true); }
     else if (!strcmp(uartReceive, "ping all")) CAN_ping(ALL, true);
+    else if (!strcmp(uartReceive, "CAN auto off")) CAN_autosend = false;
+    else if (!strcmp(uartReceive, "CAN auto on")) CAN_autosend = true;
     else if (!strncmp(uartReceive, "pin", 3)) { 
         if (strlen(uartReceive) >= 8) pinHandler(uartReceive+4);
         else printf("Usage: pin XX on/off. You typed: %s\r\n", uartReceive);
+    }
+    else if (!strncmp(uartReceive, "b", 1) && strlen(uartReceive) >= 4 && ourRole == BCM) {
+        bIntensity = atoi(uartReceive+3);
+        if (uartReceive[1] - '0' > 0 && uartReceive[1] - '0' < 5 && bIntensity >= 0 && bIntensity <= 100) {
+            setBrakeIntensity(uartReceive[1] - '0', bIntensity);
+            printf("Brake %d on at %d%%", uartReceive[1] - '0', bIntensity);
+        }
+        else printf("Cannot actuate brake %d at %d%%.\r\n", uartReceive[1] - '0', bIntensity);
     }
     else printf("Did not recognize: '%s'\r\n", uartReceive);
 }

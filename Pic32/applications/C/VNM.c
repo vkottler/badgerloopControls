@@ -152,7 +152,9 @@ void VNM_data_process_handler(void) {
         rearFaults++;
     }
     if (timer45Event) {
-        VNM_sendStrip();
+        if (CAN_autosend) {
+            VNM_sendStrip();
+        }
         timer45Event = false;
     }
 }

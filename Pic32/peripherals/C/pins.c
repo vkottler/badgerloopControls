@@ -48,7 +48,7 @@ bool checkPin(uint8_t pin) {
             
         // IC
         case 8:
-        case 48:
+        //case 48:
         case 49:
         case 38:
         case 74:

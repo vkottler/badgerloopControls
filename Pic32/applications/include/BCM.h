@@ -46,6 +46,10 @@ bool BCM_init_periph(void);
 bool BCM_broadcast_handler(void);
 bool BCM_message_handler(void);
 
+void inflate(void);
+void deflate(void);
+void readyBrakes(void);
+
 void BCM_data_process_handler(void);
 
 // State Handlers

@@ -27,9 +27,9 @@ const char *faultStr[] = {
 const char *messageStr[] = {
     "INVALID",
 
-    "HEARTBEAT", "PING_TO  ", "PING_BACK", "SOFTWARE_VER", "FAULT", "MODULE_STARTUP"  
+    "HEARTBEAT", "PING_TO  ", "PING_BACK", "SOFTWARE_VER", "FAULT", "MODULE_STARTUP",  
 
-    "VNM_POS", "VNM_VEL", "VNM_ACC", "VNM_ATT", "VNM_STRIPLOST",
+    "VNM_POS", "VNM_VEL", "VNM_ACC", "VNM_ATT", "VNM_STRIPLOST", "VNM_STRIP_COUNT",
 
     "VSM_TEMP1", "VSM_TEMP2", "VSM_EDATA",    
 
@@ -48,3 +48,4 @@ const char *messageStr[] = {
     
     "DASH_VSM_CONTRACTOR"
 };
+

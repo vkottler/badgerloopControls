@@ -29,7 +29,7 @@
 /******************************************************************************/
 /*                           GLOBAL VARIABLES                                 */
 /******************************************************************************/
-extern bool debuggingOn;
+extern bool debuggingOn, CAN_autosend;
 extern int SID;
 extern ROLE ourRole;
 extern volatile STATE state, next_state, prev_state;

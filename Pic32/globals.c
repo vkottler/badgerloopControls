@@ -3,7 +3,7 @@
 /******************************************************************************/
 /*                           GLOBAL VARIABLES                                 */
 /******************************************************************************/
-bool debuggingOn = DEBUG_DEFAULT;
+bool debuggingOn = DEBUG_DEFAULT, CAN_autosend = CAN_AUTOSEND;
 
 int SID = 0;
 

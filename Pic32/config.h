@@ -7,7 +7,7 @@
 //#define LED_SHIELD_PRESENT  1   // this asserts that the custom LED proto-shield will be present and can be used
 #define PCB_PRESENT         1
 
-#define BUILD_VERSION       v0.2.1
+#define BUILD_VERSION       v0.4.0
 
 // Specify before building which board is doing what
 // i.e. which board number has which PCB attached
@@ -21,6 +21,7 @@
 #define BOARD8_ROLE         NOT_PRESENT
 
 #define DEBUG_DEFAULT       false
+#define CAN_AUTOSEND        true
 
 #define SEND_FAULT_TIMEOUT      1000*250    // ms
 #define GLOBAL_SEND_INTERVAL    5000

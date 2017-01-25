@@ -29,7 +29,7 @@ unsigned int getFrequency(unsigned int delta) {
 }
 
 unsigned int getRPM(unsigned int delta) {
-    return getFrequency(delta); // * 30
+    return getFrequency(delta) * 30;
 }
 
 uint16_t IC1_rpm(void) {
