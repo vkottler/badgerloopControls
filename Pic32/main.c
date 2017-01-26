@@ -53,7 +53,7 @@ int main(void) {
         prev_fault = fault;
         fault = LOCAL_INIT_FAILED;
     }
-
+    
     while (1) {
         
         // handle broadcasts

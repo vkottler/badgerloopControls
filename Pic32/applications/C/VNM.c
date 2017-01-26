@@ -1,6 +1,5 @@
 #include "../include/VNM.h"
 
-volatile bool VNM_getMPU = false;
 COORD_VECTOR accelData;
 
 unsigned int frontVelocity = 0, middleVelocity = 0, rearVelocity = 0;
@@ -8,7 +7,6 @@ unsigned int frontVelocity = 0, middleVelocity = 0, rearVelocity = 0;
 uint16_t px = 0, py = 0, pz = 0, vx = 0, vy = 0, vz = 0, 
          ax = 0, ay = 0, az = 0;
 
-uint16_t frontCount = 0, middleCount = 0, rearCount = 0;
 uint8_t frontFaults = 0, rearFaults = 0, middleFaults = 0;
 
 /******************************************************************************/
@@ -77,9 +75,11 @@ bool VNM_sendStrip(void) {
 bool VNM_sendLost(void) {
     setupBroadcast();
     sending->message_num = VNM_STRIPLOST;
-    sending->SIZE = 1;
+    sending->SIZE = 4;
+    sending->byte0 = frontFaults;
+    sending->byte1 = middleFaults;
+    sending->byte2 = rearFaults;
     return CAN_broadcast();
-    
 }
 /******************************************************************************/
 /******************************************************************************/
@@ -111,10 +111,13 @@ bool VNM_init_periph(void) {
     VNM_init_funcHandlers();
     I2Cinit();
     memset(&accelData, 0, sizeof(COORD_VECTOR));
-    startTimer45(MPU_SAMPLE_PERIOD);
     inputCapInit(1);
     inputCapInit(4);
     inputCapInit(5);
+    
+    inputCapInit(2);
+    inputCapInit(3);
+    
     return MPUinitialize();
 }
 
@@ -135,10 +138,7 @@ bool VNM_message_handler(void) {
 /*                        Data Processing & Unit Conversions                  */
 /******************************************************************************/
 void VNM_data_process_handler(void) {
-    if (VNM_getMPU) {
-        MPUread(&accelData);
-        VNM_getMPU = false;
-    }
+    //MPUread(&accelData);
     if (FRONT_MISS) {
         VNM_sendLost();
         frontFaults++;
@@ -223,7 +223,7 @@ void VNM_printVariables(void) {
     printf("px:%5d py:%5d pz:%5d vx:%5d vy:%5d vz:%5d\r\n", px, py, pz, vx, vy, vz);
     printf("ax:%5d ay:%5d az:%5d\r\n", ax, ay, az);
     printf("=================================================\r\n");
-    printf("strips ([F][M][R]):\t[%3d][%3d][%3d]\r\n", frontCount, middleCount, rearCount);
+    printf("strips ([F][M][R]):\t[%3d][%3d][%3d]\r\n", FRONT_COUNT, MIDDLE_COUNT, REAR_COUNT);
     printf("velocity (m/s):\t\t[%4d][%4d][%4d]\r\n", frontVelocity, middleVelocity, rearVelocity);
     printf("=================================================\r\n");
 }

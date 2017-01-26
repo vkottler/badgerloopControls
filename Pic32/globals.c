@@ -128,12 +128,8 @@ void defaultHeartbeatHandler(void) {
             fault = CAN_BUS_ERROR;
         }
     }
-#ifndef RUN_RDY
-    if (heartbeatsReceived == num_endpoints) {
-        blinkBoardLights(4, 150);
+    if (heartbeatsReceived == num_endpoints)
         heartbeatsReceived = 0;
-    }   
-#endif
 }
 
 void handleFaults(void) {

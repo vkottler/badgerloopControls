@@ -68,9 +68,10 @@ void Serial_Debug_Handler(void) {
         { debuggingOn = false; printf("Serial now off.\r\n"); }
     else if (!strcmp(uartReceive, "build") || !strcmp(uartReceive, "version")) printVersion();
     else if (!strcmp(uartReceive, "messages")) printMessages();
-    else if (!strcmp(uartReceive, "inflate") && ourRole == BCM) inflate();
-    else if (!strcmp(uartReceive, "deflate") && ourRole == BCM) deflate();
+    else if (!strcmp(uartReceive, "inflate") && ourRole == BCM) { printf("Air bags should pressurize.\r\n"); inflate();  }
+    else if (!strcmp(uartReceive, "deflate") && ourRole == BCM) { deflate(); printf("Air bags should deflate.\r\n"); }
     else if (!strcmp(uartReceive, "ready brakes") && ourRole == BCM) readyBrakes();
+    else if (!strcmp(uartReceive, "brake") && ourRole == BCM) next_state = NORMAL_BRAKING;
     else if (!strcmp(uartReceive, "variables")) {
         switch (ourRole) {
             case VNM: VNM_printVariables(); break;

@@ -8,8 +8,6 @@
 #include "../../drivers/include/inputCapture.h"
 #include "../../drivers/include/timers.h"
 
-#define MPU_SAMPLE_PERIOD       100         // in ms
-
 #define FRONT_MISS      IC1CONbits.ICOV
 #define MIDDLE_MISS     IC4CONbits.ICOV
 #define REAR_MISS       IC5CONbits.ICOV
@@ -40,8 +38,6 @@ void VNM_fabHandler(void);
 void VNM_rabHandler(void);
 void VNM_wfsHandler(void);
 void VNM_safeHandler(void);
-
-extern volatile bool VNM_getMPU;
 
 // Serial Debugging
 void VNM_printVariables(void);

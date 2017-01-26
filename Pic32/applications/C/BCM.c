@@ -2,6 +2,7 @@
 
 bool toldToInflate = false;
 bool brakingReady = false;
+bool eBrakeOn = false;
 
 uint8_t intensities[] =         {0, 0, 0, 0, 0};
 uint8_t prev_intensities[] =    {0, 0, 0, 0, 0};
@@ -13,34 +14,44 @@ uint8_t pressure1 = 0, pressure2 = 0;
 /******************************************************************************/
 /*                                     Utility                                */
 /******************************************************************************/
-void readyBrakes(void) {
-    if (!brakingReady) {
-        digitalWrite(X1_NE555_B1, 0);
-        digitalWrite(X1_NE555_B2, 0);
-        digitalWrite(X2_NE555_B3, 0);
-        digitalWrite(X2_NE555_B4, 0);
-        brakingReady = true;
-    }
+void setBrakeIntensity(uint8_t brake, uint8_t intensity) {
+    prev_intensities[brake] = intensities[brake];
+    intensities[brake] = intensity;
 }
 
-void inflate(void) {
-    digitalWrite(MT_VALVE, 1);
-    delay(1000, MILLI);
-    digitalWrite(VALVES, 1);
-    toldToInflate = true;
-    airss = PURGE_OPEN;
-    if (state == DASH_CTL) next_state = READY_FOR_LAUNCH;
+void readyBrakes(void) {
+    digitalWrite(X1_NE555_B1, 0);
+    digitalWrite(X1_NE555_B2, 0);
+    digitalWrite(X2_NE555_B3, 0);
+    digitalWrite(X2_NE555_B4, 0);
+    brakingReady = true;
 }
 
 void deflate(void) {
     digitalWrite(MT_VALVE, 0);
     digitalWrite(VALVES , 0);
     airss = DEFLATED;
+    if (state == READY_FOR_LAUNCH) next_state = DASH_CTL;
 }
 
-void setBrakeIntensity(uint8_t brake, uint8_t intensity) {
-    prev_intensities[brake] = intensities[brake];
-    intensities[brake] = intensity;
+void eBrake(void) {
+    digitalWrite(X1_NC_B1, 0);
+    digitalWrite(X1_NC_B2, 0);
+    digitalWrite(X2_NC_B3, 0);
+    digitalWrite(X2_NC_B4, 0);
+    setBrakeIntensity(1, 100);
+    setBrakeIntensity(1, 100);
+    setBrakeIntensity(1, 100);
+    setBrakeIntensity(1, 100);
+}
+
+void inflate(void) {
+    digitalWrite(MT_VALVE, 1);
+    delay(500, MILLI);
+    digitalWrite(VALVES, 1);
+    toldToInflate = true;
+    airss = PURGE_OPEN;
+    if (state == DASH_CTL) next_state = READY_FOR_LAUNCH;
 }
 
 inline void b1Brake(void) { PWM_set_period(B1_OC, intensities[1]); }
@@ -60,7 +71,6 @@ void parseBAmessage(void) {
     setBrakeIntensity(2, receiving.byte1);
     setBrakeIntensity(3, receiving.byte2);
     setBrakeIntensity(4, receiving.byte3);
-    updateBrakes();
 }
 
 bool sendBrakeState(uint16_t SID) {
@@ -114,8 +124,8 @@ bool BCM_init_periph(void) {
     pinMode(X1_SLP_B2, OUTPUT);
     pinMode(X1_PWM_B1, OUTPUT);
     pinMode(X1_PWM_B2, OUTPUT);
-    //PWM_init(B1_OC);
-    //PWM_init(B2_OC);
+    PWM_init(B1_OC);
+    PWM_init(B2_OC);
     
     // Box 1: Turn on NC Relays, Disable Sleep, hold PWM low
     digitalWrite(X1_NC_B1, 1);
@@ -134,8 +144,8 @@ bool BCM_init_periph(void) {
     pinMode(X2_SLP_B4, OUTPUT);
     pinMode(X2_PWM_B3, OUTPUT);
     pinMode(X2_PWM_B4, OUTPUT);
-    //PWM_init(B3_OC);
-    //PWM_init(B4_OC);
+    PWM_init(B3_OC);
+    PWM_init(B4_OC);
     
     // Box 2: Turn on NC Relays, Disable Sleep, hold PWM low
     digitalWrite(X2_NC_B3, 1);
@@ -159,17 +169,14 @@ bool BCM_init_periph(void) {
     inputCapInit(B3_IC);
     inputCapInit(B4_IC);
     
-    PWM_set_period(B1_OC, 50);
-    PWM_set_period(B2_OC, 25); 
-    PWM_set_period(B3_OC, 75);
-    PWM_set_period(B4_OC, 100);
-    
     return true;
 }
 
 bool BCM_broadcast_handler(void) {
     switch (receiving.message_num) {
-        case DASH_BCM_AIRACTUATE:   inflate();          break;
+        case DASH_BCM_AIRACTUATE:   
+            receiving.byte0 ? inflate() : deflate();  
+            break;      
         case DASH_BCM_BRAKEACTUATE: parseBAmessage();   break;
         case DASH_BCM_ABS_STATE:                        break;
     }
@@ -178,7 +185,9 @@ bool BCM_broadcast_handler(void) {
 
 bool BCM_message_handler(void) {
     switch (receiving.message_num) {
-        case DASH_BCM_AIRACTUATE:   inflate();          break;
+        case DASH_BCM_AIRACTUATE: 
+            receiving.byte0 ? inflate() : deflate();  
+            break;
         case DASH_BCM_BRAKEACTUATE: parseBAmessage();   break;
         case DASH_BCM_ABS_STATE:                        break;
     }
@@ -205,6 +214,11 @@ void BCM_data_process_handler(void) {
         }
         timer45Event = false;
     }
+    
+    // Save for ADC values
+    if (false) {
+        airss = INFLATED;
+    }
 }
 /******************************************************************************/
 /******************************************************************************/
@@ -219,13 +233,7 @@ void BCM_dashctlHandler(void) {
 
 // The only way to get here is by receiving INFLATE message
 void BCM_rflHandler(void) {
-    if (!brakingReady) {
-        digitalWrite(X1_NE555_B1, 0);
-        digitalWrite(X1_NE555_B2, 0);
-        digitalWrite(X2_NE555_B3, 0);
-        digitalWrite(X2_NE555_B4, 0);
-        brakingReady = true;
-    }
+    if (!brakingReady) readyBrakes();
 }
 
 void BCM_pushphaseHandler(void) {
@@ -238,10 +246,15 @@ void BCM_coastHandler(void) {
 
 void BCM_nbHandler(void) {
     if (airss == PURGE_OPEN || INFLATED) deflate();
+    if (!brakingReady) readyBrakes();
+    updateBrakes();
 }
 
 void BCM_ebHandler(void) {
     if (airss == PURGE_OPEN || INFLATED) deflate();
+    if (!brakingReady) readyBrakes();
+    if (!eBrakeOn) eBrake();
+    updateBrakes();
 }
 
 void BCM_fabHandler(void) {

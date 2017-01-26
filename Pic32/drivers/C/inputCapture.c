@@ -139,6 +139,7 @@ void __ISR (_INPUT_CAPTURE_1_VECTOR, IPL1SOFT) IC1Interrupt(void) {
     IC1ready = true;
     _IC1F = 0;
     __builtin_enable_interrupts();
+    printf("1\r\n");
 }
 
 void __ISR (_INPUT_CAPTURE_2_VECTOR, IPL1SOFT) IC2Interrupt(void) {
@@ -153,6 +154,7 @@ void __ISR (_INPUT_CAPTURE_2_VECTOR, IPL1SOFT) IC2Interrupt(void) {
     IC2ready = true;
     _IC2F = 0;
     __builtin_enable_interrupts();
+    printf("2\r\n");
 }
 
 void __ISR (_INPUT_CAPTURE_3_VECTOR, IPL1SOFT) IC3Interrupt(void) {
@@ -167,6 +169,7 @@ void __ISR (_INPUT_CAPTURE_3_VECTOR, IPL1SOFT) IC3Interrupt(void) {
     IC3ready = true;
     _IC3F = 0;
     __builtin_enable_interrupts();
+    printf("3\r\n");
 }
 
 void __ISR (_INPUT_CAPTURE_4_VECTOR, IPL1SOFT) IC4Interrupt(void) {
@@ -181,6 +184,7 @@ void __ISR (_INPUT_CAPTURE_4_VECTOR, IPL1SOFT) IC4Interrupt(void) {
     IC4ready = true;
     _IC4F = 0;
     __builtin_enable_interrupts();
+    printf("4\r\n");
 }
 
 void __ISR (_INPUT_CAPTURE_5_VECTOR, IPL1SOFT) IC5Interrupt(void) {
@@ -195,4 +199,5 @@ void __ISR (_INPUT_CAPTURE_5_VECTOR, IPL1SOFT) IC5Interrupt(void) {
     IC5ready = true;
     _IC5F = 0;
     __builtin_enable_interrupts();
+    printf("5\r\n");
 }

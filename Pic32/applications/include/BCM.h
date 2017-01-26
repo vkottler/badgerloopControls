@@ -21,11 +21,12 @@
 #define B3_EI           _IC2E
 #define B4_EI           _IC5E
 
+
 #define X1_NC_B1        53
 #define X1_NC_B2        52
 #define X1_NE555_B1     81
 #define X1_NE555_B2     80
-#define X1_PWM_B1       6 	// output compare 3 (pin 6)
+#define X1_PWM_B1       6 	// output compa6 onre 3 (pin 6)
 #define X1_PWM_B2       9	// output compare 4 (pin 9)
 #define X1_SLP_B1       85
 #define X1_SLP_B2       84
