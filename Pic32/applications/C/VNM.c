@@ -4,7 +4,12 @@ COORD_VECTOR accelData;
 
 unsigned int frontVelocity = 0, middleVelocity = 0, rearVelocity = 0;
 
-uint16_t px = 0, py = 0, pz = 0, vx = 0, vy = 0, vz = 0, 
+STRIP_SEQUENCE curr_strip = FRONT;
+
+volatile int *main_count = NULL;
+
+uint16_t px = 0, py = 0, pz = 0, 
+         vx = 0, vy = 0, vz = 0, 
          ax = 0, ay = 0, az = 0;
 
 uint8_t frontFaults = 0, rearFaults = 0, middleFaults = 0;
@@ -93,6 +98,7 @@ inline void VNM_init_funcHandlers(void) {
     messageHandler =        &VNM_message_handler;
 
     dataProcessHandler =    &VNM_data_process_handler;
+    CANsendHandler =        &VNM_CANsendHandler;
 
     // Main States
     dashctlHandler =        &VNM_dashctlHandler;
@@ -110,13 +116,17 @@ inline void VNM_init_funcHandlers(void) {
 bool VNM_init_periph(void) {
     VNM_init_funcHandlers();
     I2Cinit();
+    main_count = &FRONT_COUNT;
     memset(&accelData, 0, sizeof(COORD_VECTOR));
     inputCapInit(1);
     inputCapInit(4);
     inputCapInit(5);
     
-    inputCapInit(2);
-    inputCapInit(3);
+    digitalWrite(50, 0);
+    digitalWrite(51, 0);
+    
+    //inputCapInit(2);
+    //inputCapInit(3);
     
     return MPUinitialize();
 }
@@ -138,7 +148,7 @@ bool VNM_message_handler(void) {
 /*                        Data Processing & Unit Conversions                  */
 /******************************************************************************/
 void VNM_data_process_handler(void) {
-    //MPUread(&accelData);
+    MPUread(&accelData);
     if (FRONT_MISS) {
         VNM_sendLost();
         frontFaults++;
@@ -151,12 +161,21 @@ void VNM_data_process_handler(void) {
         VNM_sendLost();
         rearFaults++;
     }
+    
+    
+    
+    
+    
     if (timer45Event) {
-        if (CAN_autosend) {
-            VNM_sendStrip();
-        }
+        
         timer45Event = false;
     }
+}
+
+void VNM_CANsendHandler(void) {
+    VNM_sendAcc();
+    VNM_sendVel();
+    VNM_sendStrip();
 }
 /******************************************************************************/
 /******************************************************************************/

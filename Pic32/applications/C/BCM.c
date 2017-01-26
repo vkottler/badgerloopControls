@@ -98,6 +98,7 @@ inline void BCM_init_funcHandlers(void) {
     messageHandler =        &BCM_message_handler;
 
     dataProcessHandler =    &BCM_data_process_handler;
+    CANsendHandler =        &BCM_CANsendHandler;
 
     // Main States
     dashctlHandler =        &BCM_dashctlHandler;
@@ -209,9 +210,7 @@ void BCM_compute_wheel_rpms(void) {
 
 void BCM_data_process_handler(void) {
     if (timer45Event) {
-        if (CAN_autosend) {
-            sendBrakeState(ALL);
-        }
+        
         timer45Event = false;
     }
     
@@ -219,6 +218,10 @@ void BCM_data_process_handler(void) {
     if (false) {
         airss = INFLATED;
     }
+}
+
+void BCM_CANsendHandler(void) {
+    sendBrakeState(ALL);
 }
 /******************************************************************************/
 /******************************************************************************/

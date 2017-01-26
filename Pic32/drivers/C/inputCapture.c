@@ -6,7 +6,8 @@ static unsigned int IC1_curr = 0, IC1_prev = 0, IC2_curr = 0, IC2_prev = 0,
                 IC3_curr = 0, IC3_prev = 0, IC4_curr = 0, IC4_prev = 0,
                 IC5_curr = 0, IC5_prev = 0;
 
-volatile unsigned int IC1count = 0, IC2count = 0, IC3count = 0, IC4count = 0, IC5count = 0;
+volatile int IC1count = 0, IC2count = 0, IC3count = 0, IC4count = 0, IC5count = 0;
+volatile bool IC1event = false, IC2event = false, IC3event = false, IC4event = false, IC5even = false;
 
 volatile unsigned int IC1filter[FILTER_LEN], IC2filter[FILTER_LEN], IC3filter[FILTER_LEN], IC4filter[FILTER_LEN], IC5filter[FILTER_LEN];
 volatile unsigned int IC1filterIndex = 0, IC2filterIndex = 0, IC3filterIndex = 0, IC4filterIndex = 0, IC5filterIndex = 0;
@@ -138,8 +139,11 @@ void __ISR (_INPUT_CAPTURE_1_VECTOR, IPL1SOFT) IC1Interrupt(void) {
     if (IC1filterIndex == FILTER_LEN) IC1filterIndex = 0;
     IC1ready = true;
     _IC1F = 0;
+    IC1event = true;
     __builtin_enable_interrupts();
+#ifdef DEBUG_IC
     printf("1\r\n");
+#endif
 }
 
 void __ISR (_INPUT_CAPTURE_2_VECTOR, IPL1SOFT) IC2Interrupt(void) {
@@ -154,7 +158,9 @@ void __ISR (_INPUT_CAPTURE_2_VECTOR, IPL1SOFT) IC2Interrupt(void) {
     IC2ready = true;
     _IC2F = 0;
     __builtin_enable_interrupts();
+#ifdef DEBUG_IC
     printf("2\r\n");
+#endif
 }
 
 void __ISR (_INPUT_CAPTURE_3_VECTOR, IPL1SOFT) IC3Interrupt(void) {
@@ -169,7 +175,9 @@ void __ISR (_INPUT_CAPTURE_3_VECTOR, IPL1SOFT) IC3Interrupt(void) {
     IC3ready = true;
     _IC3F = 0;
     __builtin_enable_interrupts();
+#ifdef DEBUG_IC
     printf("3\r\n");
+#endif
 }
 
 void __ISR (_INPUT_CAPTURE_4_VECTOR, IPL1SOFT) IC4Interrupt(void) {
@@ -184,7 +192,9 @@ void __ISR (_INPUT_CAPTURE_4_VECTOR, IPL1SOFT) IC4Interrupt(void) {
     IC4ready = true;
     _IC4F = 0;
     __builtin_enable_interrupts();
+#ifdef DEBUG_IC
     printf("4\r\n");
+#endif
 }
 
 void __ISR (_INPUT_CAPTURE_5_VECTOR, IPL1SOFT) IC5Interrupt(void) {
@@ -199,5 +209,7 @@ void __ISR (_INPUT_CAPTURE_5_VECTOR, IPL1SOFT) IC5Interrupt(void) {
     IC5ready = true;
     _IC5F = 0;
     __builtin_enable_interrupts();
+#ifdef DEBUG_IC
     printf("5\r\n");
+#endif
 }

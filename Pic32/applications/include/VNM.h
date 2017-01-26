@@ -16,15 +16,23 @@
 #define MIDDLE_COUNT    IC4count
 #define REAR_COUNT      IC5count
 
+typedef enum {
+    FRONT, MIDDLE, REAR
+} STRIP_SEQUENCE;
+
 // Front  Retro: Pin 48 (IC1)
 // Middle Retro: Pin 49 (IC4)
 // Back   Retro: Pin  8 (IC5)
+
+// pin 50 off
+// pin 51 off
 
 bool VNM_init_periph(void);
 bool VNM_broadcast_handler(void);
 bool VNM_message_handler(void);
 
 void VNM_data_process_handler(void);
+void VNM_CANsendHandler(void);
 
 // State Handlers
 void VNM_faultHandler(void);

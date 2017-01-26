@@ -21,6 +21,8 @@ CAN_MESSAGE *sending, receiving;
 
 const char *timestamp = TIMESTAMP(BUILD_VERSION);
 
+volatile unsigned int ticks = 0;
+
 // Partially only for during testing
 uint8_t num_endpoints = 0;
 volatile bool adcSampleReady = false, sendFaultAvailable = true, timer45Event = false;
@@ -38,6 +40,7 @@ bool(*messageHandler)(void) =           &volatileBoolHandler;
 bool(*initHandler)(void) =              &volatileBoolHandler;
 
 void (*dataProcessHandler)(void) =      &volatileHandler;
+void (*CANsendHandler)(void) =          &volatileHandler;
 
 // State Handlers
 void (*dashctlHandler)(void) =          &volatileHandler;
@@ -122,14 +125,13 @@ int getBoardNumber(void) {
 void defaultHeartbeatHandler(void) {
     heartbeatsReceived++;
     if (receiving.from == WCM) {
-        if (CAN_send_heartbeat(false)) heartbeatsReceived++;
-        else {
-            next_state = FAULT_STATE;
-            fault = CAN_BUS_ERROR;
-        }
+        CAN_send_heartbeat(false);
+        heartbeatsReceived++;
     }
-    if (heartbeatsReceived == num_endpoints)
+    if (heartbeatsReceived == num_endpoints) {
+        // Entering here means we got all of the heartbeats
         heartbeatsReceived = 0;
+    }
 }
 
 void handleFaults(void) {

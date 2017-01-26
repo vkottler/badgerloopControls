@@ -72,7 +72,7 @@ bool CAN_receive_broadcast(void);
 bool CAN_receive_specific(void);
 
 void CAN_send_fault(void);
-bool CAN_send_heartbeat(bool fake);
+void CAN_send_heartbeat(bool fake);
 
 void CAN_message_dump(CAN_MESSAGE *message, bool outgoing);
 void CAN_print_errors(void);

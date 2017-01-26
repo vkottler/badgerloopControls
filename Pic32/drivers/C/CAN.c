@@ -260,6 +260,14 @@ bool CAN_receive_specific(void) {
 /******************************************************************************/
 /*                          Heartbeat Related                                 */
 /******************************************************************************/
+inline void handleCANbco(void) {
+    if (!CAN_broadcast()) fault = CAN_OUT_FULL_ERROR;
+}
+
+inline void handleCANmo(void) {
+    if (!CAN_send()) fault = CAN_OUT_FULL_ERROR;
+}
+
 inline void load_state(void) {
     sending->byte0 = prev_fault;
     sending->byte1 = fault;
@@ -276,11 +284,11 @@ void CAN_send_fault(void) {
         sending->SIZE = 6;
         sending->message_num = FAULT;
         load_state();
-        if (!CAN_broadcast()) fault = CAN_OUT_FULL_ERROR;
+        handleCANbco();
     }
 }
 
-bool CAN_send_heartbeat(bool fake) {
+void CAN_send_heartbeat(bool fake) {
     sending = BROADCAST_SEND_ADDR;
     sending->SID = ALL;
     sending->from = fake ? WCM : ourRole;
@@ -288,7 +296,7 @@ bool CAN_send_heartbeat(bool fake) {
     sending->message_num = HEARTBEAT;
     load_state();
     if (fake) heartbeatsReceived = 2; // since we bypassed WCM
-    return CAN_broadcast();
+    handleCANbco();
 }
 /******************************************************************************/
 /******************************************************************************/

@@ -18,6 +18,7 @@ bool MCM_broadcast_handler(void);
 bool MCM_message_handler(void);
 
 void MCM_data_process_handler(void);
+void MCM_CANsendHandler(void);
 
 // State Handlers
 void MCM_faultHandler(void);

@@ -8,6 +8,7 @@ inline void VSM_init_funcHandlers(void) {
     messageHandler =        &VSM_message_handler;
 
     dataProcessHandler =    &VSM_data_process_handler;
+    CANsendHandler =        &VSM_CANsendHandler;
 
     // Main States
     dashctlHandler =        &VSM_dashctlHandler;
@@ -46,11 +47,13 @@ bool VSM_message_handler(void) {
 /******************************************************************************/
 void VSM_data_process_handler(void) {
     if (timer45Event) {
-        if (CAN_autosend) {
-        
-        }
+
         timer45Event = false;
     }
+}
+
+void VSM_CANsendHandler(void) {
+    
 }
 /******************************************************************************/
 /******************************************************************************/

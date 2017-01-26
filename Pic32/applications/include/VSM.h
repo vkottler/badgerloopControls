@@ -9,6 +9,7 @@ bool VSM_broadcast_handler(void);
 bool VSM_message_handler(void);
 
 void VSM_data_process_handler(void);
+void VSM_CANsendHandler(void);
 
 // State Handlers
 void VSM_faultHandler(void);

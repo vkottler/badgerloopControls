@@ -39,6 +39,7 @@ extern volatile FAULT_TYPE prev_fault, fault;
 extern const char *timestamp;
 extern CAN_MESSAGE *sending, receiving;
 extern volatile bool adcSampleReady, sendFaultAvailable, timer45Event;
+extern volatile unsigned int ticks;
 /******************************************************************************/
 
 
@@ -52,6 +53,7 @@ extern bool(*messageHandler)(void);
 extern bool(*initHandler)(void);
 
 extern void (*dataProcessHandler)(void);
+extern void (*CANsendHandler)(void);
 
 // State Handlers
 extern void (*faultHandler)(void);

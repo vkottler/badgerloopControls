@@ -52,6 +52,7 @@ void deflate(void);
 void readyBrakes(void);
 
 void BCM_data_process_handler(void);
+void BCM_CANsendHandler(void);
 
 // State Handlers
 void BCM_faultHandler(void);

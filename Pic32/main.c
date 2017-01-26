@@ -27,7 +27,7 @@ inline void static_inits(void) {
     initLEDs();
     CAN_init();
     initialize_heartbeat();
-    startTimer45(GLOBAL_SEND_INTERVAL);
+    startTimer45(TICK_TIME);
 }
 /******************************************************************************/
 /******************************************************************************/
@@ -62,6 +62,9 @@ int main(void) {
         // handle incoming messages
         checkMessages();
         
+        // Send CAN data
+        if (CHECK_CAN_TICKS) CANsendHandler();
+        
         // update the fault status if necessary
         check_bus_integrity();
 
@@ -92,8 +95,10 @@ int main(void) {
 
         update_state();
 
+#ifndef RUN_RDY
         // Accept commands via Serial over USB
         if (messageAvailable()) serialDebugHandler();
+#endif
     }
 }
 /******************************************************************************/

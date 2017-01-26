@@ -23,10 +23,16 @@
 #define DEBUG_DEFAULT       false
 #define CAN_AUTOSEND        false
 
-#define SEND_FAULT_TIMEOUT      1000*250    // ms
-#define GLOBAL_SEND_INTERVAL    5000
+#define SEND_FAULT_TIMEOUT      1000    // ms
+#define TICK_TIME               50
+
+#define CAN_SEND_TICKS          20
+#define CHECK_CAN_TICKS         ticks % CAN_SEND_TICKS == 0 && CAN_autosend
+
 #define TMR45                   ((TMR5 << 16) | TMR4)
 #define CHECK_SEND_CAN_TO       currTime - SEND_FAULT_TIMEOUT > lastSentTimeout && currTime > currTime - SEND_FAULT_TIMEOUT 
+
+#define DEBUG_IC                1
 
 //#define RUN_RDY             1
 /******************************************************************************/

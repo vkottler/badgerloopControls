@@ -76,6 +76,6 @@ void IC4Interrupt(void);
 void IC5Interrupt(void);
 void TM3Interrupt(void);
 
-extern volatile unsigned int IC1count, IC2count, IC3count, IC4count, IC5count;
+extern volatile int IC1count, IC2count, IC3count, IC4count, IC5count;
 
 #endif

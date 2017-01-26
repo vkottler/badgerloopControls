@@ -72,12 +72,14 @@ void MCM_data_process_handler(void) {
     MCM_compute_wheel_rpms();
     check_cmdv();
     if (timer45Event) {
-        if (CAN_autosend) {
-            send_cmdv(ALL);
-            send_wheel_rpms(ALL);
-        }
+
         timer45Event = false;
     }
+}
+
+void MCM_CANsendHandler(void) {
+    send_cmdv(ALL);
+    send_wheel_rpms(ALL);
 }
 /******************************************************************************/
 /******************************************************************************/
@@ -91,6 +93,7 @@ void MCM_init_funcHandlers(void) {
     messageHandler =        &MCM_message_handler;
 
     dataProcessHandler =    &MCM_data_process_handler;
+    CANsendHandler =        &MCM_CANsendHandler;
 
     // Main States
     dashctlHandler =        &MCM_dashctlHandler;
