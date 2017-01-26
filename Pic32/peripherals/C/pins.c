@@ -13,6 +13,19 @@ volatile uint32_t *pinDirs[] = {
     &TRISA, &TRISG, &TRISG, &TRISG, &TRISA                                              // pin 81-85
 };
 
+volatile uint32_t *pinPorts[] = {
+    &PORTF,                                                                             // pin 0
+    &PORTF, &PORTE, &PORTD, &PORTC, &PORTD, &PORTD, &PORTE, &PORTD, &PORTD, &PORTD,     // pin 1 -10
+    &PORTC, &PORTA, &PORTA, &PORTF, &PORTF, &PORTF, &PORTF, &PORTD, &PORTD, &PORTA,     // pin 11-20
+    &PORTA, &PORTC, &PORTC,  NULL, &PORTF, &PORTG, &PORTG, &PORTG, &PORTG, &PORTE,      // pin 21-30
+    &PORTE, &PORTE, &PORTE, &PORTE, &PORTE, &PORTE, &PORTE, &PORTD, &PORTD, &PORTB,     // pin 31-40
+    &PORTB, &PORTB, &PORTG, &PORTA, &PORTF, &PORTF, &PORTD, &PORTD, &PORTD, &PORTG,     // pin 41-50
+    &PORTG, &PORTG, &PORTG, &PORTB, &PORTB, &PORTB, &PORTB, &PORTB, &PORTB, &PORTB,     // pin 51-60
+    &PORTB, &PORTB, &PORTB, &PORTB, &PORTB, &PORTB, &PORTB, &PORTB, &PORTB, &PORTA,     // pin 61-70
+    &PORTA, &PORTA, &PORTA, &PORTD, &PORTC, &PORTD, &PORTD, &PORTG, &PORTG, &PORTA,     // pin 71-80
+    &PORTA, &PORTG, &PORTG, &PORTG, &PORTA                                              // pin 81-85    
+};
+
 volatile uint32_t *pinLats[] = {
     &LATF,                                                                              // pin 0
     &LATF, &LATE, &LATD, &LATC, &LATD, &LATD, &LATE, &LATD, &LATD, &LATD,               // pin 1 -10
@@ -92,6 +105,11 @@ bool digitalWrite(uint8_t pin, uint8_t val) {
     }
     else if (debuggingOn) printf("Cannot use pin %d. Is it used for something else?\r\n", pin);
     return false;
+}
+
+bool digitalRead(uint8_t pin) {
+    if (!readPinDir(pin)) pinMode(pin, INPUT);
+    return PORT_REG & PIN_MASK;
 }
 
 /*

@@ -6,7 +6,7 @@
 #include <stdint.h>
 #include "../../globals.h"
 
-void initADC(void);
+void initADC(ROLE module);
 int analogRead(uint8_t pin);
 
 #endif

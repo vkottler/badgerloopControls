@@ -1,5 +1,9 @@
 #include "../include/VSM.h"
 
+bool left_door_state, right_door_state;
+
+volatile VSM_TEMPS temps;
+
 /******************************************************************************/
 /*              Initialization and Message Reception Behavior                 */
 /******************************************************************************/
@@ -25,7 +29,11 @@ inline void VSM_init_funcHandlers(void) {
 
 bool VSM_init_periph(void) {
     VSM_init_funcHandlers();
-    
+    pinMode(LEFT_DOOR, INPUT);
+    pinMode(RIGHT_DOOR, INPUT);
+    left_door_state = digitalRead(LEFT_DOOR);
+    right_door_state = digitalRead(RIGHT_DOOR);
+    memset(&temps, 0, sizeof(VSM_TEMPS));
     return true;
 }
 
@@ -46,6 +54,9 @@ bool VSM_message_handler(void) {
 /*                        Data Processing & Unit Conversions                  */
 /******************************************************************************/
 void VSM_data_process_handler(void) {
+    left_door_state = digitalRead(LEFT_DOOR);
+    right_door_state = digitalRead(RIGHT_DOOR);
+    
     if (timer45Event) {
 
         timer45Event = false;
