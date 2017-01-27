@@ -3,7 +3,7 @@
 /******************************************************************************/
 /*                           GLOBAL VARIABLES                                 */
 /******************************************************************************/
-bool debuggingOn = DEBUG_DEFAULT, CAN_autosend = CAN_AUTOSEND;
+bool debuggingOn = DEBUG_DEFAULT, CAN_autosend = false;
 
 int SID = 0;
 
@@ -53,6 +53,8 @@ void (*fabHandler)(void) =              &volatileHandler;
 void (*rabHandler)(void) =              &volatileHandler;
 void (*wfsHandler)(void) =              &volatileHandler;
 void (*safeHandler)(void) =             &volatileHandler;
+
+void (*testingHandler)(void) =          &volatileHandler;
 /******************************************************************************/
 /******************************************************************************/
 
@@ -123,6 +125,7 @@ int getBoardNumber(void) {
 /*                         Globally Used Handlers                             */
 /******************************************************************************/
 void defaultHeartbeatHandler(void) {
+    if (!CAN_autosend) CAN_autosend = true;
     heartbeatsReceived++;
     if (receiving.from == WCM) {
         CAN_send_heartbeat(false);

@@ -142,7 +142,7 @@ void __ISR (_INPUT_CAPTURE_1_VECTOR, IPL1SOFT) IC1Interrupt(void) {
     IC1event = true;
     __builtin_enable_interrupts();
 #ifdef DEBUG_IC
-    printf("1\r\n");
+    if (debuggingOn) printf("1\r\n");
 #endif
 }
 
@@ -159,7 +159,7 @@ void __ISR (_INPUT_CAPTURE_2_VECTOR, IPL1SOFT) IC2Interrupt(void) {
     _IC2F = 0;
     __builtin_enable_interrupts();
 #ifdef DEBUG_IC
-    printf("2\r\n");
+    if (debuggingOn) printf("2\r\n");
 #endif
 }
 
@@ -176,7 +176,7 @@ void __ISR (_INPUT_CAPTURE_3_VECTOR, IPL1SOFT) IC3Interrupt(void) {
     _IC3F = 0;
     __builtin_enable_interrupts();
 #ifdef DEBUG_IC
-    printf("3\r\n");
+    if (debuggingOn) printf("3\r\n");
 #endif
 }
 
@@ -193,7 +193,7 @@ void __ISR (_INPUT_CAPTURE_4_VECTOR, IPL1SOFT) IC4Interrupt(void) {
     _IC4F = 0;
     __builtin_enable_interrupts();
 #ifdef DEBUG_IC
-    printf("4\r\n");
+    if (debuggingOn) printf("4\r\n");
 #endif
 }
 
@@ -210,6 +210,6 @@ void __ISR (_INPUT_CAPTURE_5_VECTOR, IPL1SOFT) IC5Interrupt(void) {
     _IC5F = 0;
     __builtin_enable_interrupts();
 #ifdef DEBUG_IC
-    printf("5\r\n");
+    if (debuggingOn) printf("5\r\n");
 #endif
 }

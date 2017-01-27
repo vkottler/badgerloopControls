@@ -70,8 +70,9 @@ void Serial_Debug_Handler(void) {
     else if (!strcmp(uartReceive, "messages")) printMessages();
     else if (!strcmp(uartReceive, "inflate") && ourRole == BCM) { printf("Air bags should pressurize.\r\n"); inflate();  }
     else if (!strcmp(uartReceive, "deflate") && ourRole == BCM) { deflate(); printf("Air bags should deflate.\r\n"); }
-    else if (!strcmp(uartReceive, "ready brakes") && ourRole == BCM) readyBrakes();
-    else if (!strcmp(uartReceive, "brake") && ourRole == BCM) next_state = NORMAL_BRAKING;
+    else if (!strcmp(uartReceive, "ready brakes") && ourRole == BCM) { readyBrakes(); printf("Brakes ready in a few seconds!\r\n"); }
+    else if (!strcmp(uartReceive, "brake") && ourRole == BCM) { next_state = NORMAL_BRAKING; printf("Entered braking state.\r\n"); }
+    else if (!strcmp(uartReceive, "brakes off") && ourRole == BCM) { brakesOff(); printf("All brake PWM signals should be off.\r\n"); }
     else if (!strcmp(uartReceive, "variables")) {
         switch (ourRole) {
             case VNM: VNM_printVariables(); break;
@@ -96,7 +97,12 @@ void Serial_Debug_Handler(void) {
         bIntensity = atoi(uartReceive+3);
         if (uartReceive[1] - '0' > 0 && uartReceive[1] - '0' < 5 && bIntensity >= 0 && bIntensity <= 100) {
             setBrakeIntensity(uartReceive[1] - '0', bIntensity);
-            printf("Brake %d on at %d%%", uartReceive[1] - '0', bIntensity);
+            if (!brakingReady) {
+                printf("NE555s needed to be pulled low. Done.\r\n");
+                readyBrakes();
+            }
+            updateBrakes();
+            printf("Brake %d on at %d%%. Brakes updated.\r\n", uartReceive[1] - '0', bIntensity);
         }
         else printf("Cannot actuate brake %d at %d%%.\r\n", uartReceive[1] - '0', bIntensity);
     }

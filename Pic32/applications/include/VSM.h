@@ -19,8 +19,6 @@
 #define LEFT_DOOR           79
 #define RIGHT_DOOR          78
 
-extern volatile VSM_TEMPS temps;
-
 typedef union {
     struct {
         uint16_t CABIN;
@@ -58,6 +56,8 @@ void VSM_fabHandler(void);
 void VSM_rabHandler(void);
 void VSM_wfsHandler(void);
 void VSM_safeHandler(void);
+
+void VSM_testingHandler(void);
 
 // Serial Debugging
 void VSM_printVariables(void);

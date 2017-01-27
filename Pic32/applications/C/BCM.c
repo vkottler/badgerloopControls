@@ -21,10 +21,15 @@ void setBrakeIntensity(uint8_t brake, uint8_t intensity) {
 
 void readyBrakes(void) {
     digitalWrite(X1_NE555_B1, 0);
-    digitalWrite(X1_NE555_B2, 0);
+    //digitalWrite(X1_NE555_B2, 0);
     digitalWrite(X2_NE555_B3, 0);
-    digitalWrite(X2_NE555_B4, 0);
+    //digitalWrite(X2_NE555_B4, 0);
     brakingReady = true;
+}
+
+inline void brakesOff(void) {
+    setBrakeIntensity(1, 0);
+    setBrakeIntensity(3, 0);
 }
 
 void deflate(void) {
@@ -36,13 +41,13 @@ void deflate(void) {
 
 void eBrake(void) {
     digitalWrite(X1_NC_B1, 0);
-    digitalWrite(X1_NC_B2, 0);
+    //digitalWrite(X1_NC_B2, 0);
     digitalWrite(X2_NC_B3, 0);
-    digitalWrite(X2_NC_B4, 0);
+    //digitalWrite(X2_NC_B4, 0);
     setBrakeIntensity(1, 100);
-    setBrakeIntensity(1, 100);
-    setBrakeIntensity(1, 100);
-    setBrakeIntensity(1, 100);
+    //setBrakeIntensity(1, 100);
+    setBrakeIntensity(3, 100);
+    //setBrakeIntensity(1, 100);
 }
 
 void inflate(void) {
@@ -55,22 +60,22 @@ void inflate(void) {
 }
 
 inline void b1Brake(void) { PWM_set_period(B1_OC, intensities[1]); }
-inline void b2Brake(void) { PWM_set_period(B2_OC, intensities[2]); }
+//inline void b2Brake(void) { PWM_set_period(B2_OC, intensities[2]); }
 inline void b3Brake(void) { PWM_set_period(B3_OC, intensities[3]); }
-inline void b4Brake(void) { PWM_set_period(B4_OC, intensities[4]); }
+//inline void b4Brake(void) { PWM_set_period(B4_OC, intensities[4]); }
 
 inline void updateBrakes(void) {
     b1Brake();
-    b2Brake();
+    //b2Brake();
     b3Brake();
-    b4Brake();
+    //b4Brake();
 }
 
 void parseBAmessage(void) {
     setBrakeIntensity(1, receiving.byte0);
-    setBrakeIntensity(2, receiving.byte1);
+    //setBrakeIntensity(2, receiving.byte1);
     setBrakeIntensity(3, receiving.byte2);
-    setBrakeIntensity(4, receiving.byte3);
+    //setBrakeIntensity(4, receiving.byte3);
 }
 
 bool sendBrakeState(uint16_t SID) {
@@ -118,43 +123,43 @@ bool BCM_init_periph(void) {
     
     // Box 1 I/O
     pinMode(X1_NC_B1, OUTPUT);
-    pinMode(X1_NC_B2, OUTPUT);
+    //pinMode(X1_NC_B2, OUTPUT);
     pinMode(X1_NE555_B1, OUTPUT);
-    pinMode(X1_NE555_B2, OUTPUT);
+    //pinMode(X1_NE555_B2, OUTPUT);
     pinMode(X1_SLP_B1, OUTPUT);
-    pinMode(X1_SLP_B2, OUTPUT);
+    //pinMode(X1_SLP_B2, OUTPUT);
     pinMode(X1_PWM_B1, OUTPUT);
-    pinMode(X1_PWM_B2, OUTPUT);
+    //pinMode(X1_PWM_B2, OUTPUT);
     PWM_init(B1_OC);
-    PWM_init(B2_OC);
+    //PWM_init(B2_OC);
     
     // Box 1: Turn on NC Relays, Disable Sleep, hold PWM low
     digitalWrite(X1_NC_B1, 1);
-    digitalWrite(X1_NC_B2, 1);
+    //digitalWrite(X1_NC_B2, 1);
     digitalWrite(X1_SLP_B1, 1);
-    digitalWrite(X1_SLP_B2, 1);
+    //digitalWrite(X1_SLP_B2, 1);
     digitalWrite(X1_NE555_B1, 1);
-    digitalWrite(X1_NE555_B2, 1);
+    //digitalWrite(X1_NE555_B2, 1);
     
     // Box 2 I/O
     pinMode(X2_NC_B3, OUTPUT);
-    pinMode(X2_NC_B4, OUTPUT);
+    //pinMode(X2_NC_B4, OUTPUT);
     pinMode(X2_NE555_B3, OUTPUT);
-    pinMode(X2_NE555_B4, OUTPUT);
+    //pinMode(X2_NE555_B4, OUTPUT);
     pinMode(X2_SLP_B3, OUTPUT);
-    pinMode(X2_SLP_B4, OUTPUT);
+    //pinMode(X2_SLP_B4, OUTPUT);
     pinMode(X2_PWM_B3, OUTPUT);
-    pinMode(X2_PWM_B4, OUTPUT);
+    //pinMode(X2_PWM_B4, OUTPUT);
     PWM_init(B3_OC);
-    PWM_init(B4_OC);
+    //PWM_init(B4_OC);
     
     // Box 2: Turn on NC Relays, Disable Sleep, hold PWM low
     digitalWrite(X2_NC_B3, 1);
-    digitalWrite(X2_NC_B4, 1);
+    //digitalWrite(X2_NC_B4, 1);
     digitalWrite(X2_SLP_B3, 1);
-    digitalWrite(X2_SLP_B4, 1);
+    //digitalWrite(X2_SLP_B4, 1);
     digitalWrite(X2_NE555_B3, 1);
-    digitalWrite(X2_NE555_B4, 1);
+    //digitalWrite(X2_NE555_B4, 1);
     
     // Valve I/0
     pinMode(MT_VALVE, OUTPUT);
@@ -231,7 +236,7 @@ void BCM_CANsendHandler(void) {
 /*                    Module Specific State Behavior Handlers                 */
 /******************************************************************************/
 void BCM_dashctlHandler(void) {
-
+    
 }
 
 // The only way to get here is by receiving INFLATE message
@@ -273,7 +278,7 @@ void BCM_wfsHandler(void) {
 }
 
 void BCM_safeHandler(void) {
-    greenOn();
+    brakesOff();
 }
 /******************************************************************************/
 /******************************************************************************/

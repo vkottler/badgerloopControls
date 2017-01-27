@@ -37,6 +37,8 @@ typedef enum {
             
     // CAN failure
     CAN_BUS_ERROR, CAN_IN_FULL_ERROR, CAN_OUT_FULL_ERROR,
+            
+    I2C_FAULT,
     
     // Use to make sure we handle new faults if we add more
     UNIMPLEMENTED_FAULT
@@ -151,12 +153,12 @@ typedef union {
 } CAN_MESSAGE;
 
 typedef struct {
-    signed short ax;  
-    signed short ay;
-    signed short az;
-    signed short gx;   
-    signed short gy;
-    signed short gz;
+        float ax;  
+        float ay;
+        float az;
+        float gx;   
+        float gy;
+        float gz;
 } COORD_VECTOR;
 /******************************************************************************/
 /******************************************************************************/

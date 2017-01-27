@@ -1,5 +1,7 @@
 #include "../include/ADC.h"
 
+volatile bool ADready = false;
+
 // TAD minimum: 200 ns
 // Sampling time minimum: 200 ns
 void initADC(ROLE module) {
@@ -28,9 +30,11 @@ void __ISR(_ADC_VECTOR, IPL1SOFT) ADInterrupt(void) {
     int i;
     switch (ourRole) {
         case VNM:
-            for (i = 0; i < 10; i++) temps[i] = 0;
+            for (i = 0; i < 10; i++) temps.data[i] = 0;
     }
     IFS1bits.AD1IF = 0;
+    ADready = true;
+    printf("%d\r\n", _CP0_GET_COUNT());
 }
 
 int analogRead(uint8_t pin) {

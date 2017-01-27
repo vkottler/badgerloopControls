@@ -7,6 +7,10 @@
 #include "../../drivers/include/I2C.h"
 #include "../../drivers/include/inputCapture.h"
 #include "../../drivers/include/timers.h"
+#include "../../peripherals/include/MPU9250.h"
+
+#define GYRO_SCALE      (250.0/32768.0)
+#define ACCEL_SCALE      (2.0/32768.0)
 
 #define FRONT_MISS      IC1CONbits.ICOV
 #define MIDDLE_MISS     IC4CONbits.ICOV

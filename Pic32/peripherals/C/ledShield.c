@@ -69,6 +69,22 @@ void waitForButton(void) {
     BOARD_LED1 = 0; BOARD_LED2 = 0;
 }
 
+void redOn(void) {
+    BOARD_LED1 = 1;
+} 
+
+void redOff(void) {
+    BOARD_LED1 = 0;
+}
+
+void greenOn(void) {
+    BOARD_LED2 = 1;
+}
+
+void greenOff(void) {
+    BOARD_LED2 = 0;
+}
+
 #endif
 
 #ifdef PCB_PRESENT

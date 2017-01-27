@@ -25,6 +25,8 @@ inline void VSM_init_funcHandlers(void) {
     rabHandler =            &VSM_rabHandler;
     wfsHandler =            &VSM_wfsHandler;
     safeHandler =           &VSM_safeHandler;
+    
+    testingHandler =        &VSM_testingHandler;
 }
 
 bool VSM_init_periph(void) {
@@ -33,7 +35,8 @@ bool VSM_init_periph(void) {
     pinMode(RIGHT_DOOR, INPUT);
     left_door_state = digitalRead(LEFT_DOOR);
     right_door_state = digitalRead(RIGHT_DOOR);
-    memset(&temps, 0, sizeof(VSM_TEMPS));
+    memset((void *) &temps, 0, sizeof(VSM_TEMPS));
+    initADC(ourRole);
     return true;
 }
 
@@ -113,6 +116,14 @@ void VSM_wfsHandler(void) {
 
 void VSM_safeHandler(void) {
     greenOn();
+}
+
+void VSM_testingHandler(void) {
+    while (1) {
+        blinkBoardLights(2, 250);
+        delay(500, MILLI);
+        printf("loop\r\n");
+    }
 }
 /******************************************************************************/
 /******************************************************************************/

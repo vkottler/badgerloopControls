@@ -67,6 +67,7 @@ extern void (*fabHandler)(void);
 extern void (*rabHandler)(void);
 extern void (*wfsHandler)(void);
 extern void (*safeHandler)(void);
+extern void (*testingHandler)(void);
 /******************************************************************************/
 /******************************************************************************/
 

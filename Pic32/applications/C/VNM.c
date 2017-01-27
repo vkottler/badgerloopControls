@@ -1,6 +1,8 @@
 #include "../include/VNM.h"
 
-COORD_VECTOR accelData;
+uint8_t vectorIndex = 0;
+
+COORD_VECTOR mpuVec;
 
 unsigned int frontVelocity = 0, middleVelocity = 0, rearVelocity = 0;
 
@@ -9,14 +11,16 @@ STRIP_SEQUENCE curr_strip = FRONT;
 volatile int *main_count = NULL;
 
 uint16_t px = 0, py = 0, pz = 0, 
-         vx = 0, vy = 0, vz = 0, 
-         ax = 0, ay = 0, az = 0;
+         vx = 0, vy = 0, vz = 0;
+
+float ax = 0.0, ay = 0.0, az = 0.0; 
 
 uint8_t frontFaults = 0, rearFaults = 0, middleFaults = 0;
 
 /******************************************************************************/
 /*                             Outgoing Messages                              */
 /******************************************************************************/
+/*
 bool VNM_sendPos(void) {
     setupBroadcast();
     sending->SIZE = 7;
@@ -55,6 +59,7 @@ bool VNM_sendAcc(void) {
     sending->byte5 = az & 0xff;
     return CAN_broadcast();
 }
+*/
 
 bool VNM_sendAtt(void) {
     setupBroadcast();
@@ -114,20 +119,13 @@ inline void VNM_init_funcHandlers(void) {
 }
 
 bool VNM_init_periph(void) {
+    memset((void *) &mpuVec, 0, sizeof(COORD_VECTOR));
     VNM_init_funcHandlers();
     I2Cinit();
     main_count = &FRONT_COUNT;
-    memset(&accelData, 0, sizeof(COORD_VECTOR));
     inputCapInit(1);
     inputCapInit(4);
     inputCapInit(5);
-    
-    digitalWrite(50, 0);
-    digitalWrite(51, 0);
-    
-    //inputCapInit(2);
-    //inputCapInit(3);
-    
     return MPUinitialize();
 }
 
@@ -148,7 +146,27 @@ bool VNM_message_handler(void) {
 /*                        Data Processing & Unit Conversions                  */
 /******************************************************************************/
 void VNM_data_process_handler(void) {
-    MPUread(&accelData);
+    if (transactionReady) {
+        if (!I2Csuccessful) fault = I2C_FAULT;
+        else {
+            __builtin_disable_interrupts();
+            mpuVec.ax = mpuBytes[0] << 8 | mpuBytes[1];
+            mpuVec.ax *= ACCEL_SCALE;
+            mpuVec.ay = mpuBytes[2] << 8 | mpuBytes[3];
+            mpuVec.ay *= ACCEL_SCALE;
+            mpuVec.az = mpuBytes[4] << 8 | mpuBytes[5];
+            mpuVec.az *= ACCEL_SCALE;
+            mpuVec.gx = mpuBytes[8] << 8 | mpuBytes[9];
+            mpuVec.gx *= GYRO_SCALE;
+            mpuVec.gy = mpuBytes[10] << 8 | mpuBytes[11];
+            mpuVec.gy *= GYRO_SCALE;
+            mpuVec.gz = mpuBytes[12] << 8 | mpuBytes[13];
+            mpuVec.gz *= GYRO_SCALE;
+            __builtin_enable_interrupts();
+        }
+        transactionReady = false;
+    }
+    
     if (FRONT_MISS) {
         VNM_sendLost();
         frontFaults++;
@@ -162,19 +180,15 @@ void VNM_data_process_handler(void) {
         rearFaults++;
     }
     
-    
-    
-    
-    
     if (timer45Event) {
-        
+        if (!transactionReady) MPUread();
         timer45Event = false;
     }
 }
 
 void VNM_CANsendHandler(void) {
-    VNM_sendAcc();
-    VNM_sendVel();
+    //VNM_sendAcc();
+    //VNM_sendVel();
     VNM_sendStrip();
 }
 /******************************************************************************/
@@ -236,15 +250,15 @@ void VNM_safeHandler(void) {
 //         ax = 0, ay = 0, az = 0;
 
 void VNM_printVariables(void) {
-    printf("=================================================\r\n");
-    printf("ax:%5d ay:%5d az:%5d ", accelData.ax, accelData.ay, accelData.az);
-    printf("gx:%5d gy:%5d gz:%5d\r\n", accelData.gx, accelData.gy, accelData.gz);
-    printf("px:%5d py:%5d pz:%5d vx:%5d vy:%5d vz:%5d\r\n", px, py, pz, vx, vy, vz);
-    printf("ax:%5d ay:%5d az:%5d\r\n", ax, ay, az);
-    printf("=================================================\r\n");
-    printf("strips ([F][M][R]):\t[%3d][%3d][%3d]\r\n", FRONT_COUNT, MIDDLE_COUNT, REAR_COUNT);
-    printf("velocity (m/s):\t\t[%4d][%4d][%4d]\r\n", frontVelocity, middleVelocity, rearVelocity);
-    printf("=================================================\r\n");
+    //printf("=================================================\r\n");
+    printf("ax:%5f ay:%5f az:%5f ", mpuVec.ax, mpuVec.ay, mpuVec.az);
+    printf("gx:%5f gy:%5f gz:%5f\r\n", mpuVec.gx, mpuVec.gy, mpuVec.gz);
+    //printf("px:%5d py:%5d pz:%5d vx:%5d vy:%5d vz:%5d\r\n", px, py, pz, vx, vy, vz);
+    //printf("ax:%5d ay:%5d az:%5d\r\n", ax, ay, az);
+    //printf("=================================================\r\n");
+    //printf("strips ([F][M][R]):\t[%3d][%3d][%3d]\r\n", FRONT_COUNT, MIDDLE_COUNT, REAR_COUNT);
+    //printf("velocity (m/s):\t\t[%4d][%4d][%4d]\r\n", frontVelocity, middleVelocity, rearVelocity);
+    //printf("=================================================\r\n");
 }
 /******************************************************************************/
 /******************************************************************************/

@@ -54,6 +54,10 @@ int main(void) {
         fault = LOCAL_INIT_FAILED;
     }
     
+#ifdef TESTING
+    testingHandler();
+#endif
+    
     while (1) {
         
         // handle broadcasts

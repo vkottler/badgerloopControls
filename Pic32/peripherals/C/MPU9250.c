@@ -1,45 +1,271 @@
 #include "../include/MPU9250.h"
 
-bool I2CWriteBits(uint8_t deviceAddress, uint8_t deviceRegister, uint8_t bitStart, uint8_t length, uint8_t data) {
-    uint8_t b;
-    uint8_t mask = ((1 << length) - 1) << (bitStart - length + 1);
-    uint8_t b_array[2];
-    data <<= (bitStart - length + 1);
-    data &= mask;
-    b &= ~(mask);
-    b |= data;
-    b_array[0] = deviceRegister;
-    b_array[1] = b;
-    return I2CwriteAndRead(deviceAddress, b_array, 2, NULL, 0, true);
+// cm/s
+// cm/s2
+
+float accelBias[3], gyroBias[3];
+
+volatile uint8_t mpuBytes[14];
+
+inline void printMPU(void) {
+    printf("ax: %5d ay: %5d az: %5d gx: %5d gy: %5d gz: %d\r\n");
 }
 
-bool I2CWriteBit(uint8_t deviceAddress, uint8_t deviceRegister, uint8_t bitNum, uint8_t data) {
-    uint8_t b;
-    b = (data != 0) ? (b | (1 << bitNum)) : (b & ~(1 << bitNum));
-    uint8_t b_array[2];
-    b_array[0] = deviceRegister;
-    b_array[1] = b;
-    return I2CwriteAndRead(deviceAddress, b_array, 2, NULL, 0, true);
+bool MPUwriteReg(uint8_t reg, uint8_t value) {
+    uint8_t vals[2];
+    vals[0] = reg;
+    vals[1] = value;
+    return I2CwriteAndRead(MPU_ADDRESS, vals, 2, NULL, 0, true);
+}
+
+// Function which accumulates gyro and accelerometer data after device
+// initialization. It calculates the average of the at-rest readings and then
+// loads the resulting offsets into accelerometer and gyro bias registers.
+bool calibrateMPU9250(float * gyroBias, float * accelBias) {
+    uint8_t addr;
+  uint16_t  gyrosensitivity  = 131;   // = 131 LSB/degrees/sec
+  uint16_t  accelsensitivity = 16384; // = 16384 LSB/g 
+  uint8_t data[12]; // data array to hold accelerometer and gyro x, y, z, data
+  uint16_t ii, packet_count, fifo_count;
+  int32_t gyro_bias[3]  = {0, 0, 0}, accel_bias[3] = {0, 0, 0};
+  int16_t accel_temp[3] = {0, 0, 0}, gyro_temp[3] = {0, 0, 0};
+
+  // reset device
+  // Write a one to bit 7 reset bit; toggle reset device
+  if (MPUwriteReg(PWR_MGMT_1, 0x80)) return false;
+  delay(100, MILLI);
+
+  // get stable time source; Auto select clock source to be PLL gyroscope
+  // reference if ready else use the internal oscillator, bits 2:0 = 001
+  MPUwriteReg(PWR_MGMT_1, 0x01);
+  MPUwriteReg(PWR_MGMT_2, 0x00);
+  delay(200, MILLI);
+
+  // Configure device for bias calculation
+  // Disable all interrupts
+  MPUwriteReg(INT_ENABLE, 0x00);
+  // Disable FIFO
+  MPUwriteReg(FIFO_EN, 0x00);
+  // Turn on internal clock source
+  MPUwriteReg(PWR_MGMT_1, 0x00);
+  // Disable I2C master
+  MPUwriteReg(I2C_MST_CTRL, 0x00);
+  // Disable FIFO and I2C master modes
+  MPUwriteReg(USER_CTRL, 0x00);
+  // Reset FIFO and DMP
+  MPUwriteReg(USER_CTRL, 0x0C);
+  delay(15, MILLI);
+
+  // Configure MPU6050 gyro and accelerometer for bias calculation
+  // Set low-pass filter to 188 Hz
+  MPUwriteReg(CONFIG, 0x01);
+  // Set sample rate to 1 kHz
+  MPUwriteReg(SMPLRT_DIV, 0x00);
+  // Set gyro full-scale to 250 degrees per second, maximum sensitivity
+  MPUwriteReg(GYRO_CONFIG, 0x00);
+  // Set accelerometer full-scale to 2 g, maximum sensitivity
+  MPUwriteReg(ACCEL_CONFIG, 0x00);
+
+  // Configure FIFO to capture accelerometer and gyro data for bias calculation
+  MPUwriteReg(USER_CTRL, 0x40);  // Enable FIFO
+  // Enable gyro and accelerometer sensors for FIFO  (max size 512 bytes in
+  // MPU-9150)
+  MPUwriteReg(FIFO_EN, 0x78);
+  delay(40, MILLI);  // accumulate 40 samples in 40 milliseconds = 480 bytes
+
+  // At end of sample accumulation, turn off FIFO sensor read
+  // Disable gyro and accelerometer sensors for FIFO
+  MPUwriteReg(FIFO_EN, 0x00);
+  // Read FIFO sample count
+  addr = FIFO_COUNTH;
+  I2CwriteAndRead(MPU_ADDRESS, &addr, 1, data, 2, true);
+  fifo_count = ((uint16_t)data[0] << 8) | data[1];
+  // How many sets of full gyro and accelerometer data for averaging
+  packet_count = fifo_count/12;
+
+  for (ii = 0; ii < packet_count; ii++) {
+    
+    // Read data for averaging
+    addr = FIFO_R_W;
+    I2CwriteAndRead(MPU_ADDRESS, &addr, 1, data, 12, true);
+    // Form signed 16-bit integer for each sample in FIFO
+    accel_temp[0] = (int16_t) (((int16_t)data[0] << 8) | data[1]  );
+    accel_temp[1] = (int16_t) (((int16_t)data[2] << 8) | data[3]  );
+    accel_temp[2] = (int16_t) (((int16_t)data[4] << 8) | data[5]  );
+    gyro_temp[0]  = (int16_t) (((int16_t)data[6] << 8) | data[7]  );
+    gyro_temp[1]  = (int16_t) (((int16_t)data[8] << 8) | data[9]  );
+    gyro_temp[2]  = (int16_t) (((int16_t)data[10] << 8) | data[11]);
+
+    // Sum individual signed 16-bit biases to get accumulated signed 32-bit
+    // biases.
+    accel_bias[0] += (int32_t) accel_temp[0];
+    accel_bias[1] += (int32_t) accel_temp[1];
+    accel_bias[2] += (int32_t) accel_temp[2];
+    gyro_bias[0]  += (int32_t) gyro_temp[0];
+    gyro_bias[1]  += (int32_t) gyro_temp[1];
+    gyro_bias[2]  += (int32_t) gyro_temp[2];
+  }
+  // Sum individual signed 16-bit biases to get accumulated signed 32-bit biases
+  accel_bias[0] /= (int32_t) packet_count;
+  accel_bias[1] /= (int32_t) packet_count;
+  accel_bias[2] /= (int32_t) packet_count;
+  gyro_bias[0]  /= (int32_t) packet_count;
+  gyro_bias[1]  /= (int32_t) packet_count;
+  gyro_bias[2]  /= (int32_t) packet_count;
+
+  // Sum individual signed 16-bit biases to get accumulated signed 32-bit biases
+  if (accel_bias[2] > 0L) accel_bias[2] -= (int32_t) accelsensitivity;
+  else accel_bias[2] += (int32_t) accelsensitivity;
+
+  // Construct the gyro biases for push to the hardware gyro bias registers,
+  // which are reset to zero upon device startup.
+  // Divide by 4 to get 32.9 LSB per deg/s to conform to expected bias input
+  // format.
+  data[0] = (-gyro_bias[0]/4  >> 8) & 0xFF;
+  // Biases are additive, so change sign on calculated average gyro biases
+  data[1] = (-gyro_bias[0]/4)       & 0xFF;
+  data[2] = (-gyro_bias[1]/4  >> 8) & 0xFF;
+  data[3] = (-gyro_bias[1]/4)       & 0xFF;
+  data[4] = (-gyro_bias[2]/4  >> 8) & 0xFF;
+  data[5] = (-gyro_bias[2]/4)       & 0xFF;
+
+  // Push gyro biases to hardware registers
+  MPUwriteReg(XG_OFFSET_H, data[0]);
+  MPUwriteReg(XG_OFFSET_L, data[1]);
+  MPUwriteReg(YG_OFFSET_H, data[2]);
+  MPUwriteReg(YG_OFFSET_L, data[3]);
+  MPUwriteReg(ZG_OFFSET_H, data[4]);
+  MPUwriteReg(ZG_OFFSET_L, data[5]);
+
+  // Output scaled gyro biases for display in the main program
+  gyroBias[0] = (float) gyro_bias[0]/(float) gyrosensitivity;
+  gyroBias[1] = (float) gyro_bias[1]/(float) gyrosensitivity;
+  gyroBias[2] = (float) gyro_bias[2]/(float) gyrosensitivity;
+
+  // Construct the accelerometer biases for push to the hardware accelerometer
+  // bias registers. These registers contain factory trim values which must be
+  // added to the calculated accelerometer biases; on boot up these registers
+  // will hold non-zero values. In addition, bit 0 of the lower byte must be
+  // preserved since it is used for temperature compensation calculations.
+  // Accelerometer bias registers expect bias input as 2048 LSB per g, so that
+  // the accelerometer biases calculated above must be divided by 8.
+
+  // A place to hold the factory accelerometer trim biases
+  int32_t accel_bias_reg[3] = {0, 0, 0};
+  // Read factory accelerometer trim values
+  addr = XA_OFFSET_H;
+  I2CwriteAndRead(MPU_ADDRESS, &addr, 1, data, 2, true);
+  accel_bias_reg[0] = (int32_t) (((int16_t)data[0] << 8) | data[1]);
+  addr = YA_OFFSET_H;
+  I2CwriteAndRead(MPU_ADDRESS, &addr, 1, data, 2, true);
+  accel_bias_reg[1] = (int32_t) (((int16_t)data[0] << 8) | data[1]);
+  addr = ZA_OFFSET_H;
+  I2CwriteAndRead(MPU_ADDRESS, &addr, 1, data, 2, true);
+  accel_bias_reg[2] = (int32_t) (((int16_t)data[0] << 8) | data[1]);
+
+  // Define mask for temperature compensation bit 0 of lower byte of
+  // accelerometer bias registers
+  uint32_t mask = 1uL;
+  // Define array to hold mask bit for each accelerometer bias axis
+  uint8_t mask_bit[3] = {0, 0, 0};
+
+  for (ii = 0; ii < 3; ii++)
+  {
+    // If temperature compensation bit is set, record that fact in mask_bit
+    if ((accel_bias_reg[ii] & mask))
+    {
+      mask_bit[ii] = 0x01;
+    }
+  }
+
+  // Construct total accelerometer bias, including calculated average
+  // accelerometer bias from above
+  // Subtract calculated averaged accelerometer bias scaled to 2048 LSB/g
+  // (16 g full scale)
+  accel_bias_reg[0] -= (accel_bias[0]/8);
+  accel_bias_reg[1] -= (accel_bias[1]/8);
+  accel_bias_reg[2] -= (accel_bias[2]/8);
+
+  data[0] = (accel_bias_reg[0] >> 8) & 0xFF;
+  data[1] = (accel_bias_reg[0])      & 0xFF;
+  // preserve temperature compensation bit when writing back to accelerometer
+  // bias registers
+  data[1] = data[1] | mask_bit[0];
+  data[2] = (accel_bias_reg[1] >> 8) & 0xFF;
+  data[3] = (accel_bias_reg[1])      & 0xFF;
+  // Preserve temperature compensation bit when writing back to accelerometer
+  // bias registers
+  data[3] = data[3] | mask_bit[1];
+  data[4] = (accel_bias_reg[2] >> 8) & 0xFF;
+  data[5] = (accel_bias_reg[2])      & 0xFF;
+  // Preserve temperature compensation bit when writing back to accelerometer
+  // bias registers
+  data[5] = data[5] | mask_bit[2];
+
+  // Apparently this is not working for the acceleration biases in the MPU-9250
+  // Are we handling the temperature correction bit properly?
+  // Push accelerometer biases to hardware registers
+  MPUwriteReg(XA_OFFSET_H, data[0]);
+  MPUwriteReg(XA_OFFSET_L, data[1]);
+  MPUwriteReg(YA_OFFSET_H, data[2]);
+  MPUwriteReg(YA_OFFSET_L, data[3]);
+  MPUwriteReg(ZA_OFFSET_H, data[4]);
+  MPUwriteReg(ZA_OFFSET_L, data[5]);
+
+  // Output scaled accelerometer biases for display in the main program
+  accelBias[0] = (float)accel_bias[0]/(float)accelsensitivity;
+  accelBias[1] = (float)accel_bias[1]/(float)accelsensitivity;
+  accelBias[2] = (float)accel_bias[2]/(float)accelsensitivity;
+  
+  return true;
 }
 
 bool MPUinitialize(void) {
+    uint8_t tempRead, tempAddr;
     bool status = false;
-    status |= I2CWriteBit(MPU_ADDRESS, MPU9250_PWR_MGMT_1, MPU9250_PWR1_SLEEP_BIT, 0);                                                               // Disable Sleep
-    status |= I2CWriteBits(MPU_ADDRESS, MPU9250_PWR_MGMT_1, MPU9250_PWR1_CLKSEL_BIT, MPU9250_PWR1_CLKSEL_LENGTH, MPU9250_CLOCK_PLL_XGYRO);           // Set clock source
-    status |= I2CWriteBits(MPU_ADDRESS, MPU9250_RA_GYRO_CONFIG, MPU9250_GCONFIG_FS_SEL_BIT, MPU9250_GCONFIG_FS_SEL_LENGTH, MPU9250_GYRO_FS_500);     // Set full scale gyro range
-    status |= I2CWriteBits(MPU_ADDRESS, MPU9250_RA_ACCEL_CONFIG, MPU9250_ACONFIG_AFS_SEL_BIT, MPU9250_ACONFIG_AFS_SEL_LENGTH, MPU9250_ACCEL_FS_2);   // Set full scale accel range
+    
+    if (!calibrateMPU9250(gyroBias, accelBias)) return false;
+    
+    // clear sleep mode bit, enable all sensors
+    status |= MPUwriteReg(PWR_MGMT_1, 0x00);
+    delay(100, MILLI);
+    
+    // auto select clock source to be PLL gyro reference
+    status |= MPUwriteReg(PWR_MGMT_1, 0x01);
+    delay(200, MILLI);
+    
+    // disable FYSNC, set thermometer and gyro bandwidth to 41 and 42 Hz
+    // cannot sample higher than 170 Hz
+    status |= MPUwriteReg(CONFIG, 0x03);
+    
+    // 200 Hz sample rate for gyro
+    status |= MPUwriteReg(SMPLRT_DIV, 0x04);
+    
+    // configure gyro
+    tempAddr = GYRO_CONFIG;
+    if (I2CwriteAndRead(MPU_ADDRESS, &tempAddr, 1, &tempRead, 1, true)) return false;
+    tempRead &= ~0x02;
+    tempRead &= ~0x18;
+    status |= MPUwriteReg(GYRO_CONFIG, tempRead);
+    
+    // configure accelerometer
+    tempAddr = ACCEL_CONFIG;
+    if (I2CwriteAndRead(MPU_ADDRESS, &tempAddr, 1, &tempRead, 1, true)) return false;
+    tempRead &= ~0x18;
+    status |= MPUwriteReg(ACCEL_CONFIG, tempRead);
+    
+    // set accel sample rate
+    tempAddr = ACCEL_CONFIG2;
+    if (I2CwriteAndRead(MPU_ADDRESS, &tempAddr, 1, &tempRead, 1, true)) return false;
+    tempRead &= 0xF;
+    tempRead |= 0x03;
+    status |= MPUwriteReg(ACCEL_CONFIG2, tempRead);
+    
     return status ? false : true;
 }
 
-bool MPUread(COORD_VECTOR *vec) {
-    uint8_t readAccel[14];
-    uint8_t readAccel_cmd = MPU9250_ACCEL_XOUT_H;
-    if (I2CwriteAndRead(MPU_ADDRESS, &readAccel_cmd, 1, readAccel, 14, true)) return false;
-    vec->ax = (((signed short) readAccel[0]) << 8) | readAccel[1];   // ax
-    vec->ay = (((signed short) readAccel[2]) << 8) | readAccel[3];   // ay
-    vec->az = (((signed short) readAccel[4]) << 8) | readAccel[5];   // az
-    vec->gx = (((signed short) readAccel[8]) << 8) | readAccel[9];   // gx
-    vec->gy = (((signed short) readAccel[10]) << 8) | readAccel[11]; // gy
-    vec->gz = (((signed short) readAccel[12]) << 8) | readAccel[13]; // gz
-    return true;    
+bool MPUread(void) {
+    uint8_t readAccel_cmd = ACCEL_XOUT_H;
+    if (I2CwriteAndRead(MPU_ADDRESS, &readAccel_cmd, 1, mpuBytes, 14, false)) return false;
+    return true;     
 }
