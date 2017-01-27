@@ -153,12 +153,18 @@ typedef union {
 } CAN_MESSAGE;
 
 typedef struct {
-        float ax;  
-        float ay;
-        float az;
-        float gx;   
-        float gy;
-        float gz;
+        signed short ax;  
+        signed short ay;
+        signed short az;
+        signed short gx;   
+        signed short gy;
+        signed short gz;
+        float fax;
+        float fay;
+        float faz;
+        float fgx;
+        float fgy;
+        float fgz;
 } COORD_VECTOR;
 /******************************************************************************/
 /******************************************************************************/

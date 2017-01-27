@@ -146,23 +146,30 @@ bool VNM_message_handler(void) {
 /*                        Data Processing & Unit Conversions                  */
 /******************************************************************************/
 void VNM_data_process_handler(void) {
+    if (MPU_ready) {
+        
+        MPU_ready = false;
+    }
+    else MPU_step();
     if (transactionReady) {
         if (!I2Csuccessful) fault = I2C_FAULT;
         else {
+            /*
             __builtin_disable_interrupts();
-            mpuVec.ax = mpuBytes[0] << 8 | mpuBytes[1];
-            mpuVec.ax *= ACCEL_SCALE;
-            mpuVec.ay = mpuBytes[2] << 8 | mpuBytes[3];
-            mpuVec.ay *= ACCEL_SCALE;
-            mpuVec.az = mpuBytes[4] << 8 | mpuBytes[5];
-            mpuVec.az *= ACCEL_SCALE;
-            mpuVec.gx = mpuBytes[8] << 8 | mpuBytes[9];
-            mpuVec.gx *= GYRO_SCALE;
-            mpuVec.gy = mpuBytes[10] << 8 | mpuBytes[11];
-            mpuVec.gy *= GYRO_SCALE;
-            mpuVec.gz = mpuBytes[12] << 8 | mpuBytes[13];
-            mpuVec.gz *= GYRO_SCALE;
+            mpuVec.ax = (int16_t) (((int16_t)mpuBytes[0] << 8) | mpuBytes[1]  );
+            mpuVec.fax = (float) mpuVec.ax / ACCEL_SCALAR;
+            mpuVec.ay = (int16_t) (((int16_t)mpuBytes[2] << 8) | mpuBytes[3]  );
+            mpuVec.fay = (float) mpuVec.ay / ACCEL_SCALAR;
+            mpuVec.az = (int16_t) (((int16_t)mpuBytes[4] << 8) | mpuBytes[5]  );
+            mpuVec.faz = (float) mpuVec.az / ACCEL_SCALAR;
+            mpuVec.gx = (int16_t) (((int16_t)mpuBytes[8] << 8) | mpuBytes[9]  );
+            mpuVec.fgx = (float) mpuVec.gx / GYRO_SCALAR;
+            mpuVec.gy = (int16_t) (((int16_t)mpuBytes[10] << 8) | mpuBytes[11]  );
+            mpuVec.fgy = (float) mpuVec.gy / GYRO_SCALAR;
+            mpuVec.gz = (int16_t) (((int16_t)mpuBytes[12] << 8) | mpuBytes[13]  );
+            mpuVec.fgz = (float) mpuVec.gz / GYRO_SCALAR;
             __builtin_enable_interrupts();
+            */
         }
         transactionReady = false;
     }
@@ -181,7 +188,7 @@ void VNM_data_process_handler(void) {
     }
     
     if (timer45Event) {
-        if (!transactionReady) MPUread();
+        
         timer45Event = false;
     }
 }
@@ -251,8 +258,10 @@ void VNM_safeHandler(void) {
 
 void VNM_printVariables(void) {
     //printf("=================================================\r\n");
-    printf("ax:%5f ay:%5f az:%5f ", mpuVec.ax, mpuVec.ay, mpuVec.az);
-    printf("gx:%5f gy:%5f gz:%5f\r\n", mpuVec.gx, mpuVec.gy, mpuVec.gz);
+    printf("ax:%.5d ay:%.5d az:%.5d ", mpuVec.ax, mpuVec.ay, mpuVec.az);
+    printf("gx:%.5d gy:%.5d gz:%.5d\r\n", mpuVec.gx, mpuVec.gy, mpuVec.gz);
+    printf("ax:%.5f ay:%.5f az:%.5f ", mpuVec.fax, mpuVec.fay, mpuVec.faz);
+    printf("gx:%.5f gy:%.5f gz:%.5f\r\n", mpuVec.fgx, mpuVec.fgy, mpuVec.fgz);
     //printf("px:%5d py:%5d pz:%5d vx:%5d vy:%5d vz:%5d\r\n", px, py, pz, vx, vy, vz);
     //printf("ax:%5d ay:%5d az:%5d\r\n", ax, ay, az);
     //printf("=================================================\r\n");

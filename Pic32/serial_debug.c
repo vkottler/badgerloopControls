@@ -73,6 +73,7 @@ void Serial_Debug_Handler(void) {
     else if (!strcmp(uartReceive, "ready brakes") && ourRole == BCM) { readyBrakes(); printf("Brakes ready in a few seconds!\r\n"); }
     else if (!strcmp(uartReceive, "brake") && ourRole == BCM) { next_state = NORMAL_BRAKING; printf("Entered braking state.\r\n"); }
     else if (!strcmp(uartReceive, "brakes off") && ourRole == BCM) { brakesOff(); printf("All brake PWM signals should be off.\r\n"); }
+    else if (!strcmp(uartReceive, "offsets") && ourRole == VNM) printOffsets();
     else if (!strcmp(uartReceive, "variables")) {
         switch (ourRole) {
             case VNM: VNM_printVariables(); break;

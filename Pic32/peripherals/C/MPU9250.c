@@ -5,17 +5,65 @@
 
 float accelBias[3], gyroBias[3];
 
+unsigned int fifoCount = 0;
+
+uint8_t addr = 0;
+volatile uint8_t fifoCount[2];
+uint16_t totalCount;
+uint8_t readIndex = 0;
+
+MPU_STATE mpuState = IDLE;
+
+bool MPU_ready = false;
+
 volatile uint8_t mpuBytes[14];
 
-inline void printMPU(void) {
-    printf("ax: %5d ay: %5d az: %5d gx: %5d gy: %5d gz: %d\r\n");
+inline void startFIFOread(void) {
+    addr = FIFO_COUNTH;
+    I2CwriteAndRead(MPU_ADDRESS, &addr, 1, fifoCount, 2, false);
 }
 
-bool MPUwriteReg(uint8_t reg, uint8_t value) {
+void MPU_step(void) {
+    switch (mpuState) {
+        case IDLE:
+            MPU_startSampling();
+            mpuState = WAIT;
+            break;
+        case WAIT:
+            break;
+            if (transactionReady && I2Csuccessful) {
+                startFIFOread();
+                mpuState = GET_FIFO_COUNT;
+            }
+            break;
+        case GET_FIFO_COUNT:
+            if (transactionReady && I2Csuccessful) {
+                totalCount = (uint16_t) fifoCount[0] << 8 | (fifoCount[1]);
+                mpuState = GET_VALUES;
+            }
+        case GET_VALUES:
+            if (transactionReady && I2Csuccessful)
+            break;
+    }
+}
+
+void printOffsets(void) {
+    printf("ax: %f ay: %f az: %f gx: %f gy: %f gz: %f\r\n", accelBias[0], accelBias[1], accelBias[2], gyroBias[0], gyroBias[1], gyroBias[2]);
+}
+
+inline void MPU_startSampling(void) {
+    if (MPUwriteReg(FIFO_EN, 0x78, false)) fault = I2C_FAULT;
+}
+
+bool MPU_stopSampling(void) {
+    if (MPUwriteReg(FIFO_EN, 0x00, false)) fault = I2C_FAULT;
+}
+
+bool MPUwriteReg(uint8_t reg, uint8_t value, bool block) {
     uint8_t vals[2];
     vals[0] = reg;
     vals[1] = value;
-    return I2CwriteAndRead(MPU_ADDRESS, vals, 2, NULL, 0, true);
+    return I2CwriteAndRead(MPU_ADDRESS, vals, 2, NULL, 0, block);
 }
 
 // Function which accumulates gyro and accelerometer data after device
@@ -221,47 +269,7 @@ bool calibrateMPU9250(float * gyroBias, float * accelBias) {
 }
 
 bool MPUinitialize(void) {
-    uint8_t tempRead, tempAddr;
-    bool status = false;
-    
-    if (!calibrateMPU9250(gyroBias, accelBias)) return false;
-    
-    // clear sleep mode bit, enable all sensors
-    status |= MPUwriteReg(PWR_MGMT_1, 0x00);
-    delay(100, MILLI);
-    
-    // auto select clock source to be PLL gyro reference
-    status |= MPUwriteReg(PWR_MGMT_1, 0x01);
-    delay(200, MILLI);
-    
-    // disable FYSNC, set thermometer and gyro bandwidth to 41 and 42 Hz
-    // cannot sample higher than 170 Hz
-    status |= MPUwriteReg(CONFIG, 0x03);
-    
-    // 200 Hz sample rate for gyro
-    status |= MPUwriteReg(SMPLRT_DIV, 0x04);
-    
-    // configure gyro
-    tempAddr = GYRO_CONFIG;
-    if (I2CwriteAndRead(MPU_ADDRESS, &tempAddr, 1, &tempRead, 1, true)) return false;
-    tempRead &= ~0x02;
-    tempRead &= ~0x18;
-    status |= MPUwriteReg(GYRO_CONFIG, tempRead);
-    
-    // configure accelerometer
-    tempAddr = ACCEL_CONFIG;
-    if (I2CwriteAndRead(MPU_ADDRESS, &tempAddr, 1, &tempRead, 1, true)) return false;
-    tempRead &= ~0x18;
-    status |= MPUwriteReg(ACCEL_CONFIG, tempRead);
-    
-    // set accel sample rate
-    tempAddr = ACCEL_CONFIG2;
-    if (I2CwriteAndRead(MPU_ADDRESS, &tempAddr, 1, &tempRead, 1, true)) return false;
-    tempRead &= 0xF;
-    tempRead |= 0x03;
-    status |= MPUwriteReg(ACCEL_CONFIG2, tempRead);
-    
-    return status ? false : true;
+    return calibrateMPU9250(gyroBias, accelBias);
 }
 
 bool MPUread(void) {

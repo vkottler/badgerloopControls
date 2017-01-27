@@ -6,6 +6,7 @@
 #include "drivers/include/CAN.h"
 #include "globals.h"
 #include "peripherals/include/pins.h"
+#include "peripherals/include/MPU9250.h"
 
 // for module specific serial debugging
 #include "applications/include/BCM.h"

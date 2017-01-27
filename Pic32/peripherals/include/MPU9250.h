@@ -9,11 +9,18 @@
 #define MPU_ADDRESS     0x68
 
 extern volatile uint8_t mpuBytes[14];
+extern MPU_STATE mpuState;
+bool MPU_ready = false;
+
+typedef enum {
+    SAMPLING, WAIT, GET_FIFO_COUNT, GET_VALUES, IDLE
+} MPU_STATE;
 
 // Functions
 bool MPUinitialize(void);
 bool MPUread(void);
-inline void printMPU(void);
+void printOffsets(void);
+void MPU_step(void);
 
 // From SparkFun
 #define SELF_TEST_X_GYRO 0x00
