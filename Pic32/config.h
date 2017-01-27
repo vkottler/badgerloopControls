@@ -28,10 +28,6 @@
 #define TICK_TIME               5
 
 #define CAN_SEND_TICKS          200
-#define CHECK_CAN_TICKS         ticks % CAN_SEND_TICKS == 0 && CAN_autosend
-
-#define TMR45                   ((TMR5 << 16) | TMR4)
-#define CHECK_SEND_CAN_TO       currTime - SEND_FAULT_TIMEOUT > lastSentTimeout && currTime > currTime - SEND_FAULT_TIMEOUT 
 
 #define DEBUG_IC                1
 

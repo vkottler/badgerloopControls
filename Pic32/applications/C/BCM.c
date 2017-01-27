@@ -8,8 +8,12 @@ uint8_t intensities[] =         {0, 0, 0, 0, 0};
 uint8_t prev_intensities[] =    {0, 0, 0, 0, 0};
 
 uint16_t B1_rpm = 0, B2_rpm = 0, B3_rpm = 0, B4_rpm = 0;
+uint16_t B1_fwv = 0, B2_fwv = 0, B3_fwv = 0, B4_fwv = 0;
 
 uint8_t pressure1 = 0, pressure2 = 0;
+
+uint16_t strip_count = 0;
+uint16_t x_pos = 0;
 
 /******************************************************************************/
 /*                                     Utility                                */
@@ -77,8 +81,25 @@ void parseBAmessage(void) {
     setBrakeIntensity(3, receiving.byte2);
     //setBrakeIntensity(4, receiving.byte3);
 }
+/******************************************************************************/
+/******************************************************************************/
 
-bool sendBrakeState(uint16_t SID) {
+
+/******************************************************************************/
+/*              Initialization and Message Reception Behavior                 */
+/******************************************************************************/
+void BCM_brake_speed(bool message1) {
+    setupMessage(WCM);
+    sending->message_num = message1 ? BCM_BRAKE_SPEED1 : BCM_BRAKE_SPEED2;
+    sending->SIZE = 5;
+    sending->byte0 = (message1 ? B1_rpm : B3_rpm) >> 8;
+    sending->byte1 = (message1 ? B1_rpm : B3_rpm) & 0xff;
+    sending->byte2 = (message1 ? B2_rpm : B4_rpm) >> 8;
+    sending->byte3 = (message1 ? B2_rpm : B4_rpm) & 0xff;
+    handleCANbco();
+}
+
+void sendBrakeState(uint16_t SID) {
     (SID & ALL) ? setupBroadcast() : setupMessage(SID);
     sending->message_num = BCM_BRAKE_STATE;
     sending->SIZE = 8;
@@ -89,8 +110,10 @@ bool sendBrakeState(uint16_t SID) {
     sending->byte4 = airss;
     sending->byte5 = pressure1;
     sending->byte6 = pressure2;
-    return (SID & ALL) ? CAN_broadcast() : CAN_send(); 
+    (SID & ALL) ? handleCANbco() : handleCANmo; 
 }
+
+
 /******************************************************************************/
 /******************************************************************************/
 
@@ -180,22 +203,22 @@ bool BCM_init_periph(void) {
 
 bool BCM_broadcast_handler(void) {
     switch (receiving.message_num) {
-        case DASH_BCM_AIRACTUATE:   
-            receiving.byte0 ? inflate() : deflate();  
-            break;      
-        case DASH_BCM_BRAKEACTUATE: parseBAmessage();   break;
-        case DASH_BCM_ABS_STATE:                        break;
+        case DASH_BCM_AIRACTUATE: receiving.byte0 ? inflate() : deflate(); break;      
+        case DASH_BCM_BRAKEACTUATE: parseBAmessage();       break;
+        case DASH_BCM_ABS_STATE:                            break;
+        case VNM_STRIP_COUNT: strip_count = GET_CAN_WORD;   break;
+        case VNM_POS: x_pos = GET_CAN_WORD;                 break;
     }
     return true;
 }
 
 bool BCM_message_handler(void) {
     switch (receiving.message_num) {
-        case DASH_BCM_AIRACTUATE: 
-            receiving.byte0 ? inflate() : deflate();  
-            break;
-        case DASH_BCM_BRAKEACTUATE: parseBAmessage();   break;
-        case DASH_BCM_ABS_STATE:                        break;
+        case DASH_BCM_AIRACTUATE: receiving.byte0 ? inflate() : deflate(); break;
+        case DASH_BCM_BRAKEACTUATE: parseBAmessage();       break;
+        case DASH_BCM_ABS_STATE:                            break;
+        case VNM_STRIP_COUNT: strip_count = GET_CAN_WORD;   break;
+        case VNM_POS: x_pos = GET_CAN_WORD;                 break;
     }
     return true;
 }
@@ -206,6 +229,13 @@ bool BCM_message_handler(void) {
 /******************************************************************************/
 /*                        Data Processing & Unit Conversions                  */
 /******************************************************************************/
+void BCM_compute_wheel_velocity(void) {
+    B1_fwv = B1_rpm / RPM_DIVISOR;
+    B1_fwv = B1_rpm / RPM_DIVISOR;
+    B1_fwv = B1_rpm / RPM_DIVISOR;
+    B1_fwv = B1_rpm / RPM_DIVISOR;
+}
+
 void BCM_compute_wheel_rpms(void) {
     B1_rpm = IC3_rpm();
     B2_rpm = IC4_rpm();
@@ -214,6 +244,8 @@ void BCM_compute_wheel_rpms(void) {
 }
 
 void BCM_data_process_handler(void) {
+    BCM_compute_wheel_velocity();
+    
     if (timer45Event) {
         
         timer45Event = false;
@@ -227,6 +259,9 @@ void BCM_data_process_handler(void) {
 
 void BCM_CANsendHandler(void) {
     sendBrakeState(ALL);
+    BCM_compute_wheel_rpms();
+    BCM_brake_speed(true);
+    BCM_brake_speed(false);
 }
 /******************************************************************************/
 /******************************************************************************/

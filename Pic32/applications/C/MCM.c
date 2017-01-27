@@ -57,7 +57,7 @@ bool send_cmdv(uint16_t SID) {
 /******************************************************************************/
 /*                        Data Processing & Unit Conversions                  */
 /******************************************************************************/
-void MCM_compute_wheel_rpms(void) {
+inline void MCM_compute_wheel_rpms(void) {
     left_front_rpm =    IC2_rpm();
     right_front_rpm=    IC5_rpm();
     left_rear_rpm =     IC1_rpm();
@@ -69,8 +69,7 @@ void check_cmdv(void) {
 }
 
 void MCM_data_process_handler(void) {
-    MCM_compute_wheel_rpms();
-    check_cmdv();
+    
     if (timer45Event) {
 
         timer45Event = false;
@@ -78,6 +77,8 @@ void MCM_data_process_handler(void) {
 }
 
 void MCM_CANsendHandler(void) {
+    check_cmdv();
+    MCM_compute_wheel_rpms(); 
     send_cmdv(ALL);
     send_wheel_rpms(ALL);
 }
@@ -191,7 +192,6 @@ void MCM_wfsHandler(void) {
 }
 
 void MCM_safeHandler(void) {
-    greenOn();
 
 }
 /******************************************************************************/

@@ -7,6 +7,8 @@
 #include "../../peripherals/include/ledShield.h"
 #include "../../drivers/include/PWM.h"
 
+#define RPM_DIVISOR     33      // rpm -> m/s = pi * diameter / 60
+
 #define B1_OC           3
 //#define B2_OC           4
 #define B3_OC           1

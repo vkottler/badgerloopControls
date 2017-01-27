@@ -4,24 +4,119 @@ uint8_t vectorIndex = 0;
 
 COORD_VECTOR mpuVec;
 
-unsigned int frontVelocity = 0, middleVelocity = 0, rearVelocity = 0;
-
-STRIP_SEQUENCE curr_strip = FRONT;
+uint16_t px = 0, py = 0, pz = 0;
+uint16_t frontVelocity = 0, middleVelocity = 0, rearVelocity = 0;
+float ax = 0.0, ay = 0.0, az = 0.0; 
 
 volatile int *main_count = NULL;
 
-uint16_t px = 0, py = 0, pz = 0, 
-         vx = 0, vy = 0, vz = 0;
-
-float ax = 0.0, ay = 0.0, az = 0.0; 
-
 uint8_t frontFaults = 0, rearFaults = 0, middleFaults = 0;
+
+
+/******************************************************************************/
+/*                        Data Processing & Unit Conversions                  */
+/******************************************************************************/
+inline void calculateVelocity(void) {
+    __builtin_disable_interrupts();
+    frontVelocity = getFrequency(FRONT_INTERVAL);
+    frontVelocity = frontVelocity * 30 + frontVelocity / 2;
+    middleVelocity = getFrequency(MIDDLE_INTERVAL);
+    middleVelocity = frontVelocity * 30 + frontVelocity / 2;
+    rearVelocity = getFrequency(REAR_INTERVAL);
+    rearVelocity = frontVelocity * 30 + frontVelocity / 2;
+    __builtin_enable_interrupts();    
+}
+
+inline void handleStripDetection(void) {
+    switch (main_count) {
+        case &FRONT_COUNT:
+            if (FRONT_COUNT != MIDDLE_COUNT && MIDDLE_COUNT == REAR_COUNT && MIDDLE_COUNT > FRONT_COUNT)
+                main_count = &MIDDLE_COUNT;
+            break;
+        case &MIDDLE_COUNT:
+            if (MIDDLE_COUNT < REAR_COUNT)
+                main_count = &REAR_COUNT;
+            break;
+        case &REAR_COUNT:
+            if (FRONT_COUNT > REAR_COUNT && FRONT_COUNT > MIDDLE_COUNT)
+                main_count = &FRONT_COUNT;
+            else if (MIDDLE_COUNT > REAR_COUNT && MIDDLE_COUNT > FRONT_COUNT)
+                main_count = &MIDDLE_COUNT;
+            break;
+    }
+}
+
+inline void MPU_data_process(void) {
+    /*
+    __builtin_disable_interrupts();
+    mpuVec.ax = (int16_t) (((int16_t)mpuBytes[0] << 8) | mpuBytes[1]  );
+    mpuVec.fax = (float) mpuVec.ax / ACCEL_SCALAR;
+    mpuVec.ay = (int16_t) (((int16_t)mpuBytes[2] << 8) | mpuBytes[3]  );
+    mpuVec.fay = (float) mpuVec.ay / ACCEL_SCALAR;
+    mpuVec.az = (int16_t) (((int16_t)mpuBytes[4] << 8) | mpuBytes[5]  );
+    mpuVec.faz = (float) mpuVec.az / ACCEL_SCALAR;
+    mpuVec.gx = (int16_t) (((int16_t)mpuBytes[8] << 8) | mpuBytes[9]  );
+    mpuVec.fgx = (float) mpuVec.gx / GYRO_SCALAR;
+    mpuVec.gy = (int16_t) (((int16_t)mpuBytes[10] << 8) | mpuBytes[11]  );
+    mpuVec.fgy = (float) mpuVec.gy / GYRO_SCALAR;
+    mpuVec.gz = (int16_t) (((int16_t)mpuBytes[12] << 8) | mpuBytes[13]  );
+    mpuVec.fgz = (float) mpuVec.gz / GYRO_SCALAR;
+    __builtin_enable_interrupts();
+    */    
+}
+
+inline void handleMPU(void) {
+    if (MPU_ready) {
+        MPU_data_process();
+        MPU_ready = false;
+    }
+    else MPU_step();    
+}
+
+void VNM_data_process_handler(void) {
+    
+    // Check sensor integrity
+    handleStripDetection();
+    
+    // Check accelerometer
+    handleMPU();
+    
+    // Check software missed strips
+    if (FRONT_MISS) {
+        VNM_sendLost();
+        frontFaults++;
+    }
+    if (MIDDLE_MISS) {
+        VNM_sendLost();
+        middleFaults++;
+    }
+    if (REAR_MISS) {
+        VNM_sendLost();
+        rearFaults++;
+    }
+    
+    // Check interval
+    if (timer45Event) {
+        
+        timer45Event = false;
+    }
+}
+
+void VNM_CANsendHandler(void) {
+    VNM_sendPos();
+    //VNM_sendAcc();
+    VNM_sendVel();
+    VNM_sendStrip();
+}
+/******************************************************************************/
+/******************************************************************************/
+
 
 /******************************************************************************/
 /*                             Outgoing Messages                              */
 /******************************************************************************/
-/*
 bool VNM_sendPos(void) {
+    px = *main_count * 30 + *main_count / 2;
     setupBroadcast();
     sending->SIZE = 7;
     sending->message_num = VNM_POS;
@@ -31,20 +126,21 @@ bool VNM_sendPos(void) {
     sending->byte3 = py & 0xff;
     sending->byte4 = pz >> 8;
     sending->byte5 = pz & 0xff;
-    return CAN_broadcast();
+    handleCANbco();
 }
 
 bool VNM_sendVel(void) {
+    calculateVelocity();
     setupBroadcast();
     sending->SIZE = 7;
     sending->message_num = VNM_VEL;
-    sending->byte0 = vx >> 8;
-    sending->byte1 = vx & 0xff;
-    sending->byte2 = vy >> 8;
-    sending->byte3 = vy & 0xff;
-    sending->byte4 = vz >> 8;
-    sending->byte5 = vz & 0xff;
-    return CAN_broadcast();
+    sending->byte0 = frontVelocity >> 8;
+    sending->byte1 = frontVelocity & 0xff;
+    sending->byte2 = middleVelocity >> 8;
+    sending->byte3 = middleVelocity & 0xff;
+    sending->byte4 = rearVelocity >> 8;
+    sending->byte5 = rearVelocity & 0xff;
+    handleCANbco();
 }
 
 bool VNM_sendAcc(void) {
@@ -59,7 +155,6 @@ bool VNM_sendAcc(void) {
     sending->byte5 = az & 0xff;
     return CAN_broadcast();
 }
-*/
 
 bool VNM_sendAtt(void) {
     setupBroadcast();
@@ -72,13 +167,14 @@ bool VNM_sendAtt(void) {
 bool VNM_sendStrip(void) {
     setupBroadcast();
     sending->message_num = VNM_STRIP_COUNT;
-    sending->SIZE = 7;
-    sending->byte0 = FRONT_COUNT >> 8;
-    sending->byte1 = FRONT_COUNT & 0xff;
-    sending->byte2 = MIDDLE_COUNT >> 8;
-    sending->byte3 = MIDDLE_COUNT & 0xff;
-    sending->byte4 = REAR_COUNT >> 8;
-    sending->byte5 = REAR_COUNT & 0xff;
+    sending->SIZE = 4;
+    sending->byte0 = *main_count >> 8;
+    sending->byte1 = *main_count & 0xff;
+    switch (main_count) {
+        case &FRONT_COUNT:  sending->byte2 = 0; break;
+        case &MIDDLE_COUNT: sending->byte2 = 1; break;
+        case &REAR_COUNT:   sending->byte2 = 2; break;
+    }
     return CAN_broadcast();
 }
 
@@ -143,66 +239,6 @@ bool VNM_message_handler(void) {
 
 
 /******************************************************************************/
-/*                        Data Processing & Unit Conversions                  */
-/******************************************************************************/
-void VNM_data_process_handler(void) {
-    if (MPU_ready) {
-        
-        MPU_ready = false;
-    }
-    else MPU_step();
-    if (transactionReady) {
-        if (!I2Csuccessful) fault = I2C_FAULT;
-        else {
-            /*
-            __builtin_disable_interrupts();
-            mpuVec.ax = (int16_t) (((int16_t)mpuBytes[0] << 8) | mpuBytes[1]  );
-            mpuVec.fax = (float) mpuVec.ax / ACCEL_SCALAR;
-            mpuVec.ay = (int16_t) (((int16_t)mpuBytes[2] << 8) | mpuBytes[3]  );
-            mpuVec.fay = (float) mpuVec.ay / ACCEL_SCALAR;
-            mpuVec.az = (int16_t) (((int16_t)mpuBytes[4] << 8) | mpuBytes[5]  );
-            mpuVec.faz = (float) mpuVec.az / ACCEL_SCALAR;
-            mpuVec.gx = (int16_t) (((int16_t)mpuBytes[8] << 8) | mpuBytes[9]  );
-            mpuVec.fgx = (float) mpuVec.gx / GYRO_SCALAR;
-            mpuVec.gy = (int16_t) (((int16_t)mpuBytes[10] << 8) | mpuBytes[11]  );
-            mpuVec.fgy = (float) mpuVec.gy / GYRO_SCALAR;
-            mpuVec.gz = (int16_t) (((int16_t)mpuBytes[12] << 8) | mpuBytes[13]  );
-            mpuVec.fgz = (float) mpuVec.gz / GYRO_SCALAR;
-            __builtin_enable_interrupts();
-            */
-        }
-        transactionReady = false;
-    }
-    
-    if (FRONT_MISS) {
-        VNM_sendLost();
-        frontFaults++;
-    }
-    if (MIDDLE_MISS) {
-        VNM_sendLost();
-        middleFaults++;
-    }
-    if (REAR_MISS) {
-        VNM_sendLost();
-        rearFaults++;
-    }
-    
-    if (timer45Event) {
-        
-        timer45Event = false;
-    }
-}
-
-void VNM_CANsendHandler(void) {
-    //VNM_sendAcc();
-    //VNM_sendVel();
-    VNM_sendStrip();
-}
-/******************************************************************************/
-/******************************************************************************/
-
-
-/******************************************************************************/
 /*                    Module Specific State Behavior Handlers                 */
 /******************************************************************************/
 void VNM_dashctlHandler(void) {
@@ -244,7 +280,7 @@ void VNM_wfsHandler(void) {
 }
 
 void VNM_safeHandler(void) {
-    greenOn();
+    
 }
 /******************************************************************************/
 /******************************************************************************/
@@ -253,9 +289,6 @@ void VNM_safeHandler(void) {
 /******************************************************************************/
 /*                        Serial Debugging Utilities                          */
 /******************************************************************************/
-//uint16_t px = 0, py = 0, pz = 0, vx = 0, vy = 0, vz = 0, 
-//         ax = 0, ay = 0, az = 0;
-
 void VNM_printVariables(void) {
     //printf("=================================================\r\n");
     printf("ax:%.5d ay:%.5d az:%.5d ", mpuVec.ax, mpuVec.ay, mpuVec.az);
