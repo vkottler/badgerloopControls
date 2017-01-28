@@ -25,9 +25,9 @@ void setBrakeIntensity(uint8_t brake, uint8_t intensity) {
 
 void readyBrakes(void) {
     digitalWrite(X1_NE555_B1, 0);
-    //digitalWrite(X1_NE555_B2, 0);
+    digitalWrite(X1_NE555_B2, 0);
     digitalWrite(X2_NE555_B3, 0);
-    //digitalWrite(X2_NE555_B4, 0);
+    digitalWrite(X2_NE555_B4, 0);
     brakingReady = true;
 }
 
@@ -45,13 +45,13 @@ void deflate(void) {
 
 void eBrake(void) {
     digitalWrite(X1_NC_B1, 0);
-    //digitalWrite(X1_NC_B2, 0);
+    digitalWrite(X1_NC_B2, 0);
     digitalWrite(X2_NC_B3, 0);
-    //digitalWrite(X2_NC_B4, 0);
+    digitalWrite(X2_NC_B4, 0);
     setBrakeIntensity(1, 100);
-    //setBrakeIntensity(1, 100);
+    setBrakeIntensity(1, 100);
     setBrakeIntensity(3, 100);
-    //setBrakeIntensity(1, 100);
+    setBrakeIntensity(1, 100);
 }
 
 void inflate(void) {
@@ -64,22 +64,22 @@ void inflate(void) {
 }
 
 inline void b1Brake(void) { PWM_set_period(B1_OC, intensities[1]); }
-//inline void b2Brake(void) { PWM_set_period(B2_OC, intensities[2]); }
+inline void b2Brake(void) { PWM_set_period(B2_OC, intensities[2]); }
 inline void b3Brake(void) { PWM_set_period(B3_OC, intensities[3]); }
-//inline void b4Brake(void) { PWM_set_period(B4_OC, intensities[4]); }
+inline void b4Brake(void) { PWM_set_period(B4_OC, intensities[4]); }
 
 inline void updateBrakes(void) {
     b1Brake();
-    //b2Brake();
+    b2Brake();
     b3Brake();
-    //b4Brake();
+    b4Brake();
 }
 
 void parseBAmessage(void) {
     setBrakeIntensity(1, receiving.byte0);
-    //setBrakeIntensity(2, receiving.byte1);
+    setBrakeIntensity(2, receiving.byte1);
     setBrakeIntensity(3, receiving.byte2);
-    //setBrakeIntensity(4, receiving.byte3);
+    setBrakeIntensity(4, receiving.byte3);
 }
 /******************************************************************************/
 /******************************************************************************/

@@ -9,13 +9,15 @@
 #define CABIN_TEMP          readings[0]     // 1
 #define FRONT_HV_HARNESS    readings[1]     // 2
 #define FRONT_12V_PACK      readings[2]     // 3
-#define WCM_TEMP            readings[3]     // 4
-#define BACK_HV_HARNESS     readings[4]     // 5
-#define BACK_12V_PACK       readings[5]     // 6
-#define MOTOR4              readings[6]     // 7
+#define WCM_TEMP            readings[4]     // 4
+#define BACK_HV_HARNESS     readings[5]     // 5
+#define BACK_12V_PACK       readings[6]     // 6
+#define MOTOR4              readings[3]     // 7
 #define MOTOR3              readings[7]     // 8
 #define MOTOR2              readings[8]     // 9
 #define MOTOR1              readings[9]     // 10
+
+#define TO_VOLTAGE          ((float) 3.3/1024.0)
 
 #define THERM_OHMS          1500
 #define MOTOR_OHMS          3900

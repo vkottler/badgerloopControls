@@ -177,7 +177,10 @@ void VSM_testingHandler(void) {
 /*                        Serial Debugging Utilities                          */
 /******************************************************************************/
 void VSM_printVariables(void) {
+    int i;
     printf("Left Door: %s Right Door: %s\r\n", left_door_state ? "true" : "false", right_door_state ? "true" : "false");
+    for (i = 0; i < 10; i++) printf("[%d]", readings[i]);
+    printf("\r\n");
 }
 /******************************************************************************/
 /******************************************************************************/
