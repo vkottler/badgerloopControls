@@ -8,7 +8,7 @@ float accelBias[3], gyroBias[3];
 unsigned int fifoCount = 0;
 
 uint8_t addr = 0;
-volatile uint8_t fifoCount[2];
+volatile uint8_t fifoCountBytes[2];
 uint16_t totalCount;
 uint8_t readIndex = 0;
 
@@ -20,7 +20,22 @@ volatile uint8_t mpuBytes[14];
 
 inline void startFIFOread(void) {
     addr = FIFO_COUNTH;
-    I2CwriteAndRead(MPU_ADDRESS, &addr, 1, fifoCount, 2, false);
+    I2CwriteAndRead(MPU_ADDRESS, &addr, 1, fifoCountBytes, 2, false);
+}
+
+bool MPUwriteReg(uint8_t reg, uint8_t value, bool block) {
+    uint8_t vals[2];
+    vals[0] = reg;
+    vals[1] = value;
+    return I2CwriteAndRead(MPU_ADDRESS, vals, 2, NULL, 0, block);
+}
+
+inline void MPU_startSampling(void) {
+    if (MPUwriteReg(FIFO_EN, 0x78, false)) fault = I2C_FAULT;
+}
+
+bool MPU_stopSampling(void) {
+    if (MPUwriteReg(FIFO_EN, 0x00, false)) fault = I2C_FAULT;
 }
 
 void MPU_step(void) {
@@ -38,7 +53,7 @@ void MPU_step(void) {
             break;
         case GET_FIFO_COUNT:
             if (transactionReady && I2Csuccessful) {
-                totalCount = (uint16_t) fifoCount[0] << 8 | (fifoCount[1]);
+                totalCount = (uint16_t) fifoCountBytes[0] << 8 | (fifoCountBytes[1]);
                 mpuState = GET_VALUES;
             }
         case GET_VALUES:
@@ -49,21 +64,6 @@ void MPU_step(void) {
 
 void printOffsets(void) {
     printf("ax: %f ay: %f az: %f gx: %f gy: %f gz: %f\r\n", accelBias[0], accelBias[1], accelBias[2], gyroBias[0], gyroBias[1], gyroBias[2]);
-}
-
-inline void MPU_startSampling(void) {
-    if (MPUwriteReg(FIFO_EN, 0x78, false)) fault = I2C_FAULT;
-}
-
-bool MPU_stopSampling(void) {
-    if (MPUwriteReg(FIFO_EN, 0x00, false)) fault = I2C_FAULT;
-}
-
-bool MPUwriteReg(uint8_t reg, uint8_t value, bool block) {
-    uint8_t vals[2];
-    vals[0] = reg;
-    vals[1] = value;
-    return I2CwriteAndRead(MPU_ADDRESS, vals, 2, NULL, 0, block);
 }
 
 // Function which accumulates gyro and accelerometer data after device
@@ -80,50 +80,50 @@ bool calibrateMPU9250(float * gyroBias, float * accelBias) {
 
   // reset device
   // Write a one to bit 7 reset bit; toggle reset device
-  if (MPUwriteReg(PWR_MGMT_1, 0x80)) return false;
+  if (MPUwriteReg(PWR_MGMT_1, 0x80, true)) return false;
   delay(100, MILLI);
 
   // get stable time source; Auto select clock source to be PLL gyroscope
   // reference if ready else use the internal oscillator, bits 2:0 = 001
-  MPUwriteReg(PWR_MGMT_1, 0x01);
-  MPUwriteReg(PWR_MGMT_2, 0x00);
+  MPUwriteReg(PWR_MGMT_1, 0x01, true);
+  MPUwriteReg(PWR_MGMT_2, 0x00, true);
   delay(200, MILLI);
 
   // Configure device for bias calculation
   // Disable all interrupts
-  MPUwriteReg(INT_ENABLE, 0x00);
+  MPUwriteReg(INT_ENABLE, 0x00, true);
   // Disable FIFO
-  MPUwriteReg(FIFO_EN, 0x00);
+  MPUwriteReg(FIFO_EN, 0x00, true);
   // Turn on internal clock source
-  MPUwriteReg(PWR_MGMT_1, 0x00);
+  MPUwriteReg(PWR_MGMT_1, 0x00, true);
   // Disable I2C master
-  MPUwriteReg(I2C_MST_CTRL, 0x00);
+  MPUwriteReg(I2C_MST_CTRL, 0x00, true);
   // Disable FIFO and I2C master modes
-  MPUwriteReg(USER_CTRL, 0x00);
+  MPUwriteReg(USER_CTRL, 0x00, true);
   // Reset FIFO and DMP
-  MPUwriteReg(USER_CTRL, 0x0C);
+  MPUwriteReg(USER_CTRL, 0x0C, true);
   delay(15, MILLI);
 
   // Configure MPU6050 gyro and accelerometer for bias calculation
   // Set low-pass filter to 188 Hz
-  MPUwriteReg(CONFIG, 0x01);
+  MPUwriteReg(CONFIG, 0x01, true);
   // Set sample rate to 1 kHz
-  MPUwriteReg(SMPLRT_DIV, 0x00);
+  MPUwriteReg(SMPLRT_DIV, 0x00, true);
   // Set gyro full-scale to 250 degrees per second, maximum sensitivity
-  MPUwriteReg(GYRO_CONFIG, 0x00);
+  MPUwriteReg(GYRO_CONFIG, 0x00, true);
   // Set accelerometer full-scale to 2 g, maximum sensitivity
-  MPUwriteReg(ACCEL_CONFIG, 0x00);
+  MPUwriteReg(ACCEL_CONFIG, 0x00, true);
 
   // Configure FIFO to capture accelerometer and gyro data for bias calculation
-  MPUwriteReg(USER_CTRL, 0x40);  // Enable FIFO
+  MPUwriteReg(USER_CTRL, 0x40, true);  // Enable FIFO
   // Enable gyro and accelerometer sensors for FIFO  (max size 512 bytes in
   // MPU-9150)
-  MPUwriteReg(FIFO_EN, 0x78);
+  MPUwriteReg(FIFO_EN, 0x78, true);
   delay(40, MILLI);  // accumulate 40 samples in 40 milliseconds = 480 bytes
 
   // At end of sample accumulation, turn off FIFO sensor read
   // Disable gyro and accelerometer sensors for FIFO
-  MPUwriteReg(FIFO_EN, 0x00);
+  MPUwriteReg(FIFO_EN, 0x00, true);
   // Read FIFO sample count
   addr = FIFO_COUNTH;
   I2CwriteAndRead(MPU_ADDRESS, &addr, 1, data, 2, true);
@@ -178,12 +178,12 @@ bool calibrateMPU9250(float * gyroBias, float * accelBias) {
   data[5] = (-gyro_bias[2]/4)       & 0xFF;
 
   // Push gyro biases to hardware registers
-  MPUwriteReg(XG_OFFSET_H, data[0]);
-  MPUwriteReg(XG_OFFSET_L, data[1]);
-  MPUwriteReg(YG_OFFSET_H, data[2]);
-  MPUwriteReg(YG_OFFSET_L, data[3]);
-  MPUwriteReg(ZG_OFFSET_H, data[4]);
-  MPUwriteReg(ZG_OFFSET_L, data[5]);
+  MPUwriteReg(XG_OFFSET_H, data[0], true);
+  MPUwriteReg(XG_OFFSET_L, data[1], true);
+  MPUwriteReg(YG_OFFSET_H, data[2], true);
+  MPUwriteReg(YG_OFFSET_L, data[3], true);
+  MPUwriteReg(ZG_OFFSET_H, data[4], true);
+  MPUwriteReg(ZG_OFFSET_L, data[5], true);
 
   // Output scaled gyro biases for display in the main program
   gyroBias[0] = (float) gyro_bias[0]/(float) gyrosensitivity;
@@ -253,12 +253,12 @@ bool calibrateMPU9250(float * gyroBias, float * accelBias) {
   // Apparently this is not working for the acceleration biases in the MPU-9250
   // Are we handling the temperature correction bit properly?
   // Push accelerometer biases to hardware registers
-  MPUwriteReg(XA_OFFSET_H, data[0]);
-  MPUwriteReg(XA_OFFSET_L, data[1]);
-  MPUwriteReg(YA_OFFSET_H, data[2]);
-  MPUwriteReg(YA_OFFSET_L, data[3]);
-  MPUwriteReg(ZA_OFFSET_H, data[4]);
-  MPUwriteReg(ZA_OFFSET_L, data[5]);
+  MPUwriteReg(XA_OFFSET_H, data[0], true);
+  MPUwriteReg(XA_OFFSET_L, data[1], true);
+  MPUwriteReg(YA_OFFSET_H, data[2], true);
+  MPUwriteReg(YA_OFFSET_L, data[3], true);
+  MPUwriteReg(ZA_OFFSET_H, data[4], true);
+  MPUwriteReg(ZA_OFFSET_L, data[5], true);
 
   // Output scaled accelerometer biases for display in the main program
   accelBias[0] = (float)accel_bias[0]/(float)accelsensitivity;

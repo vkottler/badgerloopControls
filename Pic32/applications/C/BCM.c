@@ -146,43 +146,43 @@ bool BCM_init_periph(void) {
     
     // Box 1 I/O
     pinMode(X1_NC_B1, OUTPUT);
-    //pinMode(X1_NC_B2, OUTPUT);
+    pinMode(X1_NC_B2, OUTPUT);
     pinMode(X1_NE555_B1, OUTPUT);
-    //pinMode(X1_NE555_B2, OUTPUT);
+    pinMode(X1_NE555_B2, OUTPUT);
     pinMode(X1_SLP_B1, OUTPUT);
-    //pinMode(X1_SLP_B2, OUTPUT);
+    pinMode(X1_SLP_B2, OUTPUT);
     pinMode(X1_PWM_B1, OUTPUT);
-    //pinMode(X1_PWM_B2, OUTPUT);
+    pinMode(X1_PWM_B2, OUTPUT);
     PWM_init(B1_OC);
-    //PWM_init(B2_OC);
+    PWM_init(B2_OC);
     
     // Box 1: Turn on NC Relays, Disable Sleep, hold PWM low
     digitalWrite(X1_NC_B1, 1);
-    //digitalWrite(X1_NC_B2, 1);
+    digitalWrite(X1_NC_B2, 1);
     digitalWrite(X1_SLP_B1, 1);
-    //digitalWrite(X1_SLP_B2, 1);
+    digitalWrite(X1_SLP_B2, 1);
     digitalWrite(X1_NE555_B1, 1);
-    //digitalWrite(X1_NE555_B2, 1);
+    digitalWrite(X1_NE555_B2, 1);
     
     // Box 2 I/O
     pinMode(X2_NC_B3, OUTPUT);
-    //pinMode(X2_NC_B4, OUTPUT);
+    pinMode(X2_NC_B4, OUTPUT);
     pinMode(X2_NE555_B3, OUTPUT);
-    //pinMode(X2_NE555_B4, OUTPUT);
+    pinMode(X2_NE555_B4, OUTPUT);
     pinMode(X2_SLP_B3, OUTPUT);
-    //pinMode(X2_SLP_B4, OUTPUT);
+    pinMode(X2_SLP_B4, OUTPUT);
     pinMode(X2_PWM_B3, OUTPUT);
-    //pinMode(X2_PWM_B4, OUTPUT);
+    pinMode(X2_PWM_B4, OUTPUT);
     PWM_init(B3_OC);
-    //PWM_init(B4_OC);
+    PWM_init(B4_OC);
     
     // Box 2: Turn on NC Relays, Disable Sleep, hold PWM low
     digitalWrite(X2_NC_B3, 1);
-    //digitalWrite(X2_NC_B4, 1);
+    digitalWrite(X2_NC_B4, 1);
     digitalWrite(X2_SLP_B3, 1);
-    //digitalWrite(X2_SLP_B4, 1);
+    digitalWrite(X2_SLP_B4, 1);
     digitalWrite(X2_NE555_B3, 1);
-    //digitalWrite(X2_NE555_B4, 1);
+    digitalWrite(X2_NE555_B4, 1);
     
     // Valve I/0
     pinMode(MT_VALVE, OUTPUT);

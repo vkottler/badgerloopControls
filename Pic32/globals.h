@@ -25,7 +25,7 @@
 /******************************************************************************/
 /******************************************************************************/
 
-#define CHECK_CAN_TICKS         ticks % CAN_SEND_TICKS == 0 && CAN_autosend
+#define CHECK_CAN_TICKS         ticks % CAN_SEND_TICKS == 0 && CAN_autosend && CANsent
 
 #define TMR45                   ((TMR5 << 16) | TMR4)
 #define CHECK_SEND_CAN_TO       currTime - SEND_FAULT_TIMEOUT > lastSentTimeout && currTime > currTime - SEND_FAULT_TIMEOUT 
@@ -45,7 +45,7 @@ extern uint8_t num_endpoints, heartbeatsReceived;
 extern volatile FAULT_TYPE prev_fault, fault;
 extern const char *timestamp;
 extern CAN_MESSAGE *sending, receiving;
-extern volatile bool adcSampleReady, sendFaultAvailable, timer45Event;
+extern volatile bool adcSampleReady, sendFaultAvailable, timer45Event, CANsent;
 extern volatile unsigned int ticks;
 /******************************************************************************/
 

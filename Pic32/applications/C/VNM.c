@@ -13,9 +13,6 @@ volatile int *main_count = NULL;
 uint8_t frontFaults = 0, rearFaults = 0, middleFaults = 0;
 
 
-/******************************************************************************/
-/*                        Data Processing & Unit Conversions                  */
-/******************************************************************************/
 inline void calculateVelocity(void) {
     __builtin_disable_interrupts();
     frontVelocity = getFrequency(FRONT_INTERVAL);
@@ -27,22 +24,105 @@ inline void calculateVelocity(void) {
     __builtin_enable_interrupts();    
 }
 
+
+/******************************************************************************/
+/*                             Outgoing Messages                              */
+/******************************************************************************/
+void VNM_sendPos(void) {
+    px = *main_count * 30 + *main_count / 2;
+    setupBroadcast();
+    sending->SIZE = 7;
+    sending->message_num = VNM_POS;
+    sending->byte0 = px >> 8;
+    sending->byte1 = px & 0xff;
+    sending->byte2 = py >> 8;
+    sending->byte3 = py & 0xff;
+    sending->byte4 = pz >> 8;
+    sending->byte5 = pz & 0xff;
+    handleCANbco();
+}
+
+void VNM_sendVel(void) {
+    calculateVelocity();
+    setupBroadcast();
+    sending->SIZE = 7;
+    sending->message_num = VNM_VEL;
+    sending->byte0 = frontVelocity >> 8;
+    sending->byte1 = frontVelocity & 0xff;
+    sending->byte2 = middleVelocity >> 8;
+    sending->byte3 = middleVelocity & 0xff;
+    sending->byte4 = rearVelocity >> 8;
+    sending->byte5 = rearVelocity & 0xff;
+    handleCANbco();
+}
+
+/*
+void VNM_sendAcc(void) {
+    setupBroadcast();
+    sending->message_num = VNM_ACC;
+    sending->SIZE = 7;
+    sending->byte0 = ax >> 8;
+    sending->byte1 = ax & 0xff;
+    sending->byte2 = ay >> 8;
+    sending->byte3 = ay & 0xff;
+    sending->byte4 = az >> 8;
+    sending->byte5 = az & 0xff;
+    handleCANbco();
+}
+*/
+
+void VNM_sendAtt(void) {
+    setupBroadcast();
+    sending->SIZE = 7;
+    // pitch
+    // roll
+    // yaw
+}
+
+void VNM_sendStrip(void) {
+    setupBroadcast();
+    sending->message_num = VNM_STRIP_COUNT;
+    sending->SIZE = 4;
+    sending->byte0 = *main_count >> 8;
+    sending->byte1 = *main_count & 0xff;
+    if (main_count == &FRONT_COUNT) sending->byte2 = 0;
+    else if (main_count == &MIDDLE_COUNT) sending->byte2 = 1;
+    else sending->byte2 = 2;
+    handleCANbco();
+}
+
+void VNM_sendLost(void) {
+    setupBroadcast();
+    sending->message_num = VNM_STRIPLOST;
+    sending->SIZE = 4;
+    sending->byte0 = frontFaults;
+    sending->byte1 = middleFaults;
+    sending->byte2 = rearFaults;
+    handleCANbco();
+}
+/******************************************************************************/
+/******************************************************************************/
+
+
+/******************************************************************************/
+/*                        Data Processing & Unit Conversions                  */
+/******************************************************************************/
+
+
 inline void handleStripDetection(void) {
-    switch (main_count) {
-        case &FRONT_COUNT:
-            if (FRONT_COUNT != MIDDLE_COUNT && MIDDLE_COUNT == REAR_COUNT && MIDDLE_COUNT > FRONT_COUNT)
-                main_count = &MIDDLE_COUNT;
-            break;
-        case &MIDDLE_COUNT:
-            if (MIDDLE_COUNT < REAR_COUNT)
-                main_count = &REAR_COUNT;
-            break;
-        case &REAR_COUNT:
-            if (FRONT_COUNT > REAR_COUNT && FRONT_COUNT > MIDDLE_COUNT)
-                main_count = &FRONT_COUNT;
-            else if (MIDDLE_COUNT > REAR_COUNT && MIDDLE_COUNT > FRONT_COUNT)
-                main_count = &MIDDLE_COUNT;
-            break;
+    if (main_count == &FRONT_COUNT) {
+        if (FRONT_COUNT != MIDDLE_COUNT && MIDDLE_COUNT == REAR_COUNT && MIDDLE_COUNT > FRONT_COUNT)
+            main_count = &MIDDLE_COUNT;
+    }
+    else if (main_count == &MIDDLE_COUNT) {
+        if (MIDDLE_COUNT < REAR_COUNT)
+            main_count = &REAR_COUNT;
+    }
+    else {
+        if (FRONT_COUNT > REAR_COUNT && FRONT_COUNT > MIDDLE_COUNT)
+            main_count = &FRONT_COUNT;
+        else if (MIDDLE_COUNT > REAR_COUNT && MIDDLE_COUNT > FRONT_COUNT)
+            main_count = &MIDDLE_COUNT;
     }
 }
 
@@ -79,7 +159,7 @@ void VNM_data_process_handler(void) {
     handleStripDetection();
     
     // Check accelerometer
-    handleMPU();
+    //handleMPU();
     
     // Check software missed strips
     if (FRONT_MISS) {
@@ -100,92 +180,6 @@ void VNM_data_process_handler(void) {
         
         timer45Event = false;
     }
-}
-
-void VNM_CANsendHandler(void) {
-    VNM_sendPos();
-    //VNM_sendAcc();
-    VNM_sendVel();
-    VNM_sendStrip();
-}
-/******************************************************************************/
-/******************************************************************************/
-
-
-/******************************************************************************/
-/*                             Outgoing Messages                              */
-/******************************************************************************/
-bool VNM_sendPos(void) {
-    px = *main_count * 30 + *main_count / 2;
-    setupBroadcast();
-    sending->SIZE = 7;
-    sending->message_num = VNM_POS;
-    sending->byte0 = px >> 8;
-    sending->byte1 = px & 0xff;
-    sending->byte2 = py >> 8;
-    sending->byte3 = py & 0xff;
-    sending->byte4 = pz >> 8;
-    sending->byte5 = pz & 0xff;
-    handleCANbco();
-}
-
-bool VNM_sendVel(void) {
-    calculateVelocity();
-    setupBroadcast();
-    sending->SIZE = 7;
-    sending->message_num = VNM_VEL;
-    sending->byte0 = frontVelocity >> 8;
-    sending->byte1 = frontVelocity & 0xff;
-    sending->byte2 = middleVelocity >> 8;
-    sending->byte3 = middleVelocity & 0xff;
-    sending->byte4 = rearVelocity >> 8;
-    sending->byte5 = rearVelocity & 0xff;
-    handleCANbco();
-}
-
-bool VNM_sendAcc(void) {
-    setupBroadcast();
-    sending->message_num = VNM_ACC;
-    sending->SIZE = 7;
-    sending->byte0 = ax >> 8;
-    sending->byte1 = ax & 0xff;
-    sending->byte2 = ay >> 8;
-    sending->byte3 = ay & 0xff;
-    sending->byte4 = az >> 8;
-    sending->byte5 = az & 0xff;
-    return CAN_broadcast();
-}
-
-bool VNM_sendAtt(void) {
-    setupBroadcast();
-    sending->SIZE = 7;
-    // pitch
-    // roll
-    // yaw
-}
-
-bool VNM_sendStrip(void) {
-    setupBroadcast();
-    sending->message_num = VNM_STRIP_COUNT;
-    sending->SIZE = 4;
-    sending->byte0 = *main_count >> 8;
-    sending->byte1 = *main_count & 0xff;
-    switch (main_count) {
-        case &FRONT_COUNT:  sending->byte2 = 0; break;
-        case &MIDDLE_COUNT: sending->byte2 = 1; break;
-        case &REAR_COUNT:   sending->byte2 = 2; break;
-    }
-    return CAN_broadcast();
-}
-
-bool VNM_sendLost(void) {
-    setupBroadcast();
-    sending->message_num = VNM_STRIPLOST;
-    sending->SIZE = 4;
-    sending->byte0 = frontFaults;
-    sending->byte1 = middleFaults;
-    sending->byte2 = rearFaults;
-    return CAN_broadcast();
 }
 /******************************************************************************/
 /******************************************************************************/
@@ -222,7 +216,8 @@ bool VNM_init_periph(void) {
     inputCapInit(1);
     inputCapInit(4);
     inputCapInit(5);
-    return MPUinitialize();
+    //return MPUinitialize();
+    return true;
 }
 
 bool VNM_broadcast_handler(void) {
@@ -233,6 +228,13 @@ bool VNM_broadcast_handler(void) {
 bool VNM_message_handler(void) {
     
     return true;
+}
+
+void VNM_CANsendHandler(void) {
+    VNM_sendPos();
+    //VNM_sendAcc();
+    VNM_sendVel();
+    VNM_sendStrip();
 }
 /******************************************************************************/
 /******************************************************************************/

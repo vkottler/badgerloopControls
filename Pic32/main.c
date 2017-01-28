@@ -67,7 +67,10 @@ int main(void) {
         checkMessages();
         
         // Send CAN data
-        if (CHECK_CAN_TICKS) CANsendHandler();
+        if (CHECK_CAN_TICKS) {
+            CANsendHandler();
+            CANsent = false;
+        }
         
         // update the fault status if necessary
         check_bus_integrity();

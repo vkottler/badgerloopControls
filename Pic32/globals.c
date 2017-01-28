@@ -25,7 +25,7 @@ volatile unsigned int ticks = 0;
 
 // Partially only for during testing
 uint8_t num_endpoints = 0;
-volatile bool adcSampleReady = false, sendFaultAvailable = true, timer45Event = false;
+volatile bool adcSampleReady = false, sendFaultAvailable = true, timer45Event = false, CANsent = false;
 /******************************************************************************/
 /******************************************************************************/
 
@@ -158,6 +158,9 @@ void handleFaults(void) {
             CAN_send_fault();
             next_state = last_healthy;
             break;
+            
+        case I2C_FAULT:
+            next_state = last_healthy;
             
         default: 
             prev_fault = fault;

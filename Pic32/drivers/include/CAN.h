@@ -65,6 +65,9 @@ int CAN_check_error(void);
 void setupBroadcast(void);
 void setupMessage(uint16_t SID);
 
+inline void handleCANbco(void);
+inline void handleCANmo(void);
+
 bool CAN_send(void);
 bool CAN_broadcast(void);
 

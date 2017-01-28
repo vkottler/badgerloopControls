@@ -8,13 +8,13 @@
 
 #define MPU_ADDRESS     0x68
 
-extern volatile uint8_t mpuBytes[14];
-extern MPU_STATE mpuState;
-bool MPU_ready = false;
-
 typedef enum {
     SAMPLING, WAIT, GET_FIFO_COUNT, GET_VALUES, IDLE
 } MPU_STATE;
+
+extern volatile uint8_t mpuBytes[14];
+extern MPU_STATE mpuState;
+bool MPU_ready;
 
 // Functions
 bool MPUinitialize(void);
