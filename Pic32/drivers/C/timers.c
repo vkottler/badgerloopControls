@@ -33,6 +33,7 @@ void startTimer45(int ms) {
 
 void __ISR (_TIMER_5_VECTOR, IPL1SOFT) slowTimerHandler(void) {
     timer45Event = true;
+    CANsent = true;
     ticks++;
     IFS0bits.T5IF = 0;
 }

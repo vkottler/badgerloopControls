@@ -10,9 +10,11 @@
 #include "../../globals.h"
 #include "../../applications/include/VSM.h"
 
-extern volatile bool ADready;
+#define READING_READY   AD1CON1bits.DONE
 
-void initADC(ROLE module);
+extern bool sampling, readingReady;
+
+void initADC(void);
 int analogRead(uint8_t pin);
 
 #endif

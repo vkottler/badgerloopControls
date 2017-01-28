@@ -1,6 +1,11 @@
 #include "../include/VSM.h"
 
-bool left_door_state, right_door_state;
+bool left_door_state, right_door_state, prev_rds, prev_lds;
+
+bool doorChanged = false;
+
+uint8_t currIndex = 1;
+uint16_t readings[10];
 
 volatile VSM_TEMPS temps;
 
@@ -36,7 +41,7 @@ bool VSM_init_periph(void) {
     left_door_state = digitalRead(LEFT_DOOR);
     right_door_state = digitalRead(RIGHT_DOOR);
     memset((void *) &temps, 0, sizeof(VSM_TEMPS));
-    initADC(ourRole);
+    initADC();
     return true;
 }
 
@@ -56,9 +61,39 @@ bool VSM_message_handler(void) {
 /******************************************************************************/
 /*                        Data Processing & Unit Conversions                  */
 /******************************************************************************/
+inline void handleADC(void) {
+    // ADC
+    if (currIndex == 11) currIndex = 1;
+    if  (!sampling) ADCstartSample(currIndex);
+    if (READING_READY) {
+        ADCread(&readings[currIndex-1]);
+        //printf("(%2d) %4d\r", currIndex, readings[currIndex-1]);
+        currIndex++;
+    }
+}
+
+void VSM_send_door_state(void) {
+    setupBroadcast();
+    sending->message_num = VSM_DOOR_STATE;
+    sending->SIZE = 5;
+    sending->byte0 = left_door_state;
+    sending->byte1 = right_door_state;
+    sending->byte2 = prev_lds;
+    sending->byte3 = prev_rds;
+    handleCANbco();
+}
+
 void VSM_data_process_handler(void) {
+    
+    // Limit Switches
+    prev_rds = right_door_state;
+    prev_lds = left_door_state;
     left_door_state = digitalRead(LEFT_DOOR);
     right_door_state = digitalRead(RIGHT_DOOR);
+    if (CHECK_DOORS) doorChanged = true;
+    
+    // ADC
+    handleADC();
     
     if (timer45Event) {
 
@@ -67,7 +102,10 @@ void VSM_data_process_handler(void) {
 }
 
 void VSM_CANsendHandler(void) {
-    
+    if (doorChanged) {
+        VSM_send_door_state();
+        doorChanged = false;
+    }
 }
 /******************************************************************************/
 /******************************************************************************/
@@ -119,10 +157,16 @@ void VSM_safeHandler(void) {
 }
 
 void VSM_testingHandler(void) {
+    uint16_t reading = 0;
+    uint8_t currIndex = 1;
     while (1) {
-        blinkBoardLights(2, 250);
-        delay(500, MILLI);
-        printf("loop\r\n");
+        if (currIndex == 11) currIndex = 1;
+        if  (!sampling) ADCstartSample(currIndex);
+        if (READING_READY) {
+            ADCread(&reading);
+            printf("(%2d) %4d\r", currIndex, reading);
+            currIndex++;
+        }
     }
 }
 /******************************************************************************/
@@ -133,7 +177,7 @@ void VSM_testingHandler(void) {
 /*                        Serial Debugging Utilities                          */
 /******************************************************************************/
 void VSM_printVariables(void) {
-    printf("TODO\r\n");
+    printf("Left Door: %s Right Door: %s\r\n", left_door_state ? "true" : "false", right_door_state ? "true" : "false");
 }
 /******************************************************************************/
 /******************************************************************************/

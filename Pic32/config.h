@@ -11,7 +11,7 @@
 
 // Specify before building which board is doing what
 // i.e. which board number has which PCB attached
-#define BOARD1_ROLE         NOT_PRESENT
+#define BOARD1_ROLE         VSM
 #define BOARD2_ROLE         NOT_PRESENT
 #define BOARD3_ROLE         VNM
 #define BOARD4_ROLE         NOT_PRESENT
@@ -25,11 +25,11 @@
 //#define TESTING                 1
 
 #define SEND_FAULT_TIMEOUT      1000    // ms
-#define TICK_TIME               1000
+#define TICK_TIME               100
 
-#define CAN_SEND_TICKS          2
+#define CAN_SEND_TICKS          20
 
-//#define DEBUG_IC                1
+#define DEBUG_IC                1
 
 //#define RUN_RDY             1
 /******************************************************************************/

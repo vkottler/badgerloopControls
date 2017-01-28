@@ -93,7 +93,7 @@ int main(void) {
             case WAITING_FOR_SAFE:          wfsHandler();           break;
             case SAFE:                      safeHandler();          break;
 
-                // This only happens if we add a state and don't add a handler
+            // This only happens if we add a state and don't add a handler
             default: 
                 prev_fault = fault;
                 fault = ILLEGAL_STATE; 

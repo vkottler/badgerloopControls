@@ -31,7 +31,7 @@ const char *messageStr[] = {
 
     "VNM_POS", "VNM_VEL", "VNM_ACC", "VNM_ATT", "VNM_STRIPLOST", "VNM_STRIP_COUNT",
 
-    "VSM_TEMP1", "VSM_TEMP2", "VSM_EDATA",    
+    "VSM_TEMP1", "VSM_TEMP2", "VSM_EDATA", "VSM_DOOR_STATE",  
 
     "BCM_BRAKE_STATE", "BCM_BRAKE_SPEED1", "BCM_BRAKE_SPEED2",
  
