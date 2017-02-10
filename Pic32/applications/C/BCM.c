@@ -10,7 +10,9 @@ uint8_t prev_intensities[] =    {0, 0, 0, 0, 0};
 uint16_t B1_rpm = 0, B2_rpm = 0, B3_rpm = 0, B4_rpm = 0;
 uint16_t B1_fwv = 0, B2_fwv = 0, B3_fwv = 0, B4_fwv = 0;
 
-uint8_t pressure1 = 0, pressure2 = 0;
+uint16_t pressure1 = 0, pressure2 = 0;
+
+uint8_t currADC = MT1A;
 
 uint16_t strip_count = 0;
 uint16_t x_pos = 0;
@@ -29,11 +31,23 @@ void readyBrakes(void) {
     digitalWrite(X2_NE555_B3, 0);
     digitalWrite(X2_NE555_B4, 0);
     brakingReady = true;
+    brakesOff();
+}
+
+void unreadyBrakes(void) {
+    digitalWrite(X1_NE555_B1, 1);
+    digitalWrite(X1_NE555_B2, 1);
+    digitalWrite(X2_NE555_B3, 1);
+    digitalWrite(X2_NE555_B4, 1);
+    brakingReady = false;
+    brakesOff();
 }
 
 inline void brakesOff(void) {
     setBrakeIntensity(1, 0);
+    setBrakeIntensity(2, 0);
     setBrakeIntensity(3, 0);
+    setBrakeIntensity(4, 0);
 }
 
 void deflate(void) {
@@ -49,9 +63,9 @@ void eBrake(void) {
     digitalWrite(X2_NC_B3, 0);
     digitalWrite(X2_NC_B4, 0);
     setBrakeIntensity(1, 100);
-    setBrakeIntensity(1, 100);
+    setBrakeIntensity(2, 100);
     setBrakeIntensity(3, 100);
-    setBrakeIntensity(1, 100);
+    setBrakeIntensity(4, 100);
 }
 
 void inflate(void) {
@@ -229,6 +243,18 @@ bool BCM_message_handler(void) {
 /******************************************************************************/
 /*                        Data Processing & Unit Conversions                  */
 /******************************************************************************/
+inline void BCM_handle_ADC(void) {
+    if  (!sampling) {
+        ADCstartSample(currADC);
+        currADC = (currADC == MT1A) ? MT2A : MT1A;
+    }
+    
+    if (READING_READY) {
+        currADC == MT1A ? ADCread(&pressure2) : ADCread(&pressure1);
+        currADC = (currADC == MT1A) ? MT2A : MT1A;
+    }    
+}
+
 void BCM_compute_wheel_velocity(void) {
     B1_fwv = B1_rpm / RPM_DIVISOR;
     B1_fwv = B1_rpm / RPM_DIVISOR;
@@ -245,6 +271,8 @@ void BCM_compute_wheel_rpms(void) {
 
 void BCM_data_process_handler(void) {
     BCM_compute_wheel_velocity();
+    
+    BCM_handle_ADC();
     
     if (timer45Event) {
         
@@ -271,20 +299,20 @@ void BCM_CANsendHandler(void) {
 /*                    Module Specific State Behavior Handlers                 */
 /******************************************************************************/
 void BCM_dashctlHandler(void) {
-    
+    if (brakingReady) unreadyBrakes();
 }
 
 // The only way to get here is by receiving INFLATE message
 void BCM_rflHandler(void) {
-    if (!brakingReady) readyBrakes();
+    if (brakingReady) unreadyBrakes();
 }
 
 void BCM_pushphaseHandler(void) {
-    
+    if (!brakingReady) readyBrakes();
 }
 
 void BCM_coastHandler(void) {
-    
+    if (!brakingReady) readyBrakes();
 }
 
 void BCM_nbHandler(void) {

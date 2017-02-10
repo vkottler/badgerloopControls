@@ -5,6 +5,7 @@
 #include "../../drivers/include/CAN.h"
 #include "../../drivers/include/inputCapture.h"
 #include "../../drivers/include/I2C.h"
+#include "../../drivers/include/ADC.h"
 
 // MCM
 // PIN 50 & 51 CANNOT BE USED

@@ -76,7 +76,8 @@ void IC4Interrupt(void);
 void IC5Interrupt(void);
 void TM3Interrupt(void);
 
-extern volatile int IC1count, IC2count, IC3count, IC4count, IC5count;
+extern volatile unsigned int IC1count, IC2count, IC3count, IC4count, IC5count;
+extern volatile unsigned int IC1tick, IC2tick, IC3tick, IC4tick, IC5tick;
 extern volatile unsigned int IC1filter[FILTER_LEN], IC2filter[FILTER_LEN], IC3filter[FILTER_LEN], IC4filter[FILTER_LEN], IC5filter[FILTER_LEN];
 extern volatile unsigned int IC1filterIndex, IC2filterIndex, IC3filterIndex, IC4filterIndex, IC5filterIndex;
 

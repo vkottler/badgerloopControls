@@ -9,7 +9,7 @@ unsigned int fifoCount = 0;
 
 uint8_t addr = 0;
 volatile uint8_t fifoCountBytes[2];
-uint16_t totalCount;
+uint16_t totalCount = 0, packetCount = 0;
 uint8_t readIndex = 0;
 
 MPU_STATE mpuState = IDLE;
@@ -20,7 +20,7 @@ volatile uint8_t mpuBytes[14];
 
 inline void startFIFOread(void) {
     addr = FIFO_COUNTH;
-    I2CwriteAndRead(MPU_ADDRESS, &addr, 1, fifoCountBytes, 2, false);
+    I2CwriteAndRead(MPU_ADDRESS, &addr, 1, fifoCountBytes, 2, true);
 }
 
 bool MPUwriteReg(uint8_t reg, uint8_t value, bool block) {
@@ -40,23 +40,30 @@ bool MPU_stopSampling(void) {
 
 void MPU_step(void) {
     switch (mpuState) {
+        
         case IDLE:
             MPU_startSampling();
             mpuState = WAIT;
             break;
+            
         case WAIT:
-            break;
             if (transactionReady && I2Csuccessful) {
                 startFIFOread();
                 mpuState = GET_FIFO_COUNT;
             }
+            else if (transactionReady) mpuState = IDLE;
             break;
+            
         case GET_FIFO_COUNT:
             if (transactionReady && I2Csuccessful) {
                 totalCount = (uint16_t) fifoCountBytes[0] << 8 | (fifoCountBytes[1]);
+                packetCount = totalCount / 12;
                 mpuState = GET_VALUES;
             }
+            break;
+            
         case GET_VALUES:
+            
             if (transactionReady && I2Csuccessful)
             break;
     }

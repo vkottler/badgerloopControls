@@ -6,7 +6,9 @@ static unsigned int IC1_curr = 0, IC1_prev = 0, IC2_curr = 0, IC2_prev = 0,
                 IC3_curr = 0, IC3_prev = 0, IC4_curr = 0, IC4_prev = 0,
                 IC5_curr = 0, IC5_prev = 0;
 
-volatile int IC1count = 0, IC2count = 0, IC3count = 0, IC4count = 0, IC5count = 0;
+volatile unsigned int IC1count = 0, IC2count = 0, IC3count = 0, IC4count = 0, IC5count = 0;
+volatile unsigned int IC1tick = 0, IC2tick = 0, IC3tick = 0, IC4tick = 0, IC5tick = 0;
+static volatile unsigned int TICK1 = 0, TICK2 = 0, TICK3 = 0, TICK4 = 0, TICK5 = 0;
 volatile bool IC1event = false, IC2event = false, IC3event = false, IC4event = false, IC5even = false;
 
 volatile unsigned int IC1filter[FILTER_LEN], IC2filter[FILTER_LEN], IC3filter[FILTER_LEN], IC4filter[FILTER_LEN], IC5filter[FILTER_LEN];
@@ -33,36 +35,52 @@ unsigned int getRPM(unsigned int delta) {
     return getFrequency(delta) * 30;
 }
 
+inline void setTICK1(void) { TICK1 = ticks - IC1tick; }
+inline void setTICK2(void) { TICK2 = ticks - IC2tick; }
+inline void setTICK3(void) { TICK3 = ticks - IC3tick; }
+inline void setTICK4(void) { TICK4 = ticks - IC4tick; }
+inline void setTICK5(void) { TICK5 = ticks - IC5tick; }
+
 uint16_t IC1_rpm(void) {
-    if (!IC1ready) return IC1_curr_rpm;
+    setTICK1();
+    if (!IC1ready && TICK1 < 10) return IC1_curr_rpm * (10 - TICK1) / 10;
+    else if (TICK1 >= 10) return 0;
     IC1_curr_rpm = getRPM(IC1filterAverageCount / FILTER_LEN);
     IC1ready = false;
     return IC1_curr_rpm;
 }
 
 uint16_t IC2_rpm(void) {
-    if (!IC2ready) return IC2_curr_rpm;
+    setTICK2();
+    if (!IC2ready && TICK2 < 10) return IC2_curr_rpm * (10 - TICK2) / 10;
+    else if (TICK2 >= 10) return 0;
     IC2_curr_rpm = getRPM(IC2filterAverageCount / FILTER_LEN);
     IC2ready = false;
     return IC2_curr_rpm;
 }
 
 uint16_t IC3_rpm(void) {
-    if (!IC3ready) return IC3_curr_rpm;
+    setTICK3();
+    if (!IC3ready && TICK3 < 10) return IC3_curr_rpm * (10 - TICK3) / 10;
+    else if (TICK3 >= 10) return 0;
     IC3_curr_rpm = getRPM(IC3filterAverageCount / FILTER_LEN);
     IC3ready = false;
     return IC3_curr_rpm;   
 }
 
 uint16_t IC4_rpm(void) {
-    if (!IC4ready) return IC4_curr_rpm;
+    setTICK4();
+    if (!IC4ready && TICK4 < 10) return IC4_curr_rpm * (10 - TICK4) / 10;
+    else if (TICK4 >= 10) return 0;
     IC4_curr_rpm = getRPM(IC4filterAverageCount / FILTER_LEN);
     IC4ready = false;
     return IC4_curr_rpm;    
 }
 
 uint16_t IC5_rpm(void) {
-    if (!IC5ready) return IC5_curr_rpm;
+    setTICK5();
+    if (!IC5ready && TICK5 < 10) return IC5_curr_rpm * (10 - TICK5) / 10;
+    else if (TICK5 >= 10) return 0;
     IC5_curr_rpm = getRPM(IC5filterAverageCount / FILTER_LEN);
     IC5ready = false;
     return IC5_curr_rpm;     
@@ -130,6 +148,7 @@ void inputCapInit(int module) {
 
 void __ISR (_INPUT_CAPTURE_1_VECTOR, IPL1SOFT) IC1Interrupt(void) {
     IC1count++;
+    IC1tick = ticks;
     __builtin_disable_interrupts();
     IC1filterAverageCount -= IC1filter[IC1filterIndex];
     IC1_prev = IC1_curr;
@@ -148,6 +167,7 @@ void __ISR (_INPUT_CAPTURE_1_VECTOR, IPL1SOFT) IC1Interrupt(void) {
 
 void __ISR (_INPUT_CAPTURE_2_VECTOR, IPL1SOFT) IC2Interrupt(void) {
     IC2count++;
+    IC2tick = ticks;
     __builtin_disable_interrupts();
     IC2filterAverageCount -= IC2filter[IC2filterIndex];
     IC2_prev = IC2_curr;
@@ -165,6 +185,7 @@ void __ISR (_INPUT_CAPTURE_2_VECTOR, IPL1SOFT) IC2Interrupt(void) {
 
 void __ISR (_INPUT_CAPTURE_3_VECTOR, IPL1SOFT) IC3Interrupt(void) {
     IC3count++;
+    IC3tick = ticks;
     __builtin_disable_interrupts();
     IC3filterAverageCount -= IC3filter[IC3filterIndex];
     IC3_prev = IC3_curr;
@@ -182,6 +203,7 @@ void __ISR (_INPUT_CAPTURE_3_VECTOR, IPL1SOFT) IC3Interrupt(void) {
 
 void __ISR (_INPUT_CAPTURE_4_VECTOR, IPL1SOFT) IC4Interrupt(void) {
     IC4count++;
+    IC4tick = ticks;
     __builtin_disable_interrupts();
     IC4filterAverageCount -= IC4filter[IC4filterIndex];
     IC4_prev = IC4_curr;
@@ -199,6 +221,7 @@ void __ISR (_INPUT_CAPTURE_4_VECTOR, IPL1SOFT) IC4Interrupt(void) {
 
 void __ISR (_INPUT_CAPTURE_5_VECTOR, IPL1SOFT) IC5Interrupt(void) {
     IC5count++;
+    IC5tick = ticks;
     __builtin_disable_interrupts();
     IC5filterAverageCount -= IC5filter[IC5filterIndex];
     IC5_prev = IC5_curr;

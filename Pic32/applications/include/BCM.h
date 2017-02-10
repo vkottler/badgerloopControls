@@ -6,6 +6,7 @@
 #include "../../drivers/include/inputCapture.h"
 #include "../../peripherals/include/ledShield.h"
 #include "../../drivers/include/PWM.h"
+#include "../../drivers/include/ADC.h"
 
 #define RPM_DIVISOR     33      // rpm -> m/s = pi * diameter / 60
 
@@ -44,6 +45,9 @@
 
 #define MT_VALVE    47
 #define VALVES      48
+
+#define MT1A        0   
+#define MT2A        1
 
 extern bool brakingReady;
 

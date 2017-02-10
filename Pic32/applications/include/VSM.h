@@ -17,6 +17,24 @@
 #define MOTOR2              readings[8]     // 9
 #define MOTOR1              readings[9]     // 10
 
+#define CABINH              readings[0] >> 8
+#define CABINL              readings[0] & 0xff
+
+#define WCMH                readings[4] >> 8
+#define WCML                readings[4] & 0xff
+
+#define F12VH               readings[2] >> 8
+#define F12VL               readings[2] & 0xff
+
+#define B12VH               readings[6] >> 8
+#define B12VL               readings[6] & 0xff
+
+#define F12VHH              readings[1] >> 8
+#define F12VHL              readings[1] & 0xff
+
+#define B12VHH              readings[5] >> 8
+#define B12VHL              readings[5] & 0xff
+
 #define TO_VOLTAGE          ((float) 3.3/1024.0)
 
 #define THERM_OHMS          1500

@@ -67,7 +67,6 @@ inline void handleADC(void) {
     if  (!sampling) ADCstartSample(currIndex);
     if (READING_READY) {
         ADCread(&readings[currIndex-1]);
-        //printf("(%2d) %4d\r", currIndex, readings[currIndex-1]);
         currIndex++;
     }
 }
@@ -82,6 +81,41 @@ void VSM_send_door_state(void) {
     sending->byte3 = prev_rds;
     handleCANbco();
 }
+
+void VSM_temp1(void) {
+    setupBroadcast();
+    sending->message_num = VSM_TEMP1;
+    sending->SIZE = 7;
+    sending->byte0 = CABINH;
+    sending->byte1 = CABINL;
+    sending->byte2 = WCMH;
+    sending->byte3 = WCML;
+    sending->byte4 = F12VH;
+    sending->byte5 = F12VL;
+    handleCANbco();
+}
+
+void VSM_temp2(void) {
+    setupBroadcast();
+    sending->message_num = VSM_TEMP2;
+    sending->SIZE = 7;
+    sending->byte0 = B12VH;
+    sending->byte1 = B12VL;
+    sending->byte2 = F12VHH;
+    sending->byte3 = F12VHL;
+    sending->byte4 = B12VHH;
+    sending->byte5 = B12VHL;
+    handleCANbco();
+}
+
+/*
+void VSM_Edata(void) {
+    setupBroadcast();
+    sending->message_num = VSM_EDATA;
+    
+    handleCANbco();
+}
+*/
 
 void VSM_data_process_handler(void) {
     
@@ -106,6 +140,8 @@ void VSM_CANsendHandler(void) {
         VSM_send_door_state();
         doorChanged = false;
     }
+    VSM_temp1();
+    VSM_temp2();
 }
 /******************************************************************************/
 /******************************************************************************/

@@ -2,7 +2,7 @@
 
 uint16_t left_front_rpm = 0, right_front_rpm = 0, left_rear_rpm = 0, right_rear_rpm = 0;
 
-uint16_t commanded_speed = 0, new_speed = 0;
+uint16_t commanded_speed = 0, new_speed = 0, commanded_voltage = 0;
 
 /******************************************************************************/
 /*                                  Utility                                   */
@@ -44,10 +44,12 @@ bool send_wheel_rpms(uint16_t SID) {
 
 bool send_cmdv(uint16_t SID) {
     (SID & ALL) ? setupBroadcast() : setupMessage(SID);
-    sending->SIZE = 3;
+    sending->SIZE = 5;
     sending->message_num = MCM_CMDV;
     sending->byte0 = commanded_speed >> 8;
     sending->byte1 = commanded_speed & 0xff;
+    sending->byte2 = commanded_voltage >> 8;
+    sending->byte3 = commanded_voltage & 0xff;
     return (SID & ALL) ? CAN_broadcast() : CAN_send();
 }
 /******************************************************************************/
@@ -64,20 +66,12 @@ inline void MCM_compute_wheel_rpms(void) {
     right_rear_rpm =    IC4_rpm();
 }
 
-void check_cmdv(void) {
-    
-}
-
 void MCM_data_process_handler(void) {
-    
-    if (timer45Event) {
-
-        timer45Event = false;
-    }
+    if  (!sampling) ADCstartSample(0);
+    if (READING_READY) ADCread(&commanded_voltage);
 }
 
 void MCM_CANsendHandler(void) {
-    check_cmdv();
     MCM_compute_wheel_rpms(); 
     send_cmdv(ALL);
     send_wheel_rpms(ALL);
@@ -117,6 +111,7 @@ bool MCM_init_periph(void) {
     inputCapInit(5);
     inputCapInit(1);
     inputCapInit(4);
+    initADC();
     return true;
 }
 

@@ -8,9 +8,11 @@ uint16_t px = 0, py = 0, pz = 0;
 uint16_t frontVelocity = 0, middleVelocity = 0, rearVelocity = 0;
 float ax = 0.0, ay = 0.0, az = 0.0; 
 
-volatile int *main_count = NULL;
+volatile unsigned int *main_count = NULL;
 
 uint8_t frontFaults = 0, rearFaults = 0, middleFaults = 0;
+
+bool firstStripSent = false;
 
 
 inline void calculateVelocity(void) {
@@ -145,6 +147,17 @@ inline void MPU_data_process(void) {
     */    
 }
 
+inline void checkFirstStrip(void) {
+    if (*main_count && !firstStripSent) {
+        setupBroadcast();
+        sending->message_num = ENTER_STATE;
+        sending->SIZE = 2;
+        sending->byte0 = COAST;
+        handleCANbco();
+        firstStripSent = true;
+    }       
+}
+
 inline void handleMPU(void) {
     if (MPU_ready) {
         MPU_data_process();
@@ -216,8 +229,7 @@ bool VNM_init_periph(void) {
     inputCapInit(1);
     inputCapInit(4);
     inputCapInit(5);
-    //return MPUinitialize();
-    return true;
+    return MPUinitialize();
 }
 
 bool VNM_broadcast_handler(void) {
@@ -249,12 +261,18 @@ void VNM_dashctlHandler(void) {
 }
 
 void VNM_rflHandler(void) {
-    
-    
+
 }
 
 void VNM_pushphaseHandler(void) {
-    
+    if (*main_count && !firstStripSent) {
+        setupBroadcast();
+        sending->message_num = ENTER_STATE;
+        sending->SIZE = 2;
+        sending->byte0 = COAST;
+        handleCANbco();
+        firstStripSent = true;
+    }      
 }
 
 void VNM_coastHandler(void) {
